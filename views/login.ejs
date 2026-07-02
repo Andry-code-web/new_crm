@@ -1,0 +1,157 @@
+<!-- Panel Izquierdo — Branding -->
+<div class="w-full h-screen flex">
+  <div
+    class="hidden lg:flex w-5/12 bg-gradient-to-br from-[#050B14] to-brand-navy flex-col justify-between p-12 relative overflow-hidden text-white">
+    <!-- Decoración sutil de fondo -->
+    <div
+      class="absolute -top-32 -left-32 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(212,168,67,0.15)_0%,transparent_70%)] pointer-events-none">
+    </div>
+    <div
+      class="absolute bottom-0 right-0 w-full h-[400px] bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjEyLCAxNjgsIDY3LCAwLjE1KSIvPjwvc3ZnPg==')] pointer-events-none mask-image:linear-gradient(to_bottom,transparent,black)">
+    </div>
+
+    <div class="relative z-10 flex items-center gap-3">
+      <div
+        class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold to-brand-gold-light text-brand-navy flex items-center justify-center font-extrabold text-xl shadow-[0_4px_16px_rgba(212,168,67,0.4)]">
+        C</div>
+      <span class="text-2xl font-extrabold tracking-tight text-white">Coinest</span>
+    </div>
+
+    <div class="relative z-10 my-auto">
+      <h1 class="text-[44px] leading-[1.1] font-black tracking-tight mb-6">
+        Tu patrimonio,<br>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold-light to-brand-gold">nuestra
+          prioridad.</span>
+      </h1>
+
+      <p class="text-lg text-white/70 leading-relaxed max-w-[420px] mb-12">
+        Plataforma corporativa integral para la gestión de préstamos hipotecarios. Administra, consulta y evalúa tu
+        cartera de inversiones en tiempo real.
+      </p>
+
+      <div class="flex flex-col gap-5">
+        <div class="flex items-center gap-4 text-white/80 font-medium">
+          <div class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+            <svg width="16" height="16" fill="none" stroke="var(--c-gold)" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          Gestión integral de cartera hipotecaria
+        </div>
+        <div class="flex items-center gap-4 text-white/80 font-medium">
+          <div class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+            <svg width="16" height="16" fill="none" stroke="var(--c-gold)" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          Simulación y análisis de riesgo
+        </div>
+        <div class="flex items-center gap-4 text-white/80 font-medium">
+          <div class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+            <svg width="16" height="16" fill="none" stroke="var(--c-gold)" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          Control de acceso basado en roles
+        </div>
+      </div>
+    </div>
+
+    <div class="relative z-10 text-white/40 text-sm font-medium">
+      &copy; 2026 Coinest Financial Group.
+    </div>
+  </div>
+
+  <!-- Panel Derecho — Formulario -->
+  <div class="flex-1 flex flex-col items-center justify-center p-8 bg-white relative overflow-y-auto">
+
+    <!-- Logo visible only on mobile -->
+    <div class="lg:hidden absolute top-8 left-8 flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-gold to-brand-gold-light text-brand-navy flex items-center justify-center font-extrabold text-lg shadow-[0_2px_8px_rgba(212,168,67,0.4)]">
+        C</div>
+      <span class="text-xl font-extrabold tracking-tight text-brand-navy">Coinest</span>
+    </div>
+
+    <div class="w-full max-w-[420px] flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div>
+        <h2 class="text-[32px] font-extrabold tracking-tight text-brand-navy mb-2">Iniciar Sesión</h2>
+        <p class="text-[15px] text-brand-muted">Ingresa tus credenciales corporativas para continuar</p>
+      </div>
+
+      <% if (locals.error) { %>
+        <div
+          class="bg-brand-danger-light/60 border border-brand-danger/30 text-brand-danger px-4 py-3 rounded-xl text-[14px] font-medium flex items-center gap-3"
+          role="alert">
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <%= error %>
+        </div>
+        <% } %>
+
+          <form action="/login" method="POST" class="flex flex-col gap-6">
+            <div class="flex flex-col gap-2">
+              <label for="email" class="text-[13px] font-bold uppercase tracking-wider text-brand-muted">Correo
+                Electrónico</label>
+              <div class="relative">
+                <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-muted/70" fill="none"
+                  stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                </svg>
+                <input type="email" id="email" name="email" required autocomplete="email" placeholder="tu@empresa.com"
+                  class="w-full bg-brand-surface2 border border-brand-border rounded-xl pl-11 pr-4 py-3.5 text-[15px] font-medium text-brand-text outline-none transition-all duration-200 placeholder:text-brand-muted/50 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_4px_rgba(27,79,216,0.1)]">
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label for="password"
+                class="text-[13px] font-bold uppercase tracking-wider text-brand-muted">Contraseña</label>
+              <div class="relative">
+                <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-muted/70" fill="none"
+                  stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <input type="password" id="password" name="password" required autocomplete="current-password"
+                  placeholder="••••••••"
+                  class="w-full bg-brand-surface2 border border-brand-border rounded-xl pl-11 pr-4 py-3.5 text-[15px] font-medium text-brand-text outline-none transition-all duration-200 placeholder:text-brand-muted/50 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_4px_rgba(27,79,216,0.1)]">
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between mt-1">
+              <label class="flex items-center gap-2.5 cursor-pointer group">
+                <div class="relative flex items-center justify-center w-5 h-5">
+                  <input id="remember_me" name="remember_me" type="checkbox"
+                    class="peer appearance-none w-5 h-5 border-[1.5px] border-brand-border rounded-[6px] bg-white checked:bg-brand-blue checked:border-brand-blue transition-all duration-200 cursor-pointer">
+                  <svg
+                    class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity duration-200"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span
+                  class="text-[14px] font-medium text-brand-text group-hover:text-brand-navy transition-colors">Recordarme</span>
+              </label>
+              <a href="#"
+                class="text-[14px] font-semibold text-brand-blue hover:text-brand-blue-hover transition-colors">¿Olvidaste
+                tu contraseña?</a>
+            </div>
+
+            <button type="submit" id="login-btn"
+              class="w-full mt-4 flex items-center justify-center py-4 rounded-xl text-[15px] font-bold tracking-wide text-white bg-gradient-to-br from-brand-blue to-brand-blue-hover shadow-[0_4px_14px_rgba(27,79,216,0.35)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(27,79,216,0.4)] active:translate-y-0 active:shadow-[0_2px_8px_rgba(27,79,216,0.3)] transition-all duration-200">
+              Ingresar al Sistema
+            </button>
+          </form>
+
+          <div class="text-center mt-6">
+            <p class="text-[13px] font-medium text-brand-muted">
+              ¿Requieres acceso corporativo? <a href="#" class="text-brand-blue font-bold hover:underline">Contacta a
+                TI</a>
+            </p>
+          </div>
+    </div>
+  </div>
+</div>

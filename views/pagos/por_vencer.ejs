@@ -1,0 +1,136 @@
+<%- include('../partials/sidebar_admin') %>
+
+<main class="flex-1 h-screen overflow-y-auto bg-brand-bg relative flex flex-col min-w-0">
+  <header class="flex items-center justify-between px-8 py-4 bg-white/92 backdrop-blur-md border-b border-brand-border sticky top-0 z-40">
+    <div>
+      <h1 class="text-[22px] font-bold tracking-tight text-brand-navy">Pagos por Vencer</h1>
+      <p class="text-[13px] text-brand-muted mt-0.5">Préstamos próximos a vencer en los siguientes 30 días</p>
+    </div>
+    <div class="flex items-center gap-4">
+      <img src="<%= user.avatar %>" alt="Avatar" class="w-[38px] h-[38px] rounded-full border-2 border-brand-gold object-cover">
+    </div>
+  </header>
+
+  <div class="p-8 max-w-[1400px] mx-auto w-full flex-1 flex flex-col gap-6">
+
+    <!-- KPI strip -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 animate-in">
+      <div class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border-l-[3px] border-l-brand-warning border-t border-r border-b border-t-brand-border border-r-brand-border border-b-brand-border flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.08)] transition-all duration-300">
+        <div class="w-12 h-12 rounded-[14px] flex items-center justify-center bg-brand-warning-light text-brand-warning border border-brand-warning/20">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div>
+          <p class="text-[12px] font-semibold text-brand-muted tracking-wide uppercase">Por Vencer</p>
+          <p class="text-[24px] font-extrabold tracking-tight text-brand-warning mt-0.5"><%= typeof porVencer !== 'undefined' ? porVencer.length : 0 %></p>
+        </div>
+      </div>
+      <div class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.08)] transition-all duration-300">
+        <div class="w-12 h-12 rounded-[14px] flex items-center justify-center bg-brand-blue-light text-brand-blue">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        </div>
+        <div>
+          <p class="text-[12px] font-semibold text-brand-muted tracking-wide uppercase">Monto en Riesgo</p>
+          <p class="text-[17px] font-extrabold tracking-tight text-brand-blue mt-0.5">$<%= typeof montoEnRiesgo !== 'undefined' ? montoEnRiesgo : '0.00' %></p>
+        </div>
+      </div>
+      <div class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.08)] transition-all duration-300">
+        <div class="w-12 h-12 rounded-[14px] flex items-center justify-center bg-brand-surface2 text-brand-navy">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+        <div>
+          <p class="text-[12px] font-semibold text-brand-muted tracking-wide uppercase">Próximos 30 días</p>
+          <p class="text-[20px] font-extrabold tracking-tight text-brand-navy mt-0.5">
+            <%= new Date().toLocaleDateString('es-MX', {day:'2-digit',month:'short',year:'numeric'}) %>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerta principal -->
+    <div class="bg-brand-warning-light/60 border-l-[4px] border-l-brand-warning border-t border-r border-b border-t-brand-warning/30 border-r-brand-warning/30 border-b-brand-warning/30 px-5 py-4 rounded-[12px] flex flex-col gap-1 transition-opacity duration-300 animate-in delay-100">
+      <div class="flex items-center gap-3">
+        <svg width="20" height="20" fill="none" stroke="var(--c-warning)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        <div>
+          <p class="font-bold text-[14px] text-brand-warning">Préstamos próximos a vencer</p>
+          <p class="text-[13px] text-brand-text opacity-90">Estos préstamos requieren atención inmediata. Contacta a los clientes para gestionar la renovación o pago.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col overflow-hidden animate-in delay-200">
+      <div class="px-7 py-6 border-b border-brand-border flex items-center justify-between gap-4 flex-wrap bg-white">
+        <div>
+          <p class="text-[16px] font-bold tracking-tight text-brand-navy">Listado &mdash; Por Vencer</p>
+          <p class="text-[13px] text-brand-muted mt-0.5">Préstamos activos próximos a su fecha límite</p>
+        </div>
+        <div class="relative">
+          <input type="text" id="search" placeholder="Buscar..."
+            class="py-2.5 pr-3.5 pl-9 border-[1.5px] border-brand-border rounded-lg text-[13px] bg-brand-surface2 outline-none w-[220px] transition-all duration-200 text-brand-text focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+          <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-muted" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+      </div>
+
+      <% if (typeof porVencer === 'undefined' || porVencer.length === 0) { %>
+      <div class="py-16 px-6 text-center flex flex-col items-center">
+        <div class="w-[60px] h-[60px] bg-brand-surface2 rounded-full flex items-center justify-center text-brand-muted mb-4">
+          <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <p class="text-[15px] font-bold text-brand-success">¡Sin vencimientos próximos!</p>
+        <p class="mt-1 text-[13px] text-brand-muted">No hay préstamos próximos a vencer en los siguientes 30 días.</p>
+      </div>
+      <% } else { %>
+      <div class="w-full overflow-x-auto">
+        <table class="w-full border-collapse text-left text-[13px]">
+          <thead>
+            <tr class="bg-brand-surface border-b border-brand-border">
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">#</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Cliente</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Inversionista</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-right">Monto</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-right">Cuota</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-center">Días Restantes</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-center">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% porVencer.forEach((p, i) => {
+              const diasRestantes = Math.ceil((new Date(p.fecha_vencimiento) - new Date()) / (1000 * 60 * 60 * 24));
+              const urgente = diasRestantes <= 7;
+            %>
+            <tr class="row border-b border-brand-border last:border-b-0 hover:bg-brand-surface transition-colors duration-150">
+              <td class="py-3.5 px-5 text-brand-muted font-medium">#<%= i + 1 %></td>
+              <td class="py-3.5 px-5">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-navy to-[#122046] text-white flex items-center justify-center text-[12px] font-bold"><%= (p.cliente_nombre || '?').charAt(0).toUpperCase() %></div>
+                  <span class="font-semibold text-brand-navy"><%= p.cliente_nombre || '—' %></span>
+                </div>
+              </td>
+              <td class="py-3.5 px-5 text-brand-muted"><%= p.inversor_nombre || '—' %></td>
+              <td class="py-3.5 px-5 text-right font-medium text-brand-text">$<%= Number(p.monto).toLocaleString('es-MX',{minimumFractionDigits:2}) %></td>
+              <td class="py-3.5 px-5 text-right font-bold text-brand-blue">$<%= Number(p.cuota).toLocaleString('es-MX',{minimumFractionDigits:2}) %></td>
+              <td class="py-3.5 px-5 text-center">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] font-bold <%= urgente ? 'bg-brand-danger-light text-brand-danger' : 'bg-brand-warning-light text-brand-warning' %>">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <%= diasRestantes %> días
+                </span>
+              </td>
+              <td class="py-3.5 px-5 text-center">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[12px] font-semibold bg-brand-warning-light text-brand-warning border border-brand-warning/30">Por Vencer</span>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</main>
+
+<script>
+  document.getElementById('search')?.addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.row').forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+  });
+</script>

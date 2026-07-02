@@ -1,0 +1,481 @@
+<% if (user.role === 'admin') { %>
+    <%- include('partials/sidebar_admin') %>
+<% } else if (user.role === 'asesor') { %>
+    <%- include('partials/sidebar_asesor') %>
+<% } else { %>
+    <%- include('partials/sidebar_cliente') %>
+<% } %>
+
+<main class="flex-1 h-screen overflow-y-auto bg-brand-bg relative flex flex-col min-w-0">
+
+  <!-- Header -->
+  <header class="flex items-center justify-between px-8 py-4 bg-white/92 backdrop-blur-md border-b border-brand-border sticky top-0 z-40">
+    <div>
+      <h1 class="text-[22px] font-bold tracking-tight text-brand-navy">Simulador de Préstamos</h1>
+      <p class="text-[13px] text-brand-muted mt-0.5">Calcula y registra simulaciones hipotecarias — <strong class="font-bold text-brand-text"><%= user.name %></strong></p>
+    </div>
+    <div class="flex items-center gap-4">
+      <img src="<%= user.avatar %>" alt="Avatar" class="w-[38px] h-[38px] rounded-full border-2 border-brand-gold object-cover">
+    </div>
+  </header>
+
+  <div class="p-8 max-w-[1400px] mx-auto w-full flex-1 flex flex-col gap-6">
+
+    <!-- Flash Messages -->
+    <% if (typeof success !== 'undefined' && success) { %>
+    <div id="flash-success" class="bg-brand-success-light border border-brand-success text-brand-success px-5 py-4 rounded-[12px] flex flex-col gap-1 transition-opacity duration-300 animate-in">
+      <p class="font-bold text-[14px]">¡Éxito!</p>
+      <p class="text-[13px] opacity-90"><%= success %></p>
+    </div>
+    <% } %>
+    <% if (typeof error !== 'undefined' && error) { %>
+    <div id="flash-error" class="bg-brand-danger-light border border-brand-danger text-brand-danger px-5 py-4 rounded-[12px] flex flex-col gap-1 transition-opacity duration-300 animate-in">
+      <p class="font-bold text-[14px]">Error</p>
+      <p class="text-[13px] opacity-90"><%= error %></p>
+    </div>
+    <% } %>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] gap-6 items-start animate-in">
+
+      <!-- LEFT: Formulario -->
+      <div class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col overflow-hidden">
+        <!-- Card Header navy -->
+        <div class="bg-gradient-to-br from-brand-navy to-[#122046] px-7 py-6 flex items-center gap-3.5">
+          <div class="w-[42px] h-[42px] bg-[rgba(212,168,67,.18)] rounded-lg flex items-center justify-center border border-[rgba(212,168,67,.3)]">
+            <svg width="20" height="20" fill="none" stroke="#D4A843" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          </div>
+          <div>
+            <p class="text-white font-bold text-[16px]">Nueva Simulación</p>
+            <p class="text-white/50 text-[12px] mt-0.5">Ingresa los parámetros del préstamo</p>
+          </div>
+        </div>
+
+        <!-- Form -->
+        <div class="p-7 flex flex-col gap-4.5">
+
+          <!-- Cliente -->
+          <div>
+            <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">
+              <span class="flex items-center gap-1.5">
+                <i class="ri-user-3-line text-[14px]" style="color:var(--c-blue)"></i>
+                Cliente
+              </span>
+            </label>
+            <select id="sim_cliente" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 hover:border-brand-blue-light focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)] sim-select">
+              <option value="">— Selecciona un cliente —</option>
+              <% clientes.forEach(c => { %>
+                <option value="<%= c.id %>"><%= c.nombre %></option>
+              <% }) %>
+            </select>
+          </div>
+
+          <!-- Inversor -->
+          <div>
+            <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">
+              <span class="flex items-center gap-1.5">
+                <i class="ri-funds-line text-[14px]" style="color:var(--c-gold)"></i>
+                Inversionista
+              </span>
+            </label>
+            <select id="sim_inversor" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 hover:border-brand-blue-light focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)] sim-select">
+              <option value="">— Selecciona un inversor —</option>
+              <% inversionistas.forEach(inv => { %>
+                <option value="<%= inv.id %>"><%= inv.nombre %></option>
+              <% }) %>
+            </select>
+          </div>
+
+          <!-- Fecha de Simulación -->
+          <div>
+            <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">
+              <span class="flex items-center gap-1.5">
+                <i class="ri-calendar-event-line text-[14px]" style="color:var(--c-blue)"></i>
+                Fecha de Inicio del Préstamo
+              </span>
+            </label>
+            <div class="relative">
+              <i class="ri-calendar-line absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-muted text-[15px] pointer-events-none"></i>
+              <input type="date" id="sim_fecha"
+                class="w-full bg-brand-surface border border-brand-border rounded-[10px] py-2.5 pr-3.5 pl-9 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 hover:border-brand-blue-light focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+            </div>
+            <p class="text-[11px] text-brand-muted mt-1">Define la fecha base para calcular los vencimientos del cronograma.</p>
+          </div>
+
+          <!-- Monto -->
+          <div>
+            <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Monto del Préstamo</label>
+            <div class="relative">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-muted font-semibold text-[15px]">$</span>
+              <input type="number" id="sim_monto" placeholder="50,000" min="1000" step="100"
+                class="w-full bg-brand-surface border border-brand-border rounded-[10px] py-2.5 pr-3.5 pl-8 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 hover:border-brand-blue-light focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+            </div>
+          </div>
+
+          <!-- Interés -->
+          <div>
+            <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Tasa de Interés Anual</label>
+            <div class="relative">
+              <input type="number" id="sim_interes" placeholder="12.5" min="0.1" max="100" step="0.1"
+                class="w-full bg-brand-surface border border-brand-border rounded-[10px] py-2.5 pl-3.5 pr-9 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 hover:border-brand-blue-light focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+              <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-muted font-semibold">%</span>
+            </div>
+          </div>
+
+          <!-- Plazo -->
+          <div>
+            <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Plazo (Meses)</label>
+            <input type="number" id="sim_plazo" placeholder="24" min="1" max="360" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 hover:border-brand-blue-light focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+          </div>
+
+          <!-- Tipo de Pago -->
+          <div>
+            <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Tipo de Pago</label>
+            <div class="grid grid-cols-2 gap-2.5" id="tipo-pago-group">
+              <label class="tipo-pago-option cursor-pointer">
+                <input type="radio" name="tipo_pago" value="mensual" class="sr-only" checked>
+                <div class="tipo-pago-card selected flex items-center justify-center gap-2 p-3 border-2 border-brand-blue bg-brand-blue-xlight rounded-lg transition-all duration-200">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  <span class="text-[13px] font-semibold">Mensual</span>
+                </div>
+              </label>
+              <label class="tipo-pago-option cursor-pointer">
+                <input type="radio" name="tipo_pago" value="quincenal" class="sr-only">
+                <div class="tipo-pago-card flex items-center justify-center gap-2 p-3 border-2 border-brand-border bg-brand-surface2 rounded-lg transition-all duration-200 text-brand-muted">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                  <span class="text-[13px] font-semibold">Quincenal</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Botón Simular -->
+          <button onclick="calcularSimulacion()" id="btn-simular" class="mt-1 w-full flex items-center justify-center gap-2 px-4 py-3.5 text-[14px] font-semibold rounded-lg transition-all duration-180 bg-gradient-to-br from-brand-blue to-brand-blue-hover text-white shadow-[0_2px_8px_rgba(27,79,216,0.3)] hover:from-brand-blue-light hover:to-brand-blue hover:-translate-y-px hover:shadow-[0_4px_14px_rgba(27,79,216,0.4)]">
+            <i class="ri-calculator-line text-[17px]"></i>
+            Calcular Simulación
+          </button>
+        </div>
+      </div>
+
+      <!-- RIGHT: Resultados -->
+      <div class="flex flex-col gap-5">
+
+        <!-- Placeholder -->
+        <div id="placeholder-panel" class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border py-16 px-8 text-center flex flex-col items-center">
+          <div class="w-[72px] h-[72px] bg-brand-gold-xlight rounded-full flex items-center justify-center mb-5">
+            <svg width="32" height="32" fill="none" stroke="var(--c-gold)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          </div>
+          <p class="text-[16px] font-bold text-brand-text">Aún no has simulado</p>
+          <p class="text-[13px] text-brand-muted mt-1.5 max-w-[280px]">Completa el formulario y presiona <strong class="font-semibold text-brand-navy">Calcular Simulación</strong> para ver los resultados aquí.</p>
+        </div>
+
+        <!-- Resultados (oculto hasta simular) -->
+        <div id="resultados-panel" style="display:none;flex-direction:column;gap:20px;">
+
+          <!-- Cuota Principal -->
+          <div class="p-7 bg-brand-navy rounded-[24px] relative overflow-hidden text-white shadow-[0_8px_32px_rgba(10,22,40,0.13)]">
+            <div class="absolute -top-[60px] -right-[60px] w-[280px] h-[280px] bg-[radial-gradient(circle,rgba(212,168,67,0.18)_0%,transparent_65%)] rounded-full"></div>
+            <div class="absolute -bottom-[80px] left-[120px] w-[200px] h-[200px] bg-[radial-gradient(circle,rgba(59,114,240,0.25)_0%,transparent_65%)] rounded-full"></div>
+            
+            <p class="text-[11px] font-semibold tracking-[0.05em] uppercase text-brand-gold-light mb-2 relative z-10">💳 Cuota Estimada</p>
+            <p id="res_cuota" class="text-[44px] font-extrabold tracking-tight leading-none relative z-10">$0.00</p>
+            <p id="res_tipo_label" class="text-[13px] text-white/50 mt-1 relative z-10">/ mensual</p>
+          </div>
+
+          <!-- Métricas Grid -->
+          <div class="grid grid-cols-2 gap-3.5">
+            <div class="bg-white rounded-2xl p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col gap-1.5">
+              <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Capital</p>
+              <p id="res_capital" class="text-[22px] font-extrabold tracking-tight text-brand-blue leading-tight">$0.00</p>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col gap-1.5">
+              <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Total Intereses</p>
+              <p id="res_intereses" class="text-[22px] font-extrabold tracking-tight text-brand-warning leading-tight">$0.00</p>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col gap-1.5">
+              <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Total a Pagar</p>
+              <p id="res_total" class="text-[22px] font-extrabold tracking-tight text-brand-navy leading-tight">$0.00</p>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col gap-1.5">
+              <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">N° de Cuotas</p>
+              <p id="res_cuotas" class="text-[22px] font-extrabold tracking-tight text-brand-gold leading-tight">0</p>
+            </div>
+          </div>
+
+          <!-- Resumen tabla -->
+          <div class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col">
+            <div class="flex items-start justify-between mb-5">
+              <p class="text-[15px] font-bold tracking-tight text-brand-navy mb-0.5">Detalle del Préstamo</p>
+            </div>
+            <div class="w-full overflow-x-auto">
+              <table class="w-full border-collapse text-left">
+                <tbody id="res_tabla">
+                  <tr class="border-b border-brand-border"><td class="py-3 text-[13px] text-brand-muted">Cliente</td><td id="res_cliente_txt" class="py-3 text-[13px] font-semibold text-brand-text text-right">—</td></tr>
+                  <tr class="border-b border-brand-border"><td class="py-3 text-[13px] text-brand-muted">Inversionista</td><td id="res_inversor_txt" class="py-3 text-[13px] font-semibold text-brand-text text-right">—</td></tr>
+                  <tr class="border-b border-brand-border"><td class="py-3 text-[13px] text-brand-muted">Tasa Anual</td><td id="res_tasa_txt" class="py-3 text-[13px] font-semibold text-brand-text text-right">—</td></tr>
+                  <tr class="border-b border-brand-border"><td class="py-3 text-[13px] text-brand-muted">Plazo</td><td id="res_plazo_txt" class="py-3 text-[13px] font-semibold text-brand-text text-right">—</td></tr>
+                  <tr><td class="py-3 text-[13px] text-brand-muted">Tipo de Pago</td><td id="res_tipopago_txt" class="py-3 text-[13px] font-semibold text-brand-text text-right">—</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+         
+
+        </div>
+
+
+       
+      </div>
+
+       
+    </div>
+
+    <div id="resultado-panel-cronograma" style="display:none;flex-direction:column;gap:20px;">
+           <!-- Tabla de Cronograma de Amortización -->
+          <div class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col max-h-[600px] flex-shrink-0 relative">
+            <div class="flex items-start justify-between mb-5 sticky top-0 bg-white z-10 pb-2 border-b border-brand-border">
+              <p class="text-[15px] font-bold tracking-tight text-brand-navy mb-0.5">Cronograma de Pagos</p>
+                <!-- Botón Registrar -->
+          <form id="form-registrar" action="/dashboard/prestamos/registrar" method="POST">
+            <input type="hidden" name="cliente_id" id="inp_cliente_id">
+            <input type="hidden" name="inversor_id" id="inp_inversor_id">
+            <input type="hidden" name="monto" id="inp_monto">
+            <input type="hidden" name="interes" id="inp_interes">
+            <input type="hidden" name="plazo_meses" id="inp_plazo">
+            <input type="hidden" name="tipo_pago" id="inp_tipo_pago">
+            <input type="hidden" name="cuota" id="inp_cuota">
+            <input type="hidden" name="total_pagar" id="inp_total_pagar">
+            <input type="hidden" name="total_intereses" id="inp_total_intereses">
+            <input type="hidden" name="fecha_registro" id="inp_fecha_registro">
+            <input type="hidden" id="inp_cronograma">
+
+            <div class="flex flex-row gap-3">
+              <button type="submit" id="btn-registrar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-[14px] font-semibold rounded-lg transition-all duration-180 bg-gradient-to-br from-brand-gold to-brand-gold-hover text-brand-navy shadow-[0_2px_8px_rgba(212,168,67,0.35)] hover:-translate-y-px hover:shadow-[0_4px_14px_rgba(212,168,67,0.45)]">
+                <i class="ri-save-line text-[17px]"></i>
+                Registrar Préstamo
+              </button>
+              
+              <!-- Botón Descargar PDF -->
+              <button type="button" onclick="descargarSimulacionPdf()" id="btn-pdf" class="w-full flex items-center justify-center gap-2 px-1 py-1 text-[14px] font-semibold rounded-lg transition-all duration-180 bg-white border border-brand-border text-brand-navy hover:border-brand-navy hover:shadow-[0_4px_14px_rgba(10,22,40,0.08)] hover:-translate-y-px">
+                <i class="ri-file-pdf-line text-[17px] text-brand-danger"></i>
+                Descargar Simulación (PDF)
+              </button>
+            </div>
+          </form>
+            </div>
+            <div class="w-full overflow-y-auto pr-2 custom-scrollbar">
+              <table class="w-full border-collapse text-right text-[12px]">
+                <thead class="sticky top-0 bg-brand-surface2">
+                  <tr>
+                    <th class="py-2.5 px-3 text-center text-brand-muted font-bold uppercase tracking-wider border-b border-brand-border">N°</th>
+                    <th class="py-2.5 px-3 text-brand-muted font-bold uppercase tracking-wider border-b border-brand-border">Saldo In.</th>
+                    <th class="py-2.5 px-3 text-brand-muted font-bold uppercase tracking-wider border-b border-brand-border">Capital</th>
+                    <th class="py-2.5 px-3 text-brand-muted font-bold uppercase tracking-wider border-b border-brand-border">Interés</th>
+                    <th class="py-2.5 px-3 text-brand-muted font-bold uppercase tracking-wider border-b border-brand-border">Cuota</th>
+                    <th class="py-2.5 px-3 text-brand-muted font-bold uppercase tracking-wider border-b border-brand-border">Saldo Fin.</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-cronograma">
+                  <!-- Se generará dinámicamente -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+  </div>
+</main>
+
+<style>
+  .sim-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7A99'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+    padding-right: 44px;
+    appearance: none;
+  }
+  .sr-only { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0; }
+  .tipo-pago-card.selected { border-color: var(--c-blue) !important; background: var(--c-blue-xlight) !important; }
+  .tipo-pago-card.selected span { color: var(--c-blue) !important; }
+  .tipo-pago-card.selected svg { stroke: var(--c-blue) !important; }
+</style>
+
+<script>
+  // Establecer fecha de hoy por defecto
+  (function() {
+    const today = new Date().toISOString().split('T')[0];
+    const fechaInput = document.getElementById('sim_fecha');
+    if (fechaInput && !fechaInput.value) fechaInput.value = today;
+  })();
+
+  // Tipo de pago toggle
+  document.querySelectorAll('.tipo-pago-option').forEach(label => {
+    label.addEventListener('click', () => {
+      document.querySelectorAll('.tipo-pago-card').forEach(card => {
+        card.classList.remove('selected');
+        card.style.borderColor = 'var(--c-border)';
+        card.style.background = 'var(--c-surface2)';
+      });
+      const card = label.querySelector('.tipo-pago-card');
+      card.classList.add('selected');
+    });
+  });
+
+  function fmt(num) {
+    return '$' + num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function calcularSimulacion() {
+    const clienteSelect = document.getElementById('sim_cliente');
+    const inversorSelect = document.getElementById('sim_inversor');
+    const monto = parseFloat(document.getElementById('sim_monto').value);
+    const interes = parseFloat(document.getElementById('sim_interes').value);
+    const plazo = parseInt(document.getElementById('sim_plazo').value);
+    const tipoPago = document.querySelector('input[name="tipo_pago"]:checked').value;
+
+    if (!clienteSelect.value) { alert('Por favor selecciona un cliente.'); return; }
+    if (!inversorSelect.value) { alert('Por favor selecciona un inversor.'); return; }
+    if (!monto || monto <= 0) { alert('Ingresa un monto válido.'); return; }
+    if (!interes || interes <= 0) { alert('Ingresa una tasa de interés válida.'); return; }
+    if (!plazo || plazo <= 0) { alert('Ingresa un plazo válido.'); return; }
+
+    const periodosPorAnio = tipoPago === 'mensual' ? 12 : 24;
+    const tasaPeriodo = (interes / 100) / periodosPorAnio;
+    const totalPeriodos = tipoPago === 'mensual' ? plazo : plazo * 2;
+
+    let cuota;
+    if (tasaPeriodo === 0) {
+      cuota = monto / totalPeriodos;
+    } else {
+      cuota = monto * (tasaPeriodo * Math.pow(1 + tasaPeriodo, totalPeriodos)) / (Math.pow(1 + tasaPeriodo, totalPeriodos) - 1);
+    }
+
+    const totalPagar = cuota * totalPeriodos;
+    const totalIntereses = totalPagar - monto;
+
+    document.getElementById('res_cuota').textContent = fmt(cuota);
+    document.getElementById('res_tipo_label').textContent = '/ ' + (tipoPago === 'mensual' ? 'mensual' : 'quincenal');
+    document.getElementById('res_capital').textContent = fmt(monto);
+    document.getElementById('res_intereses').textContent = fmt(totalIntereses);
+    document.getElementById('res_total').textContent = fmt(totalPagar);
+    document.getElementById('res_cuotas').textContent = totalPeriodos;
+    document.getElementById('res_cliente_txt').textContent = clienteSelect.options[clienteSelect.selectedIndex].text;
+    document.getElementById('res_inversor_txt').textContent = inversorSelect.options[inversorSelect.selectedIndex].text;
+    document.getElementById('res_tasa_txt').textContent = interes + '% anual';
+    document.getElementById('res_plazo_txt').textContent = plazo + ' meses';
+    document.getElementById('res_tipopago_txt').textContent = tipoPago.charAt(0).toUpperCase() + tipoPago.slice(1);
+
+    // Generar Cronograma (Sistema Francés)
+    let saldo = monto;
+    let cronogramaHTML = '';
+    const cronogramaDatos = [];
+
+    for (let i = 1; i <= totalPeriodos; i++) {
+      let intMes = saldo * tasaPeriodo;
+      let capMes = cuota - intMes;
+      let saldoFin = saldo - capMes;
+      
+      // Ajuste de redondeo última cuota
+      if (i === totalPeriodos) {
+        capMes = saldo;
+        cuota = capMes + intMes;
+        saldoFin = 0;
+      }
+
+      cronogramaDatos.push({
+        num: i,
+        saldoInicial: saldo.toFixed(2),
+        capital: capMes.toFixed(2),
+        interes: intMes.toFixed(2),
+        cuota: cuota.toFixed(2),
+        saldoFinal: saldoFin.toFixed(2)
+      });
+
+      cronogramaHTML += `
+        <tr class="border-b border-brand-border last:border-0 hover:bg-brand-surface2">
+          <td class="py-2.5 px-3 text-center text-brand-navy font-semibold">${i}</td>
+          <td class="py-2.5 px-3 font-medium">${fmt(saldo)}</td>
+          <td class="py-2.5 px-3 font-medium text-brand-blue">${fmt(capMes)}</td>
+          <td class="py-2.5 px-3 font-medium text-brand-warning">${fmt(intMes)}</td>
+          <td class="py-2.5 px-3 font-bold text-brand-navy">${fmt(cuota)}</td>
+          <td class="py-2.5 px-3 font-medium">${fmt(Math.abs(saldoFin))}</td>
+        </tr>
+      `;
+      saldo = saldoFin;
+    }
+
+    document.getElementById('tabla-cronograma').innerHTML = cronogramaHTML;
+    document.getElementById('inp_cronograma').value = JSON.stringify(cronogramaDatos);
+
+    document.getElementById('inp_cliente_id').value = clienteSelect.value;
+    document.getElementById('inp_inversor_id').value = inversorSelect.value;
+    document.getElementById('inp_monto').value = monto;
+    document.getElementById('inp_interes').value = interes;
+    document.getElementById('inp_plazo').value = plazo;
+    document.getElementById('inp_tipo_pago').value = tipoPago;
+    document.getElementById('inp_cuota').value = cuota.toFixed(2);
+    document.getElementById('inp_total_pagar').value = totalPagar.toFixed(2);
+    document.getElementById('inp_total_intereses').value = totalIntereses.toFixed(2);
+    // Fecha de registro (la ingresada por el usuario o hoy)
+    const fechaInput = document.getElementById('sim_fecha').value;
+    document.getElementById('inp_fecha_registro').value = fechaInput || new Date().toISOString().split('T')[0];
+
+    document.getElementById('placeholder-panel').style.display = 'none';
+    const panel = document.getElementById('resultados-panel');
+    const cronograma = document.getElementById('resultado-panel-cronograma')
+    panel.style.display = 'flex';
+    cronograma.style.display = 'flex'
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    cronograma.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function descargarSimulacionPdf() {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/dashboard/simulacion/pdf';
+    form.target = '_blank';
+    
+    // Transferir todos los inputs hidden del form-registrar al nuevo form
+    const inputs = document.getElementById('form-registrar').querySelectorAll('input[type="hidden"]');
+    inputs.forEach(inp => {
+      const newInp = document.createElement('input');
+      newInp.type = 'hidden';
+      newInp.name = inp.name;
+      newInp.value = inp.value;
+      form.appendChild(newInp);
+    });
+
+    // Agregar nombres de cliente e inversor en texto y tasa/plazo original
+    const clienteTxt = document.getElementById('res_cliente_txt').textContent;
+    const inversorTxt = document.getElementById('res_inversor_txt').textContent;
+    const tasaTxt = document.getElementById('res_tasa_txt').textContent;
+    const plazoTxt = document.getElementById('res_plazo_txt').textContent;
+
+    [['cliente_nombre', clienteTxt], ['inversor_nombre', inversorTxt], ['tasa_txt', tasaTxt], ['plazo_txt', plazoTxt]].forEach(([k, v]) => {
+      const inp = document.createElement('input');
+      inp.type = 'hidden';
+      inp.name = k;
+      inp.value = v;
+      form.appendChild(inp);
+    });
+
+    const cronogramaJSON = document.getElementById('inp_cronograma').value;
+    const inpCronograma = document.createElement('input');
+    inpCronograma.type = 'hidden';
+    inpCronograma.name = 'cronograma_json';
+    inpCronograma.value = cronogramaJSON;
+    form.appendChild(inpCronograma);
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+  }
+
+  setTimeout(() => {
+    const s = document.getElementById('flash-success');
+    const e = document.getElementById('flash-error');
+    if (s) s.style.opacity = '0';
+    if (e) e.style.opacity = '0';
+  }, 4000);
+</script>

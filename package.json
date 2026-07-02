@@ -1,0 +1,24 @@
+{
+  "name": "sistem_hipotecas_new",
+  "version": "1.0.0",
+  "description": "Sistema de Hipotecas",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.1",
+    "dotenv": "^16.0.0",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "express-ejs-layouts": "^2.5.1",
+    "express-session": "^1.17.3",
+    "mysql2": "^3.0.0",
+    "pdfkit": "^0.19.1",
+    "tailwindcss": "^4.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  }
+}

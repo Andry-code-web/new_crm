@@ -1,0 +1,223 @@
+<%- include('../partials/sidebar_admin') %>
+
+<main class="flex-1 h-screen overflow-y-auto bg-brand-bg relative flex flex-col min-w-0">
+  <header class="flex items-center justify-between px-8 py-4 bg-white/92 backdrop-blur-md border-b border-brand-border sticky top-0 z-40">
+    <div>
+      <h1 class="text-[22px] font-bold tracking-tight text-brand-navy">Gestión de Clientes</h1>
+      <p class="text-[13px] text-brand-muted mt-0.5">Administra los clientes del sistema</p>
+    </div>
+    <div class="flex items-center gap-4">
+      <button onclick="openModal('modal-nuevo')" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-[13px] font-semibold rounded-lg transition-all duration-180 bg-gradient-to-br from-brand-blue to-brand-blue-hover text-white shadow-[0_2px_8px_rgba(27,79,216,.3)] hover:from-brand-blue-light hover:to-brand-blue hover:-translate-y-px hover:shadow-[0_4px_14px_rgba(27,79,216,.4)]" id="btn-nuevo-cliente">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+        Nuevo Cliente
+      </button>
+      <img src="<%= user.avatar %>" alt="Avatar" class="w-[38px] h-[38px] rounded-full border-2 border-brand-gold object-cover">
+    </div>
+  </header>
+
+  <div class="p-8 max-w-[1400px] mx-auto w-full flex-1 flex flex-col gap-6">
+    <% if (typeof success !== 'undefined' && success) { %>
+    <div id="flash" class="bg-brand-success-light border border-brand-success text-brand-success px-5 py-4 rounded-[12px] flex flex-col gap-1 transition-opacity duration-300 animate-in">
+      <p class="font-bold text-[14px]">¡Éxito!</p><p class="text-[13px] opacity-90"><%= success %></p>
+    </div>
+    <% } %>
+    <% if (typeof error !== 'undefined' && error) { %>
+    <div id="flash" class="bg-brand-danger-light border border-brand-danger text-brand-danger px-5 py-4 rounded-[12px] flex flex-col gap-1 transition-opacity duration-300 animate-in">
+      <p class="font-bold text-[14px]">Error</p><p class="text-[13px] opacity-90"><%= error %></p>
+    </div>
+    <% } %>
+
+    <!-- KPI Strip -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 animate-in">
+      <div class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.08)] transition-all duration-300">
+        <div class="w-12 h-12 rounded-[14px] flex items-center justify-center bg-brand-blue-light text-brand-blue">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <div>
+          <p class="text-[12px] font-semibold text-brand-muted tracking-wide uppercase">Total Clientes</p>
+          <p class="text-[24px] font-extrabold tracking-tight text-brand-navy mt-0.5"><%= clientes.length %></p>
+        </div>
+      </div>
+      <div class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.08)] transition-all duration-300">
+        <div class="w-12 h-12 rounded-[14px] flex items-center justify-center bg-brand-success-light text-brand-success">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div>
+          <p class="text-[12px] font-semibold text-brand-muted tracking-wide uppercase">Con Préstamo</p>
+          <p class="text-[24px] font-extrabold tracking-tight text-brand-success mt-0.5"><%= conPrestamo %></p>
+        </div>
+      </div>
+      <div class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.08)] transition-all duration-300">
+        <div class="w-12 h-12 rounded-[14px] flex items-center justify-center bg-brand-gold-light text-brand-gold">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div>
+          <p class="text-[12px] font-semibold text-brand-muted tracking-wide uppercase">Nuevos este Mes</p>
+          <p class="text-[24px] font-extrabold tracking-tight text-brand-gold mt-0.5"><%= esMes %></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col overflow-hidden animate-in delay-100">
+      <div class="px-7 py-6 border-b border-brand-border flex items-center justify-between gap-4 flex-wrap bg-white">
+        <div>
+          <p class="text-[16px] font-bold tracking-tight text-brand-navy">Listado de Clientes</p>
+          <p class="text-[13px] text-brand-muted mt-0.5"><%= clientes.length %> clientes registrados</p>
+        </div>
+        <div class="relative">
+          <input type="text" id="search" placeholder="Buscar cliente..."
+            class="py-2.5 pr-3.5 pl-9 border-[1.5px] border-brand-border rounded-lg text-[13px] bg-brand-surface2 outline-none w-[220px] transition-all duration-200 text-brand-text focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+          <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-muted" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+      </div>
+
+      <% if (clientes.length === 0) { %>
+      <div class="py-16 px-6 text-center flex flex-col items-center">
+        <div class="w-[60px] h-[60px] bg-brand-surface2 rounded-full flex items-center justify-center text-brand-muted mb-4">
+          <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <p class="text-[15px] font-bold text-brand-text">No hay clientes registrados</p>
+        <a href="javascript:openModal('modal-nuevo')" class="mt-3 text-[13px] font-semibold text-brand-blue hover:text-brand-blue-hover transition-colors">Crear el primer cliente &rarr;</a>
+      </div>
+      <% } else { %>
+      <div class="w-full overflow-x-auto">
+        <table class="w-full border-collapse text-left text-[13px]">
+          <thead>
+            <tr class="bg-brand-surface border-b border-brand-border">
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Cliente</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Email</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Teléfono</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Dirección</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% clientes.forEach(c => { %>
+            <tr class="row border-b border-brand-border last:border-b-0 hover:bg-brand-surface transition-colors duration-150">
+              <td class="py-3.5 px-5">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-brand-surface2 border border-brand-border flex items-center justify-center text-[12px] font-bold text-brand-navy"><%= (c.nombre || '?').charAt(0).toUpperCase() %></div>
+                  <span class="font-semibold text-brand-navy"><%= c.nombre %></span>
+                </div>
+              </td>
+              <td class="py-3.5 px-5 text-brand-muted"><%= c.email || '—' %></td>
+              <td class="py-3.5 px-5 text-brand-muted"><%= c.telefono || '—' %></td>
+              <td class="py-3.5 px-5 text-brand-muted max-w-[200px] truncate"><%= c.direccion || '—' %></td>
+              <td class="py-3.5 px-5 text-center">
+                <div class="flex items-center justify-center gap-2">
+                  <button onclick='openEdit(<%- JSON.stringify(c) %>)' class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-semibold bg-brand-blue-xlight text-brand-blue hover:bg-brand-blue hover:text-white transition-all duration-200" title="Editar">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    Editar
+                  </button>
+                  <form action="/admin/clientes/<%= c.id %>/eliminar" method="POST" onsubmit="return confirm('¿Eliminar cliente?')" class="inline-block">
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-semibold bg-brand-danger-light text-brand-danger hover:bg-brand-danger hover:text-white transition-all duration-200" title="Eliminar">
+                      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                      Eliminar
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</main>
+
+<!-- Modal Nuevo -->
+<div id="modal-nuevo" class="fixed inset-0 z-50 flex items-center justify-center p-5 hidden">
+  <div class="absolute inset-0 bg-[#0A1628]/60 backdrop-blur-sm transition-opacity" onclick="closeModal('modal-nuevo')"></div>
+  <div class="relative bg-white rounded-[24px] shadow-[0_24px_48px_rgba(10,22,40,0.2)] w-full max-w-[460px] overflow-hidden animate-[fadeSlideUp_0.25s_ease]">
+    <div class="bg-gradient-to-br from-brand-navy to-[#122046] px-7 py-6 flex items-center gap-3.5">
+      <div class="w-11 h-11 bg-brand-gold-xlight border border-brand-gold-light rounded-lg flex items-center justify-center shrink-0">
+        <svg width="20" height="20" fill="none" stroke="var(--c-gold)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      </div>
+      <div>
+        <p class="text-[16px] font-bold text-white">Nuevo Cliente</p>
+        <p class="text-[12px] text-white/50 mt-0.5">Completa la información del cliente</p>
+      </div>
+    </div>
+    <form action="/admin/clientes/crear" method="POST" class="p-7 flex flex-col gap-4">
+      <div>
+        <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Nombre <span class="text-brand-danger">*</span></label>
+        <input type="text" name="nombre" required class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]" placeholder="Nombre completo">
+      </div>
+      <div>
+        <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Email</label>
+        <input type="email" name="email" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]" placeholder="correo@ejemplo.com">
+      </div>
+      <div>
+        <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Teléfono</label>
+        <input type="text" name="telefono" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]" placeholder="55 0000 0000">
+      </div>
+      <div>
+        <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Dirección</label>
+        <textarea name="direccion" rows="2" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)] resize-none" placeholder="Calle, número, colonia..."></textarea>
+      </div>
+      <div class="flex gap-3 mt-2">
+        <button type="button" onclick="closeModal('modal-nuevo')" class="flex-1 px-4 py-3 text-[14px] font-semibold rounded-lg text-brand-muted hover:text-brand-text bg-brand-surface2 hover:bg-brand-border transition-colors">Cancelar</button>
+        <button type="submit" class="flex-1 flex items-center justify-center px-4 py-3 text-[14px] font-semibold rounded-lg bg-gradient-to-br from-brand-blue to-brand-blue-hover text-white shadow-[0_2px_8px_rgba(27,79,216,0.3)] hover:-translate-y-px hover:shadow-[0_4px_14px_rgba(27,79,216,0.4)] transition-all">Guardar Cliente</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Editar -->
+<div id="modal-editar" class="fixed inset-0 z-50 flex items-center justify-center p-5 hidden">
+  <div class="absolute inset-0 bg-[#0A1628]/60 backdrop-blur-sm transition-opacity" onclick="closeModal('modal-editar')"></div>
+  <div class="relative bg-white rounded-[24px] shadow-[0_24px_48px_rgba(10,22,40,0.2)] w-full max-w-[460px] overflow-hidden animate-[fadeSlideUp_0.25s_ease]">
+    <div class="bg-gradient-to-br from-brand-navy to-[#122046] px-7 py-6 flex items-center gap-3.5">
+      <div class="w-11 h-11 bg-brand-blue-light border border-brand-blue/30 rounded-lg flex items-center justify-center shrink-0">
+        <svg width="20" height="20" fill="none" stroke="var(--c-blue)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+      </div>
+      <div>
+        <p class="text-[16px] font-bold text-white">Editar Cliente</p>
+        <p class="text-[12px] text-white/50 mt-0.5">Actualiza la información del cliente</p>
+      </div>
+    </div>
+    <form id="form-editar" action="" method="POST" class="p-7 flex flex-col gap-4">
+      <div>
+        <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Nombre <span class="text-brand-danger">*</span></label>
+        <input type="text" name="nombre" id="edit-nombre" required class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+      </div>
+      <div>
+        <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Email</label>
+        <input type="email" name="email" id="edit-email" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+      </div>
+      <div>
+        <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Teléfono</label>
+        <input type="text" name="telefono" id="edit-telefono" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+      </div>
+      <div>
+        <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Dirección</label>
+        <textarea name="direccion" id="edit-direccion" rows="2" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)] resize-none"></textarea>
+      </div>
+      <div class="flex gap-3 mt-2">
+        <button type="button" onclick="closeModal('modal-editar')" class="flex-1 px-4 py-3 text-[14px] font-semibold rounded-lg text-brand-muted hover:text-brand-text bg-brand-surface2 hover:bg-brand-border transition-colors">Cancelar</button>
+        <button type="submit" class="flex-1 flex items-center justify-center px-4 py-3 text-[14px] font-semibold rounded-lg bg-gradient-to-br from-brand-blue to-brand-blue-hover text-white shadow-[0_2px_8px_rgba(27,79,216,0.3)] hover:-translate-y-px hover:shadow-[0_4px_14px_rgba(27,79,216,0.4)] transition-all">Actualizar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+  function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+  function openEdit(c) {
+    document.getElementById('edit-nombre').value = c.nombre || '';
+    document.getElementById('edit-email').value = c.email || '';
+    document.getElementById('edit-telefono').value = c.telefono || '';
+    document.getElementById('edit-direccion').value = c.direccion || '';
+    document.getElementById('form-editar').action = '/admin/clientes/' + c.id + '/editar';
+    openModal('modal-editar');
+  }
+  document.getElementById('search')?.addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.row').forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+  });
+  setTimeout(() => { const f = document.getElementById('flash'); if (f) f.style.opacity = '0'; }, 4000);
+</script>

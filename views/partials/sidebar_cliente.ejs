@@ -1,0 +1,59 @@
+<aside class="w-[260px] h-screen bg-brand-navy text-white flex flex-col shrink-0 border-r border-[#1A2D4F] relative overflow-hidden z-10">
+  <!-- Decoration -->
+  <div class="absolute -top-20 -left-20 w-60 h-60 bg-[radial-gradient(circle,rgba(212,168,67,0.12)_0%,transparent_70%)] pointer-events-none"></div>
+
+  <!-- Logo -->
+  <div class="flex items-center gap-3.5 pt-7 pb-5 px-6 relative z-10">
+    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-gold to-brand-gold-light text-brand-navy flex items-center justify-center font-extrabold text-lg shrink-0 shadow-[0_2px_8px_rgba(212,168,67,0.4)]">C</div>
+    <span class="text-[22px] font-extrabold tracking-tight text-white">Coinest</span>
+  </div>
+
+  <!-- Nav -->
+  <nav class="flex-1 px-4 overflow-y-auto relative z-10 sidebar-nav">
+    <p class="text-[10px] font-semibold tracking-wider uppercase text-white/30 pt-3.5 px-3 pb-1.5">Mi Cuenta</p>
+
+    <a href="/dashboard/cliente" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 border-l-[3px] border-transparent transition-colors hover:text-white/90 hover:bg-white/5" id="nav-inicio">
+      <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10-3a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1v-7z"/></svg>
+      Inicio
+    </a>
+
+    <a href="/cliente/prestamo" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 border-l-[3px] border-transparent transition-colors hover:text-white/90 hover:bg-white/5" id="nav-prestamo">
+      <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+      Mi Préstamo
+    </a>
+
+    <a href="/cliente/perfil" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 border-l-[3px] border-transparent transition-colors hover:text-white/90 hover:bg-white/5" id="nav-perfil">
+      <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+      Mi Perfil
+    </a>
+  </nav>
+
+  <!-- User -->
+  <div class="p-5 border-t border-[#1A2D4F] relative z-10 bg-[#0A1628]">
+    <div class="flex items-center gap-3 mb-4">
+      <img src="<%= user.avatar %>" alt="Avatar" class="w-9 h-9 rounded-full border-2 border-brand-gold object-cover">
+      <div class="truncate">
+        <p class="text-sm font-semibold truncate"><%= user.name %></p>
+        <p class="text-[11px] text-white/40 capitalize mt-px"><%= user.role %></p>
+      </div>
+    </div>
+    <form action="/logout" method="POST">
+      <button type="submit" class="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl bg-transparent text-white/40 text-[13px] font-medium transition-colors hover:bg-red-500/15 hover:text-red-300">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Cerrar Sesión
+      </button>
+    </form>
+  </div>
+</aside>
+
+<script>
+  (function() {
+    const path = window.location.pathname;
+    document.querySelectorAll('.sidebar-nav .nav-link').forEach(a => {
+      if (a.getAttribute('href') === path) {
+        a.classList.remove('text-white/60', 'border-transparent');
+        a.classList.add('bg-white/10', 'text-white', 'border-brand-gold', 'shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]');
+      }
+    });
+  })();
+</script>

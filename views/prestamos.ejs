@@ -1,0 +1,390 @@
+<% if (user.role === 'admin') { %>
+    <%- include('partials/sidebar_admin') %>
+<% } else if (user.role === 'asesor') { %>
+    <%- include('partials/sidebar_asesor') %>
+<% } else { %>
+    <%- include('partials/sidebar_cliente') %>
+<% } %>
+
+<main class="flex-1 h-screen overflow-y-auto bg-brand-bg relative flex flex-col min-w-0">
+
+  <!-- Header -->
+  <header class="flex items-center justify-between px-8 py-4 bg-white/92 backdrop-blur-md border-b border-brand-border sticky top-0 z-40">
+    <div>
+      <h1 class="text-[22px] font-bold tracking-tight text-brand-navy">Préstamos Registrados</h1>
+      <p class="text-[13px] text-brand-muted mt-0.5">Gestiona los préstamos del sistema — <strong class="font-bold text-brand-text"><%= user.name %></strong></p>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="/dashboard/simulacion" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-[13px] font-semibold rounded-lg transition-all duration-180 bg-gradient-to-br from-brand-blue to-brand-blue-hover text-white shadow-[0_2px_8px_rgba(27,79,216,.3)] hover:from-brand-blue-light hover:to-brand-blue hover:-translate-y-px hover:shadow-[0_4px_14px_rgba(27,79,216,.4)]" id="btn-nueva-sim">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+        Nueva Simulación
+      </a>
+      <img src="<%= user.avatar %>" alt="Avatar" class="w-[38px] h-[38px] rounded-full border-2 border-brand-gold object-cover">
+    </div>
+  </header>
+
+  <div class="p-4 max-w-[1400px] mx-auto w-full flex-1 flex flex-col gap-6">
+
+    <!-- Flash -->
+    <% if (typeof success !== 'undefined' && success) { %>
+    <div id="flash-success" class="bg-brand-success-light border border-brand-success text-brand-success px-5 py-4 rounded-[12px] flex flex-col gap-1 transition-opacity duration-300 animate-in">
+      <p class="font-bold text-[14px]">¡Éxito!</p><p class="text-[13px] opacity-90"><%= success %></p>
+    </div>
+    <% } %>
+    <% if (typeof error !== 'undefined' && error) { %>
+    <div id="flash-error" class="bg-brand-danger-light border border-brand-danger text-brand-danger px-5 py-4 rounded-[12px] flex flex-col gap-1 transition-opacity duration-300 animate-in">
+      <p class="font-bold text-[14px]">Error</p><p class="text-[13px] opacity-90"><%= error %></p>
+    </div>
+    <% } %>
+
+    <!-- Stats KPI -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-in">
+      <div class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.08)] transition-all duration-300">
+        <div class="w-12 h-12 rounded-[14px] flex items-center justify-center bg-brand-blue-light text-brand-blue">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <div>
+          <p class="text-[12px] font-semibold text-brand-muted tracking-wide uppercase">Total Préstamos</p>
+          <p class="text-[24px] font-extrabold tracking-tight text-brand-navy mt-0.5"><%= stats.total %></p>
+        </div>
+      </div>
+      <div class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.08)] transition-all duration-300">
+        <div class="w-12 h-12 rounded-[14px] flex items-center justify-center bg-brand-gold-light text-brand-gold">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div>
+          <p class="text-[12px] font-semibold text-brand-muted tracking-wide uppercase">Monto Total</p>
+          <p class="text-[18px] font-extrabold tracking-tight text-brand-navy mt-0.5">$<%= stats.montoTotal %></p>
+        </div>
+      </div>
+      <div class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.08)] transition-all duration-300">
+        <div class="w-12 h-12 rounded-[14px] flex items-center justify-center bg-brand-navy-light text-brand-navy">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+        </div>
+        <div>
+          <p class="text-[12px] font-semibold text-brand-muted tracking-wide uppercase">Interés Prom.</p>
+          <p class="text-[24px] font-extrabold tracking-tight text-brand-navy mt-0.5"><%= stats.interesPromedio %>%</p>
+        </div>
+      </div>
+      <div class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.08)] transition-all duration-300">
+        <div class="w-12 h-12 rounded-[14px] flex items-center justify-center bg-brand-success-light text-brand-success">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <div>
+          <p class="text-[12px] font-semibold text-brand-muted tracking-wide uppercase">Clientes Activos</p>
+          <p class="text-[24px] font-extrabold tracking-tight text-brand-navy mt-0.5"><%= stats.clientesActivos %></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col overflow-hidden animate-in delay-100">
+      <div class="px-7 py-6 border-b border-brand-border flex items-center justify-between gap-4 flex-wrap bg-white">
+        <div>
+          <p class="text-[16px] font-bold tracking-tight text-brand-navy">Listado de Préstamos</p>
+          <p class="text-[13px] text-brand-muted mt-0.5">Todos los préstamos registrados en el sistema</p>
+        </div>
+        <!-- Search -->
+        <div class="relative">
+          <input type="text" id="search-input" placeholder="Buscar préstamo..."
+            class="py-2.5 pr-3.5 pl-9 border-[1.5px] border-brand-border rounded-lg text-[13px] bg-brand-surface2 outline-none w-[220px] transition-all duration-200 text-brand-text focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+          <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-muted" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+      </div>
+
+      <% if (prestamos.length === 0) { %>
+      <div class="py-16 px-6 text-center flex flex-col items-center">
+        <div class="w-[60px] h-[60px] bg-brand-surface2 rounded-full flex items-center justify-center text-brand-muted mb-4">
+          <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <p class="text-[15px] font-bold text-brand-text">Sin préstamos registrados</p>
+        <a href="/dashboard/simulacion" class="mt-3 text-[13px] font-semibold text-brand-blue hover:text-brand-blue-hover transition-colors">Ir al Simulador &rarr;</a>
+      </div>
+      <% } else { %>
+      <div class="w-full overflow-x-auto">
+        <table id="prestamos-table" class="w-full border-collapse text-left text-[13px]">
+          <thead>
+            <tr class="bg-brand-surface border-b border-brand-border">
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">#</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Cliente</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Inversionista</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-right">Monto</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-right">Interés</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-right">Cuota</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-center">Tipo Pago</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-center">Plazo</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-right">Total a Pagar</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-center">Estado</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Fecha</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <% prestamos.forEach((p, i) => {
+              const initials = (p.cliente_nombre || '?').charAt(0).toUpperCase();
+              const montoFmt = Number(p.monto).toLocaleString('es-MX',{minimumFractionDigits:2});
+              const cuotaFmt = Number(p.cuota).toLocaleString('es-MX',{minimumFractionDigits:2});
+              const totalFmt = Number(p.total_pagar).toLocaleString('es-MX',{minimumFractionDigits:2});
+              const fecha = new Date(p.fecha_registro).toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
+            %>
+            <tr class="prestamo-row border-b border-brand-border last:border-b-0 hover:bg-brand-surface transition-colors duration-150">
+              <td class="py-3.5 px-5 text-brand-muted">#<%= i + 1 %></td>
+              <td class="py-3.5 px-5">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-brand-surface2 border border-brand-border flex items-center justify-center text-[12px] font-bold text-brand-navy"><%= initials %></div>
+                  <span class="font-semibold text-brand-navy"><%= p.cliente_nombre || '—' %></span>
+                </div>
+              </td>
+              <td class="py-3.5 px-5">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-gold-hover to-brand-gold flex items-center justify-center text-[12px] font-bold text-brand-navy">
+                    <%= (p.inversor_nombre || '?').charAt(0).toUpperCase() %>
+                  </div>
+                  <span class="text-brand-muted"><%= p.inversor_nombre || '—' %></span>
+                </div>
+              </td>
+              <td class="py-3.5 px-5 text-right font-medium text-brand-text">$<%= montoFmt %></td>
+              <td class="py-3.5 px-5 text-right">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[12px] font-semibold bg-brand-gold-xlight text-brand-gold-hover border border-brand-gold-light"><%= p.interes %>%</span>
+              </td>
+              <td class="py-3.5 px-5 text-right font-bold text-[14px] text-brand-blue">$<%= cuotaFmt %></td>
+              <td class="py-3.5 px-5 text-center">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[12px] font-semibold <%= p.tipo_pago === 'mensual' ? 'bg-brand-success-light text-brand-success border border-brand-success' : 'bg-brand-blue-light text-brand-blue border border-brand-blue' %>">
+                  <%= p.tipo_pago ? p.tipo_pago.charAt(0).toUpperCase() + p.tipo_pago.slice(1) : '—' %>
+                </span>
+              </td>
+              <td class="py-3.5 px-5 text-center text-brand-muted"><%= p.plazo_meses %> meses</td>
+              <td class="py-3.5 px-5 text-right font-bold text-brand-navy">$<%= totalFmt %></td>
+              <td class="py-3.5 px-5 text-center">
+                <% if (p.estado === 'activo') { %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[12px] font-semibold bg-brand-blue-light text-brand-blue border border-brand-blue">Activo</span>
+                <% } else if (p.estado === 'vencido') { %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[12px] font-semibold bg-brand-danger-light text-brand-danger border border-brand-danger">Vencido</span>
+                <% } else { %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[12px] font-semibold bg-brand-success-light text-brand-success border border-brand-success">Pagado</span>
+                <% } %>
+              </td>
+              <td class="py-3.5 px-5 text-brand-muted"><%= fecha %></td>
+              <td class="py-3.5 px-5 text-center">
+                <button type="button" class="btn-ver-detalles inline-flex items-center justify-center w-8 h-8 rounded-full bg-brand-surface hover:bg-brand-blue-light hover:text-brand-blue transition-colors text-brand-muted" 
+                  data-prestamo='<%= JSON.stringify({ id: p.id, cliente: p.cliente_nombre || "—", inversor: p.inversor_nombre || "—", asesor: (user && user.nombre) || "Asesor", estado: p.estado, tiene_cronograma: p.tiene_cronograma || 0, cliente_telefono: p.cliente_telefono || "" }) %>'>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <div class="px-5 py-3.5 border-t border-brand-border flex items-center justify-between bg-white">
+        <p class="text-[12px] text-brand-muted">Mostrando <span id="shown-count" class="font-semibold text-brand-text"><%= prestamos.length %></span> de <%= prestamos.length %> préstamos</p>
+      </div>
+      <% } %>
+    </div>
+
+  </div>
+</main>
+
+<!-- Modal Detalles de Préstamo -->
+<div id="modal-detalles" class="fixed inset-0 z-50 hidden bg-brand-navy/50 backdrop-blur-sm flex items-center justify-center opacity-0 transition-opacity duration-300">
+  <div class="bg-white rounded-[24px] shadow-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 relative">
+    <div class="px-6 py-5 border-b border-brand-border flex items-center justify-between bg-brand-surface">
+      <h3 class="text-[16px] font-bold text-brand-navy flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-blue"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Detalles del Préstamo
+      </h3>
+      <button type="button" id="btn-cerrar-modal" class="text-brand-muted hover:text-brand-danger transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="p-6 flex flex-col gap-5">
+      <div class="flex flex-col gap-1">
+        <span class="text-[12px] font-semibold text-brand-muted uppercase tracking-wider">Datos del Asesor</span>
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-brand-surface border border-brand-border">
+          <div class="w-8 h-8 rounded-full bg-brand-blue-light text-brand-blue flex items-center justify-center font-bold text-[12px]">AS</div>
+          <span class="font-medium text-[14px] text-brand-navy" id="modal-asesor">...</span>
+        </div>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="text-[12px] font-semibold text-brand-muted uppercase tracking-wider">Datos del Cliente</span>
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-brand-surface border border-brand-border">
+          <div class="w-8 h-8 rounded-full bg-brand-surface2 text-brand-navy flex items-center justify-center font-bold text-[12px]" id="modal-cliente-ini">C</div>
+          <span class="font-medium text-[14px] text-brand-navy" id="modal-cliente">...</span>
+        </div>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="text-[12px] font-semibold text-brand-muted uppercase tracking-wider">Datos del Inversor</span>
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-brand-surface border border-brand-border">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-gold-hover to-brand-gold text-brand-navy flex items-center justify-center font-bold text-[12px]" id="modal-inversor-ini">I</div>
+          <span class="font-medium text-[14px] text-brand-navy" id="modal-inversor">...</span>
+        </div>
+      </div>
+    </div>
+    <div class="px-6 py-5 border-t border-brand-border bg-brand-surface flex flex-col sm:flex-row gap-3">
+      <button type="button" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-bold text-white bg-brand-blue hover:bg-brand-blue-hover shadow-md hover:shadow-lg transition-all" id="btn-activar-prestamo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Activar Préstamo
+      </button>
+      <button type="button" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-bold text-brand-navy bg-brand-gold hover:bg-brand-gold-hover shadow-md hover:shadow-lg transition-all" id="btn-registrar-cronograma">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Registrar Cronograma
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const searchInput = document.getElementById('search-input');
+  if (searchInput) {
+    searchInput.addEventListener('focus', function() { this.style.borderColor = 'var(--c-blue)'; this.style.boxShadow = '0 0 0 3px rgba(27,79,216,.1)'; });
+    searchInput.addEventListener('blur', function() { this.style.borderColor = 'var(--c-border)'; this.style.boxShadow = 'none'; });
+    searchInput.addEventListener('input', function() {
+      const q = this.value.toLowerCase();
+      const rows = document.querySelectorAll('.prestamo-row');
+      let visible = 0;
+      rows.forEach(row => {
+        const show = row.textContent.toLowerCase().includes(q);
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      const el = document.getElementById('shown-count');
+      if (el) el.textContent = visible;
+    });
+  }
+  setTimeout(() => {
+    const s = document.getElementById('flash-success');
+    if (s) { s.style.opacity = '0'; setTimeout(() => s.remove(), 300); }
+    const e = document.getElementById('flash-error');
+    if (e) { e.style.opacity = '0'; setTimeout(() => e.remove(), 300); }
+  }, 3000);
+
+  // Lógica del Modal
+  const modal = document.getElementById('modal-detalles');
+  const btnCerrar = document.getElementById('btn-cerrar-modal');
+  const modalContent = modal.querySelector('div.bg-white');
+
+  function openModal(data) {
+    document.getElementById('modal-asesor').textContent = data.asesor;
+    document.getElementById('modal-cliente').textContent = data.cliente;
+    document.getElementById('modal-cliente-ini').textContent = data.cliente.charAt(0).toUpperCase();
+    document.getElementById('modal-inversor').textContent = data.inversor;
+    document.getElementById('modal-inversor-ini').textContent = data.inversor.charAt(0).toUpperCase();
+
+    const btnActivar = document.getElementById('btn-activar-prestamo');
+    const btnRegistrar = document.getElementById('btn-registrar-cronograma');
+
+    btnActivar.setAttribute('data-id', data.id);
+    btnRegistrar.setAttribute('data-id', data.id);
+
+    // Lógica de habilitar/deshabilitar botones según el estado del préstamo
+    if (data.estado === 'activo') {
+      // Si ya está activo, ocultar botón de activar y habilitar registro
+      btnActivar.style.display = 'none';
+
+      if (data.tiene_cronograma > 0) {
+        // El cronograma ya fue registrado → botón verde "Mostrar Cronograma"
+        btnRegistrar.disabled = false;
+        btnRegistrar.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-brand-gold', 'hover:bg-brand-gold-hover', 'text-brand-navy');
+        btnRegistrar.classList.add('bg-brand-success', 'text-white', 'hover:opacity-90');
+        btnRegistrar.setAttribute('data-mode', 'ver');
+        btnRegistrar.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Mostrar Cronograma`;
+      } else {
+        // Sin cronograma → botón dorado "Registrar Cronograma"
+        btnRegistrar.disabled = false;
+        btnRegistrar.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-brand-success', 'text-white', 'hover:opacity-90');
+        btnRegistrar.classList.add('bg-brand-gold', 'hover:bg-brand-gold-hover', 'text-brand-navy');
+        btnRegistrar.setAttribute('data-mode', 'registrar');
+        btnRegistrar.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Registrar Cronograma`;
+      }
+    } else {
+      // Si no está activo (pendiente, vencido, etc.), obligar a activar primero
+      btnActivar.style.display = 'inline-flex';
+      btnRegistrar.disabled = true;
+      btnRegistrar.classList.remove('bg-brand-success', 'text-white', 'hover:opacity-90');
+      btnRegistrar.classList.add('bg-brand-gold', 'hover:bg-brand-gold-hover', 'text-brand-navy', 'opacity-50', 'cursor-not-allowed');
+      btnRegistrar.setAttribute('data-mode', 'registrar');
+      btnRegistrar.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Registrar Cronograma`;
+    }
+
+    modal.classList.remove('hidden');
+    // Forzar reflow
+    void modal.offsetWidth;
+    modal.classList.remove('opacity-0');
+    modalContent.classList.remove('scale-95');
+  }
+
+  function closeModal() {
+    modal.classList.add('opacity-0');
+    modalContent.classList.add('scale-95');
+    setTimeout(() => {
+      modal.classList.add('hidden');
+    }, 300);
+  }
+
+  btnCerrar.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  document.querySelectorAll('.btn-ver-detalles').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const data = JSON.parse(this.getAttribute('data-prestamo'));
+      openModal(data);
+    });
+  });
+
+  document.getElementById('btn-activar-prestamo').addEventListener('click', async function() {
+    const id = this.getAttribute('data-id');
+    const originalText = this.innerHTML;
+    try {
+      this.innerHTML = '<svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Activando...';
+      this.disabled = true;
+      const response = await fetch(`/dashboard/prestamos/${id}/activar`, { method: 'POST' });
+      const data = await response.json();
+      if (data.success) {
+        window.location.href = '/dashboard/prestamos?success=' + encodeURIComponent(data.message);
+      } else {
+        alert('Error: ' + data.message);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Error de conexión al servidor.');
+    } finally {
+      this.innerHTML = originalText;
+      this.disabled = false;
+      closeModal();
+    }
+  });
+
+  document.getElementById('btn-registrar-cronograma').addEventListener('click', async function() {
+    const id = this.getAttribute('data-id');
+    const mode = this.getAttribute('data-mode');
+
+    // Si el cronograma ya existe, navegar a verlo
+    if (mode === 'ver') {
+      closeModal();
+      window.location.href = `/dashboard/prestamos/${id}/cronograma`;
+      return;
+    }
+
+    const originalText = this.innerHTML;
+    try {
+      this.innerHTML = '<svg class="animate-spin h-4 w-4 text-brand-navy" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Registrando...';
+      this.disabled = true;
+      const response = await fetch(`/dashboard/prestamos/${id}/cronograma`, { method: 'POST' });
+      const data = await response.json();
+      if (data.success) {
+        window.location.href = '/dashboard/prestamos?success=' + encodeURIComponent(data.message);
+      } else {
+        alert('Aviso: ' + data.message);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Error de conexión al servidor.');
+    } finally {
+      this.innerHTML = originalText;
+      this.disabled = false;
+      closeModal();
+    }
+  });
+</script>

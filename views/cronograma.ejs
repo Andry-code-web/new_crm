@@ -1,0 +1,413 @@
+﻿<% if (user.role === 'admin') { %>
+    <%- include('partials/sidebar_admin') %>
+<% } else if (user.role === 'asesor') { %>
+    <%- include('partials/sidebar_asesor') %>
+<% } else { %>
+    <%- include('partials/sidebar_cliente') %>
+<% } %>
+
+<%
+  const fmt = (n) => Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtDate = (d) => {
+    if (!d) return '\u2014';
+    const date = new Date(d);
+    return date.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
+  const progreso = stats.totalCuotas > 0 ? Math.round((stats.cuotasPagadas / stats.totalCuotas) * 100) : 0;
+  const telefonoLimpio = (prestamo.cliente_telefono || '').replace(/[^0-9]/g, '');
+%>
+
+<main class="flex-1 h-screen overflow-y-auto bg-brand-bg relative flex flex-col min-w-0">
+
+  <!-- Header -->
+  <header class="flex items-center justify-between px-8 py-4 bg-white/92 backdrop-blur-md border-b border-brand-border sticky top-0 z-40">
+    <div class="flex items-center gap-3">
+      <a href="/dashboard/prestamos" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-brand-surface hover:bg-brand-blue-light hover:text-brand-blue transition-colors text-brand-muted">
+        <i class="ri-arrow-left-s-line text-[18px]"></i>
+      </a>
+      <div>
+        <h1 class="text-[22px] font-bold tracking-tight text-brand-navy">Cronograma de Pagos</h1>
+        <p class="text-[13px] text-brand-muted mt-0.5">Pr&eacute;stamo #<%= prestamo.id %> &mdash; <strong class="font-bold text-brand-text"><%= prestamo.cliente_nombre %></strong></p>
+      </div>
+    </div>
+    <img src="<%= user.avatar %>" alt="Avatar" class="w-[38px] h-[38px] rounded-full border-2 border-brand-gold object-cover">
+  </header>
+
+  <div class="p-4 max-w-[1400px] mx-auto w-full flex-1 flex flex-col gap-6">
+
+    <!-- Flash -->
+    <% if (typeof success !== 'undefined' && success) { %>
+    <div id="flash-success" class="bg-brand-success-light border border-brand-success text-brand-success px-5 py-4 rounded-[12px] flex flex-col gap-1 transition-opacity duration-300 animate-in">
+      <p class="font-bold text-[14px]">&#161;&#201;xito!</p><p class="text-[13px] opacity-90"><%= success %></p>
+    </div>
+    <% } %>
+    <% if (typeof error !== 'undefined' && error) { %>
+    <div id="flash-error" class="bg-brand-danger-light border border-brand-danger text-brand-danger px-5 py-4 rounded-[12px] flex flex-col gap-1 transition-opacity duration-300 animate-in">
+      <p class="font-bold text-[14px]">Error</p><p class="text-[13px] opacity-90"><%= error %></p>
+    </div>
+    <% } %>
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-in">
+      <div class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4">
+        <div class="w-11 h-11 rounded-[12px] flex items-center justify-center bg-brand-blue-light text-brand-blue flex-shrink-0">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div>
+          <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Monto Pr&eacute;stamo</p>
+          <p class="text-[18px] font-extrabold text-brand-navy mt-0.5">$<%= fmt(prestamo.monto) %></p>
+        </div>
+      </div>
+      <div class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4">
+        <div class="w-11 h-11 rounded-[12px] flex items-center justify-center bg-brand-gold-light text-brand-gold flex-shrink-0">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+        </div>
+        <div>
+          <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Tasa Inter&eacute;s</p>
+          <p class="text-[18px] font-extrabold text-brand-navy mt-0.5"><%= prestamo.interes %>%</p>
+        </div>
+      </div>
+      <div class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4">
+        <div class="w-11 h-11 rounded-[12px] flex items-center justify-center bg-brand-success-light text-brand-success flex-shrink-0">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div>
+          <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Cuotas Pagadas</p>
+          <p class="text-[18px] font-extrabold text-brand-navy mt-0.5"><%= stats.cuotasPagadas %> / <%= stats.totalCuotas %></p>
+        </div>
+      </div>
+      <div class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4">
+        <div class="w-11 h-11 rounded-[12px] flex items-center justify-center bg-brand-navy-light text-brand-navy flex-shrink-0">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div>
+          <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Saldo Pendiente</p>
+          <p class="text-[18px] font-extrabold text-brand-navy mt-0.5">$<%= fmt(stats.montoPendiente) %></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de Progreso -->
+    <div class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border animate-in delay-50">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <p class="text-[14px] font-bold text-brand-navy">Progreso del Pago</p>
+          <p class="text-[12px] text-brand-muted mt-0.5"><%= stats.cuotasPagadas %> de <%= stats.totalCuotas %> cuotas completadas</p>
+        </div>
+        <span class="text-[20px] font-extrabold text-brand-blue"><%= progreso %>%</span>
+      </div>
+      <div class="w-full bg-brand-surface2 rounded-full h-3 overflow-hidden">
+        <div class="h-3 rounded-full bg-gradient-to-r from-brand-blue to-brand-success transition-all duration-700" style="width: <%= progreso %>%"></div>
+      </div>
+      <div class="flex items-center justify-between mt-3 text-[12px] text-brand-muted">
+        <span>Pagado: <strong class="text-brand-success">$<%= fmt(stats.montoPagado) %></strong></span>
+        <span>Pendiente: <strong class="text-brand-navy">$<%= fmt(stats.montoPendiente) %></strong></span>
+      </div>
+    </div>
+    <!-- Panel Cambiar Fecha de Inicio -->
+    <div class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border animate-in delay-75">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-9 h-9 rounded-[10px] flex items-center justify-center bg-brand-gold-light text-brand-gold flex-shrink-0">
+          <i class="ri-calendar-2-line text-[18px]"></i>
+        </div>
+        <div>
+          <p class="text-[14px] font-bold text-brand-navy">Cambiar Fecha de Inicio del Cronograma</p>
+          <p class="text-[12px] text-brand-muted mt-0.5">Al cambiar la fecha, todas las fechas de vencimiento ser&aacute;n recalculadas autom&aacute;ticamente.</p>
+        </div>
+      </div>
+      <div class="flex items-end gap-3">
+        <div class="flex-1">
+          <label class="block text-[12px] font-semibold text-brand-muted uppercase tracking-wide mb-1.5">Nueva fecha de inicio</label>
+          <div class="relative">
+            <i class="ri-calendar-line absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted text-[15px] pointer-events-none"></i>
+            <input type="date" id="inp-fecha-inicio"
+              value="<%= prestamo.fecha_registro ? new Date(prestamo.fecha_registro).toISOString().split('T')[0] : '' %>"
+              class="w-full bg-brand-surface border border-brand-border rounded-[10px] py-2.5 pr-3.5 pl-9 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 hover:border-brand-blue-light focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+          </div>
+        </div>
+        <button type="button" id="btn-cambiar-fecha"
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-[10px] text-[13px] font-bold text-white bg-brand-navy hover:bg-brand-navy/90 shadow-md transition-all flex-shrink-0">
+          <i class="ri-refresh-line text-[15px]"></i>
+          Actualizar Fechas
+        </button>
+      </div>
+      <div id="fecha-result" class="hidden mt-3 px-4 py-2.5 rounded-[10px] text-[12px] font-medium"></div>
+    </div>
+
+    <!-- Tabla de Cuotas -->
+    <div class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col overflow-hidden animate-in delay-100">
+      <div class="px-7 py-5 border-b border-brand-border flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <p class="text-[16px] font-bold tracking-tight text-brand-navy">Cuotas del Pr&eacute;stamo</p>
+          <p class="text-[13px] text-brand-muted mt-0.5">
+            Cliente: <strong class="text-brand-text"><%= prestamo.cliente_nombre %></strong>
+            <% if (prestamo.cliente_telefono) { %>
+              &middot; Tel: <strong class="text-brand-text"><%= prestamo.cliente_telefono %></strong>
+            <% } %>
+          </p>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-brand-success-light text-brand-success border border-brand-success">
+            <span class="w-1.5 h-1.5 rounded-full bg-brand-success"></span> Pagada
+          </span>
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-amber-50 text-amber-600 border border-amber-300">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Pendiente
+          </span>
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-brand-danger-light text-brand-danger border border-brand-danger">
+            <span class="w-1.5 h-1.5 rounded-full bg-brand-danger"></span> Vencida
+          </span>
+        </div>
+      </div>
+
+      <div class="w-full overflow-x-auto">
+        <table class="w-full border-collapse text-left text-[13px]">
+          <thead>
+            <tr class="bg-brand-surface border-b border-brand-border">
+              <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-center">#</th>
+              <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide">Vencimiento</th>
+              <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-right">Capital</th>
+              <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-right">Inter&eacute;s</th>
+              <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-right">Cuota</th>
+              <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-right">Saldo Final</th>
+              <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide">Fecha Pago</th>
+              <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-center">Estado</th>
+              <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% cuotas.forEach((c) => {
+              const hoy = new Date();
+              hoy.setHours(0,0,0,0);
+              const venc = new Date(c.fecha_vencimiento);
+              const estadoReal = c.estado === 'pagada' ? 'pagada' : (c.estado !== 'pagada' && venc < hoy ? 'vencida' : 'pendiente');
+              const cuotaFmt = fmt(c.monto_cuota);
+              const msgWA = 'Hola ' + prestamo.cliente_nombre + ', le recordamos que su cuota N\u00b0 ' + c.numero_cuota + ' por $' + cuotaFmt + ' vence el ' + fmtDate(c.fecha_vencimiento) + '. Por favor realice su pago a tiempo. \u2014 Coinest Soluciones Financieras.';
+              const waUrl = telefonoLimpio ? 'https://wa.me/' + telefonoLimpio + '?text=' + encodeURIComponent(msgWA) : null;
+            %>
+            <tr class="border-b border-brand-border last:border-b-0 transition-colors duration-150 <%= estadoReal === 'pagada' ? 'bg-green-50/50' : estadoReal === 'vencida' ? 'bg-red-50/40' : 'hover:bg-brand-surface' %>">
+              <td class="py-3 px-4 text-center">
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-[12px] font-bold <%= estadoReal === 'pagada' ? 'bg-brand-success text-white' : estadoReal === 'vencida' ? 'bg-brand-danger text-white' : 'bg-brand-surface2 text-brand-navy' %>">
+                  <%= c.numero_cuota %>
+                </span>
+              </td>
+              <td class="py-3 px-4 text-brand-text font-medium"><%= fmtDate(c.fecha_vencimiento) %></td>
+              <td class="py-3 px-4 text-right text-brand-muted">$<%= fmt(c.capital) %></td>
+              <td class="py-3 px-4 text-right text-brand-muted">$<%= fmt(c.interes) %></td>
+              <td class="py-3 px-4 text-right font-bold text-brand-blue">$<%= cuotaFmt %></td>
+              <td class="py-3 px-4 text-right text-brand-text">$<%= fmt(c.saldo) %></td>
+              <td class="py-3 px-4 text-brand-muted text-[12px]"><%= c.fecha_pago ? fmtDate(c.fecha_pago) : '\u2014' %></td>
+              <td class="py-3 px-4 text-center">
+                <% if (estadoReal === 'pagada') { %>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[11px] font-semibold bg-brand-success-light text-brand-success border border-brand-success">
+                    <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline stroke-linecap="round" stroke-linejoin="round" stroke-width="3" points="20 6 9 17 4 12"/></svg>
+                    Pagada
+                  </span>
+                <% } else if (estadoReal === 'vencida') { %>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[11px] font-semibold bg-brand-danger-light text-brand-danger border border-brand-danger">
+                    <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Vencida
+                  </span>
+                <% } else { %>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[11px] font-semibold bg-amber-50 text-amber-600 border border-amber-300">
+                    <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="12 6 12 12 16 14"/></svg>
+                    Pendiente
+                  </span>
+                <% } %>
+              </td>
+              <td class="py-3 px-4 text-center">
+                <div class="flex items-center justify-center gap-2">
+                  <% if (estadoReal !== 'pagada') { %>
+                  <button type="button"
+                    class="btn-registrar-pago inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-brand-blue text-white hover:bg-brand-blue-hover transition-all shadow-sm hover:shadow-md"
+                    data-cuota-id="<%= c.id %>"
+                    data-prestamo-id="<%= prestamo.id %>"
+                    data-num="<%= c.numero_cuota %>"
+                    data-monto="<%= cuotaFmt %>">
+                    <i class="ri-check-line text-[13px]"></i>
+                  </button>
+                  <% } else { %>
+                  <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold text-brand-muted bg-brand-surface2 cursor-default text-green-600">
+                    <i class="ri-check-double-line text-[13px]"></i>
+                  </span>
+                  <% } %>
+                  <% if (waUrl) { %>
+                  <a href="<%= waUrl %>" target="_blank" rel="noopener noreferrer"
+                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#25D366] hover:bg-[#20ba58] text-green-600 transition-all shadow-sm hover:shadow-md"
+                    title="Enviar recordatorio por WhatsApp">
+                    <i class="ri-whatsapp-line"></i>
+                  </a>
+                  <% } else { %>
+                  <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-brand-surface2 text-brand-muted cursor-not-allowed opacity-50" title="Sin tel&eacute;fono registrado">
+                    <i class="ri-whatsapp-line"></i>
+                  </span>
+                  <% } %>
+                </div>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="px-5 py-3.5 border-t border-brand-border flex items-center justify-between bg-white">
+        <p class="text-[12px] text-brand-muted">Total: <span class="font-semibold text-brand-text"><%= stats.totalCuotas %> cuotas</span></p>
+        <div class="flex items-center gap-4 text-[12px]">
+          <span class="text-brand-muted">Pagadas: <strong class="text-brand-success"><%= stats.cuotasPagadas %></strong></span>
+          <span class="text-brand-muted">Pendientes: <strong class="text-amber-600"><%= stats.cuotasPendientes %></strong></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Modal Confirmar Pago -->
+<div id="modal-pago" class="fixed inset-0 z-50 hidden bg-brand-navy/50 backdrop-blur-sm flex items-center justify-center opacity-0 transition-opacity duration-300">
+  <div class="bg-white rounded-[24px] shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 relative">
+    <div class="px-6 py-5 border-b border-brand-border flex items-center justify-between bg-brand-surface">
+      <h3 class="text-[16px] font-bold text-brand-navy flex items-center gap-2">
+        <i class="ri-checkbox-circle-line text-[18px] text-brand-success"></i>
+        Registrar Pago
+      </h3>
+      <button type="button" id="btn-cerrar-modal-pago" class="text-brand-muted hover:text-brand-danger transition-colors">
+        <i class="ri-close-line text-[20px]"></i>
+      </button>
+    </div>
+    <div class="p-6 flex flex-col gap-4">
+      <div class="p-4 rounded-xl bg-brand-surface border border-brand-border">
+        <p class="text-[12px] text-brand-muted font-semibold uppercase tracking-wide">Cuota N&deg; <span id="modal-pago-num" class="text-brand-blue"></span></p>
+        <p class="text-[22px] font-extrabold text-brand-navy mt-1">$<span id="modal-pago-monto"></span></p>
+        <p class="text-[12px] text-brand-muted mt-1">Este monto se marcar&aacute; como pagado en el sistema.</p>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[12px] font-semibold text-brand-muted uppercase tracking-wide">Observaci&oacute;n (opcional)</label>
+        <textarea id="modal-pago-obs" rows="2" placeholder="Ej: Pago en efectivo, transferencia #123..."
+          class="w-full px-3 py-2.5 border-[1.5px] border-brand-border rounded-xl text-[13px] bg-brand-surface2 outline-none resize-none transition-all duration-200 text-brand-text focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]"></textarea>
+      </div>
+    </div>
+    <div class="px-6 py-5 border-t border-brand-border bg-brand-surface flex gap-3">
+      <button type="button" id="btn-cancelar-pago" class="flex-1 px-4 py-2.5 rounded-xl text-[13px] font-bold text-brand-muted bg-white border border-brand-border hover:bg-brand-surface transition-all">
+        Cancelar
+      </button>
+      <button type="button" id="btn-confirmar-pago" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-bold text-white bg-brand-success hover:opacity-90 shadow-md transition-all">
+        <i class="ri-check-double-line text-[16px]"></i>
+        Confirmar Pago
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  setTimeout(() => {
+    const s = document.getElementById('flash-success');
+    if (s) { s.style.opacity = '0'; setTimeout(() => s.remove(), 300); }
+    const e = document.getElementById('flash-error');
+    if (e) { e.style.opacity = '0'; setTimeout(() => e.remove(), 300); }
+  }, 3500);
+
+  const modalPago = document.getElementById('modal-pago');
+  const modalPagoContent = modalPago.querySelector('div.bg-white');
+  let currentCuotaId = null;
+  let currentPrestamoId = null;
+
+  function openModalPago(cuotaId, prestamoId, num, monto) {
+    currentCuotaId = cuotaId;
+    currentPrestamoId = prestamoId;
+    document.getElementById('modal-pago-num').textContent = num;
+    document.getElementById('modal-pago-monto').textContent = monto;
+    document.getElementById('modal-pago-obs').value = '';
+    modalPago.classList.remove('hidden');
+    void modalPago.offsetWidth;
+    modalPago.classList.remove('opacity-0');
+    modalPagoContent.classList.remove('scale-95');
+  }
+
+  function closeModalPago() {
+    modalPago.classList.add('opacity-0');
+    modalPagoContent.classList.add('scale-95');
+    setTimeout(() => modalPago.classList.add('hidden'), 300);
+  }
+
+  document.getElementById('btn-cerrar-modal-pago').addEventListener('click', closeModalPago);
+  document.getElementById('btn-cancelar-pago').addEventListener('click', closeModalPago);
+  modalPago.addEventListener('click', (e) => { if (e.target === modalPago) closeModalPago(); });
+
+  document.querySelectorAll('.btn-registrar-pago').forEach(btn => {
+    btn.addEventListener('click', function() {
+      openModalPago(
+        this.getAttribute('data-cuota-id'),
+        this.getAttribute('data-prestamo-id'),
+        this.getAttribute('data-num'),
+        this.getAttribute('data-monto')
+      );
+    });
+  });
+
+    // Cambiar Fecha de Inicio
+  const btnCambiarFecha = document.getElementById('btn-cambiar-fecha');
+  if (btnCambiarFecha) {
+    btnCambiarFecha.addEventListener('click', async function() {
+      const fechaInput = document.getElementById('inp-fecha-inicio').value;
+      if (!fechaInput) { alert('Por favor selecciona una fecha de inicio.'); return; }
+      const resultDiv = document.getElementById('fecha-result');
+      const originalHtml = this.innerHTML;
+      try {
+        this.innerHTML = '<i class="ri-loader-4-line animate-spin text-[15px]"></i> Actualizando...';
+        this.disabled = true;
+        const prestamoId = '<%= prestamo.id %>';
+        const response = await fetch(`/dashboard/prestamos/${prestamoId}/fecha-inicio`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fecha_inicio: fechaInput })
+        });
+        const data = await response.json();
+        resultDiv.classList.remove('hidden', 'bg-brand-success-light', 'text-brand-success', 'bg-brand-danger-light', 'text-brand-danger');
+        if (data.success) {
+          resultDiv.classList.add('bg-brand-success-light', 'text-brand-success');
+          resultDiv.innerHTML = '<i class="ri-checkbox-circle-line mr-1"></i>' + data.message;
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          resultDiv.classList.add('bg-brand-danger-light', 'text-brand-danger');
+          resultDiv.innerHTML = '<i class="ri-error-warning-line mr-1"></i>' + data.message;
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Error de conexion al servidor.');
+      } finally {
+        this.innerHTML = originalHtml;
+        this.disabled = false;
+      }
+    });
+  }
+document.getElementById('btn-confirmar-pago').addEventListener('click', async function() {
+    if (!currentCuotaId || !currentPrestamoId) return;
+    const obs = document.getElementById('modal-pago-obs').value.trim();
+    const originalHtml = this.innerHTML;
+    try {
+      this.innerHTML = '<svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Registrando...';
+      this.disabled = true;
+      const response = await fetch(`/dashboard/prestamos/${currentPrestamoId}/cuotas/${currentCuotaId}/pagar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ observacion: obs })
+      });
+      const data = await response.json();
+      if (data.success) {
+        closeModalPago();
+        window.location.href = `/dashboard/prestamos/${currentPrestamoId}/cronograma?success=${encodeURIComponent(data.message)}`;
+      } else {
+        alert('Error: ' + data.message);
+        this.innerHTML = originalHtml;
+        this.disabled = false;
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error de conexi\u00f3n al servidor.');
+      this.innerHTML = originalHtml;
+      this.disabled = false;
+    }
+  });
+</script>
+
+
+

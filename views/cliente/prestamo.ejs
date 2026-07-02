@@ -1,0 +1,102 @@
+<%- include('../partials/sidebar_cliente') %>
+
+<main class="flex-1 flex flex-col h-full bg-gray-50 relative overflow-y-auto">
+    <header class="flex items-center justify-between px-8 py-5 bg-white/80 backdrop-blur-md sticky top-0 z-10 border-b border-gray-100">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Mi Préstamo</h1>
+            <p class="text-gray-500 text-sm mt-0.5">Detalle de tu préstamo hipotecario y tabla de amortización</p>
+        </div>
+    </header>
+
+    <div class="p-8 max-w-7xl mx-auto w-full space-y-6">
+        <% if (!cliente) { %>
+        <div class="bg-white rounded-3xl p-12 text-center shadow-sm border border-gray-100">
+            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Perfil no vinculado</h3>
+            <p class="text-gray-500 mb-6">Tu cuenta no está asociada a un cliente. Contacta a tu asesor o actualiza tu perfil.</p>
+            <a href="/cliente/perfil" class="inline-flex px-5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:bg-blue-700">Ir a Mi Perfil</a>
+        </div>
+        <% } else if (!prestamo) { %>
+        <div class="bg-white rounded-3xl p-12 text-center shadow-sm border border-gray-100">
+            <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Sin préstamos activos</h3>
+            <p class="text-gray-500">Aún no tienes préstamos registrados a tu nombre, <%= cliente.nombre %>.</p>
+        </div>
+        <% } else { %>
+
+        <% if (prestamos.length > 1) { %>
+        <div class="flex gap-2 flex-wrap">
+            <% prestamos.forEach(p => { %>
+            <a href="/cliente/prestamo?id=<%= p.id %>" class="px-4 py-2 rounded-xl text-sm font-semibold transition-colors <%= prestamo.id === p.id ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' %>">
+                Préstamo #<%= p.id %> — $<%= Number(p.monto).toLocaleString('es-MX') %>
+            </a>
+            <% }) %>
+        </div>
+        <% } %>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Monto</p>
+                <p class="text-2xl font-bold text-gray-800 mt-1">$<%= Number(prestamo.monto).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Cuota <%= prestamo.tipo_pago %></p>
+                <p class="text-2xl font-bold text-blue-600 mt-1">$<%= Number(prestamo.cuota).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Tasa de interés</p>
+                <p class="text-2xl font-bold text-gray-800 mt-1"><%= prestamo.interes %>%</p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Estado</p>
+                <% const estadoColor = prestamo.estado === 'activo' ? 'text-green-600' : prestamo.estado === 'pagado' ? 'text-blue-600' : 'text-red-600'; %>
+                <p class="text-2xl font-bold mt-1 capitalize <%= estadoColor %>"><%= prestamo.estado %></p>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-8 text-white shadow-xl">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div><p class="text-blue-200 text-sm">Plazo</p><p class="text-xl font-bold"><%= prestamo.plazo_meses %> meses</p></div>
+                <div><p class="text-blue-200 text-sm">Total a pagar</p><p class="text-xl font-bold">$<%= Number(prestamo.total_pagar).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></p></div>
+                <div><p class="text-blue-200 text-sm">Total intereses</p><p class="text-xl font-bold">$<%= Number(prestamo.total_intereses).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></p></div>
+                <div><p class="text-blue-200 text-sm">Inversionista</p><p class="text-xl font-bold"><%= prestamo.inversor_nombre || '—' %></p></div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-8 py-5 border-b border-gray-100">
+                <h2 class="text-lg font-bold text-gray-800">Tabla de Amortización</h2>
+                <p class="text-sm text-gray-500 mt-0.5">Proyección de pagos del préstamo</p>
+            </div>
+            <div class="overflow-x-auto max-h-96">
+                <table class="w-full text-sm">
+                    <thead class="sticky top-0 bg-gray-50"><tr class="border-b border-gray-100">
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase">#</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Fecha</th>
+                        <th class="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase">Cuota</th>
+                        <th class="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase">Capital</th>
+                        <th class="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase">Interés</th>
+                        <th class="px-6 py-3 text-right text-xs font-semibold text-gray-400 uppercase">Saldo</th>
+                    </tr></thead>
+                    <tbody class="divide-y divide-gray-50">
+                        <% tablaAmortizacion.forEach(f => { %>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-3 text-gray-500"><%= f.num %></td>
+                            <td class="px-6 py-3 text-gray-600"><%= f.fecha %></td>
+                            <td class="px-6 py-3 text-right font-medium text-gray-800">$<%= Number(f.cuota).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></td>
+                            <td class="px-6 py-3 text-right text-gray-600">$<%= Number(f.capital).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></td>
+                            <td class="px-6 py-3 text-right text-gray-600">$<%= Number(f.interes).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></td>
+                            <td class="px-6 py-3 text-right font-semibold text-gray-800">$<%= Number(f.saldo).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <% } %>
+    </div>
+</main>

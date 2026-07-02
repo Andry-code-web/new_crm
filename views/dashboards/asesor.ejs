@@ -1,0 +1,102 @@
+<%- include('../partials/sidebar_asesor') %>
+
+<main class="flex-1 h-screen overflow-y-auto bg-brand-bg relative flex flex-col min-w-0">
+
+  <!-- Top Header -->
+  <header class="flex items-center justify-between px-8 py-4 bg-white/92 backdrop-blur-md border-b border-brand-border sticky top-0 z-40">
+    <div>
+      <h1 class="text-[22px] font-bold tracking-tight text-brand-navy">Panel del Asesor</h1>
+      <p class="text-[13px] text-brand-muted mt-0.5">Bienvenido, <strong class="font-bold text-brand-navy"><%= user.name %></strong></p>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="/dashboard/simulacion" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-bold text-white bg-brand-blue hover:bg-brand-blue-hover shadow-[0_2px_8px_rgba(27,79,216,0.25)] transition-all duration-200" id="btn-nueva-simulacion">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+        Nueva Simulación
+      </a>
+      <img src="<%= user.avatar %>" alt="Avatar" class="w-[38px] h-[38px] rounded-full border-2 border-brand-gold object-cover">
+    </div>
+  </header>
+
+  <div class="p-8 max-w-[1400px] mx-auto w-full flex-1 flex flex-col gap-6">
+
+    <!-- Hero Banner -->
+    <div class="bg-brand-navy rounded-[24px] p-8 text-white relative overflow-hidden shadow-[0_8px_30px_rgba(10,22,40,0.15)] flex flex-col sm:flex-row sm:items-center justify-between gap-6 animate-in">
+      <div class="absolute -right-20 -top-20 w-80 h-80 bg-[radial-gradient(circle,rgba(212,168,67,0.2)_0%,transparent_70%)] pointer-events-none"></div>
+      
+      <div>
+        <p class="text-[13px] font-bold uppercase tracking-widest text-brand-gold mb-2">💰 Balance Total de Cartera</p>
+        <p class="text-[44px] font-extrabold tracking-tight leading-none mb-1">
+          $<%= balance.total %>
+          <span class="text-[20px] font-semibold text-white/50 ml-1"><%= balance.currency %></span>
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-6 sm:gap-12 relative z-10">
+        <div class="flex flex-col gap-1">
+          <p class="text-[12px] font-medium text-white/50 uppercase tracking-wider">Préstamos activos</p>
+          <p class="text-[24px] font-bold text-white"><%= balance.activos || '—' %></p>
+        </div>
+        <div class="w-px h-10 bg-white/10 hidden sm:block"></div>
+        <div class="flex flex-col gap-1">
+          <p class="text-[12px] font-medium text-white/50 uppercase tracking-wider">Clientes asignados</p>
+          <p class="text-[24px] font-bold text-white"><%= balance.clientes || '—' %></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Access Cards -->
+    <div class="animate-in delay-100 flex flex-col gap-4">
+      <p class="text-[15px] font-bold tracking-tight text-brand-navy">Consulta Rápida</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <a href="/asesor/clientes" class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-5 p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-gold hover:shadow-[0_4px_20px_rgba(212,168,67,0.15)] group" id="card-clientes">
+          <div class="w-[52px] h-[52px] shrink-0 rounded-2xl flex items-center justify-center bg-brand-blue-light text-brand-blue group-hover:scale-105 transition-transform duration-300">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          </div>
+          <div class="flex-1">
+            <p class="text-[11px] font-semibold text-brand-muted uppercase tracking-[0.06em]">Consulta</p>
+            <p class="text-[18px] font-bold text-brand-text mt-0.5 group-hover:text-brand-navy transition-colors">Clientes</p>
+            <p class="text-[13px] text-brand-muted mt-0.5">Ver información de tus clientes</p>
+          </div>
+          <svg class="text-brand-muted/50 group-hover:text-brand-gold transition-colors group-hover:translate-x-1 duration-200" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+        </a>
+
+        <a href="/asesor/inversionistas" class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-5 p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-gold hover:shadow-[0_4px_20px_rgba(212,168,67,0.15)] group" id="card-inversionistas">
+          <div class="w-[52px] h-[52px] shrink-0 rounded-2xl flex items-center justify-center bg-brand-gold-light text-brand-gold group-hover:scale-105 transition-transform duration-300">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div class="flex-1">
+            <p class="text-[11px] font-semibold text-brand-muted uppercase tracking-[0.06em]">Consulta</p>
+            <p class="text-[18px] font-bold text-brand-text mt-0.5 group-hover:text-brand-navy transition-colors">Inversionistas</p>
+            <p class="text-[13px] text-brand-muted mt-0.5">Ver fondos y portafolio</p>
+          </div>
+          <svg class="text-brand-muted/50 group-hover:text-brand-gold transition-colors group-hover:translate-x-1 duration-200" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- More Actions -->
+    <div class="animate-in delay-200 flex flex-col gap-4">
+      <p class="text-[15px] font-bold tracking-tight text-brand-navy">Herramientas</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <a href="/dashboard/simulacion" class="bg-brand-surface2 rounded-[16px] border border-brand-border p-5 flex items-center gap-4 transition-colors hover:bg-brand-surface hover:border-brand-blue group" id="tool-simulacion">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-white text-brand-muted shadow-sm border border-brand-border group-hover:text-brand-blue group-hover:border-brand-blue/30 transition-colors">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          </div>
+          <div>
+            <p class="text-[14px] font-bold text-brand-navy">Simulador de Préstamos</p>
+            <p class="text-[13px] text-brand-muted mt-0.5">Calcula cuotas y amortización</p>
+          </div>
+        </a>
+        <a href="/dashboard/prestamos" class="bg-brand-surface2 rounded-[16px] border border-brand-border p-5 flex items-center gap-4 transition-colors hover:bg-brand-surface hover:border-brand-blue group" id="tool-prestamos">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-white text-brand-muted shadow-sm border border-brand-border group-hover:text-brand-blue group-hover:border-brand-blue/30 transition-colors">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+          </div>
+          <div>
+            <p class="text-[14px] font-bold text-brand-navy">Cartera de Préstamos</p>
+            <p class="text-[13px] text-brand-muted mt-0.5">Ver todos los préstamos activos</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</main>

@@ -1,0 +1,595 @@
+<%- include('../partials/sidebar_admin') %>
+
+  <main class="flex-1 h-screen overflow-y-auto bg-brand-bg relative flex flex-col min-w-0">
+
+    <!-- Top Header -->
+    <header
+      class="flex items-center justify-between px-8 py-4 bg-white/92 backdrop-blur-md border-b border-brand-border sticky top-0 z-40">
+      <div>
+        <h1 class="text-[22px] font-bold tracking-tight text-brand-navy">Panel de Administración</h1>
+        <p class="text-[13px] text-brand-muted mt-0.5">
+          Bienvenido, <strong class="font-bold text-brand-text">
+            <%= user.name %>
+          </strong>
+          &nbsp;·&nbsp;
+          <span id="dashClock" class="font-semibold text-brand-blue tabular-nums"></span>
+        </p>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="/dashboard/simulacion"
+          class="inline-flex items-center justify-center gap-2 px-4 py-2 text-[13px] font-semibold rounded-lg transition-all duration-180 bg-gradient-to-br from-brand-blue to-brand-blue-hover text-white shadow-[0_2px_8px_rgba(27,79,216,.3)] hover:from-brand-blue-light hover:to-brand-blue hover:-translate-y-px hover:shadow-[0_4px_14px_rgba(27,79,216,.4)]"
+          id="btn-nuevo-prestamo">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+          </svg>
+          Nuevo Préstamo
+        </a>
+        <img src="<%= user.avatar %>" alt="Avatar"
+          class="w-[38px] h-[38px] rounded-full border-2 border-brand-gold object-cover">
+      </div>
+    </header>
+
+    <div class="p-8 max-w-[1400px] mx-auto w-full flex-1 flex flex-col gap-6">
+
+
+      <div class="flex gap-6">
+        <!-- Hero Banner -->
+        <div
+          class="w-1/2 p-10 bg-brand-navy rounded-[24px] relative overflow-hidden text-white shadow-[0_8px_32px_rgba(10,22,40,0.13)] animate-in">
+          <div
+            class="absolute -top-[60px] -right-[60px] w-[280px] h-[280px] bg-[radial-gradient(circle,rgba(212,168,67,0.18)_0%,transparent_65%)] rounded-full">
+          </div>
+          <div
+            class="absolute -bottom-[80px] left-[120px] w-[200px] h-[200px] bg-[radial-gradient(circle,rgba(59,114,240,0.25)_0%,transparent_65%)] rounded-full">
+          </div>
+
+          <p class="text-[11px] font-semibold tracking-[0.05em] uppercase text-brand-gold-light mb-2 relative z-10">💼
+            Cartera Hipotecaria Total</p>
+          <p class="text-[44px] font-extrabold tracking-tight leading-none relative z-10">
+            S/. <%= kpi.montoTotal %>
+              <span class="text-xl font-normal text-white/50 ml-1.5">SOL</span>
+          </p>
+          <div class="flex flex-wrap gap-8 mt-6 relative z-10">
+            <div>
+              <p class="text-xs text-white/45 font-medium mb-0.5">Interés generado</p>
+              <p class="text-[15px] font-bold text-white">S/. <%= kpi.interesTotal %>
+              </p>
+            </div>
+            <div>
+              <p class="text-xs text-white/45 font-medium mb-0.5">Tasa promedio</p>
+              <p class="text-[15px] font-bold text-white">
+                <%= kpi.interesPromedio %>%
+              </p>
+            </div>
+            <div>
+              <p class="text-xs text-white/45 font-medium mb-0.5">Préstamos totales</p>
+              <p class="text-[15px] font-bold text-white">
+                <%= kpi.totalPrestamos %>
+              </p>
+            </div>
+            <div>
+              <p class="text-xs text-white/45 font-medium mb-0.5">Nuevos clientes (mes)</p>
+              <p class="text-[15px] font-bold text-white">
+                <%= kpi.clientesMes %>
+              </p>
+            </div>
+          </div>
+          <div class="flex gap-3 mt-6 relative z-10">
+            <a href="/dashboard/simulacion"
+              class="inline-flex items-center justify-center px-4 py-2 text-[13px] font-semibold rounded-lg transition-all duration-180 bg-gradient-to-br from-brand-gold to-brand-gold-hover text-brand-navy shadow-[0_2px_8px_rgba(212,168,67,0.35)] hover:-translate-y-px hover:shadow-[0_4px_14px_rgba(212,168,67,0.45)]">Nueva
+              Simulación</a>
+            <a href="/dashboard/prestamos"
+              class="inline-flex items-center justify-center px-4 py-2 text-[13px] font-semibold rounded-lg transition-all duration-180 bg-transparent text-white/85 border border-white/25 hover:bg-white/10 hover:border-white/45">Ver
+              Cartera →</a>
+          </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-3 gap-4 animate-in delay-1 w-1/2">
+
+          <!-- Clientes -->
+          <div
+            class="bg-white rounded-2xl p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 transition-transform duration-180 hover:-translate-y-1">
+            <div
+              class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-brand-blue-xlight text-brand-blue">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase mb-0.5">Clientes</p>
+              <p class="text-[22px] font-extrabold tracking-tight text-brand-text leading-tight mb-1">
+                <%= kpi.totalClientes %>
+              </p>
+              <p class="text-[11px] font-medium text-brand-success">+<%= kpi.clientesMes %> este mes</p>
+            </div>
+          </div>
+
+          <!-- Inversores -->
+          <div
+            class="bg-white rounded-2xl p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 transition-transform duration-180 hover:-translate-y-1">
+            <div
+              class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-brand-gold-xlight text-brand-gold-hover">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase mb-0.5">Inversores</p>
+              <p class="text-[22px] font-extrabold tracking-tight text-brand-text leading-tight mb-1">
+                <%= kpi.totalInversionistas %>
+              </p>
+              <p class="text-[11px] font-medium text-brand-faint">Fondos activos</p>
+            </div>
+          </div>
+
+          <!-- Asesores -->
+          <div
+            class="bg-white rounded-2xl p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 transition-transform duration-180 hover:-translate-y-1">
+            <div
+              class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-[rgba(10,22,40,.07)] text-brand-navy">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase mb-0.5">Asesores</p>
+              <p class="text-[22px] font-extrabold tracking-tight text-brand-text leading-tight mb-1">
+                <%= kpi.totalAsesores %>
+              </p>
+              <p class="text-[11px] font-medium text-brand-faint">Equipo activo</p>
+            </div>
+          </div>
+
+          <!-- Activos -->
+          <div
+            class="bg-white rounded-2xl p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 transition-transform duration-180 hover:-translate-y-1">
+            <div
+              class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-brand-success-light text-brand-success">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase mb-0.5">Activos</p>
+              <p class="text-[22px] font-extrabold tracking-tight text-brand-success leading-tight mb-1">
+                <%= kpi.prestamosActivos %>
+              </p>
+              <p class="text-[11px] font-medium text-brand-faint">En curso</p>
+            </div>
+          </div>
+
+          <!-- Vencidos -->
+          <div
+            class="bg-white rounded-2xl p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 transition-transform duration-180 hover:-translate-y-1">
+            <div
+              class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-brand-danger-light text-brand-danger">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase mb-0.5">Vencidos</p>
+              <p class="text-[22px] font-extrabold tracking-tight text-brand-danger leading-tight mb-1">
+                <%= kpi.prestamosVencidos %>
+              </p>
+              <p class="text-[11px] font-medium text-brand-danger">Req. atención</p>
+            </div>
+          </div>
+
+          <!-- Pagados -->
+          <div
+            class="bg-white rounded-2xl p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 transition-transform duration-180 hover:-translate-y-1">
+            <div
+              class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-brand-blue-xlight text-brand-blue">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase mb-0.5">Pagados</p>
+              <p class="text-[22px] font-extrabold tracking-tight text-brand-blue leading-tight mb-1">
+                <%= kpi.prestamosPagados %>
+              </p>
+              <p class="text-[11px] font-medium text-brand-faint">Finalizados</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+
+
+      <!-- Quick Actions -->
+      <div class="animate-in delay-3">
+        <p class="text-[13px] font-bold text-brand-navy mb-4 tracking-tight">Accesos Rápidos</p>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
+
+          <a href="/admin/clientes"
+            class="bg-white rounded-[16px] p-4 flex flex-col items-center justify-center text-center gap-3 border border-brand-border transition-all duration-180 hover:border-brand-gold hover:shadow-[0_4px_16px_rgba(212,168,67,0.15)] hover:-translate-y-px"
+            id="qa-clientes">
+            <div
+              class="w-[38px] h-[38px] rounded-lg bg-brand-gold-xlight text-brand-gold-hover flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-[13px] font-bold text-brand-navy">Clientes</p>
+              <p class="text-[11px] font-medium text-brand-faint">Gestionar</p>
+            </div>
+          </a>
+
+          <a href="/admin/inversionistas"
+            class="bg-white rounded-[16px] p-4 flex flex-col items-center justify-center text-center gap-3 border border-brand-border transition-all duration-180 hover:border-brand-gold hover:shadow-[0_4px_16px_rgba(212,168,67,0.15)] hover:-translate-y-px"
+            id="qa-inversores">
+            <div
+              class="w-[38px] h-[38px] rounded-lg bg-brand-gold-xlight text-brand-gold-hover flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-[13px] font-bold text-brand-navy">Inversores</p>
+              <p class="text-[11px] font-medium text-brand-faint">Ver fondos</p>
+            </div>
+          </a>
+
+          <a href="/admin/asesores"
+            class="bg-white rounded-[16px] p-4 flex flex-col items-center justify-center text-center gap-3 border border-brand-border transition-all duration-180 hover:border-brand-gold hover:shadow-[0_4px_16px_rgba(212,168,67,0.15)] hover:-translate-y-px"
+            id="qa-asesores">
+            <div
+              class="w-[38px] h-[38px] rounded-lg bg-brand-gold-xlight text-brand-gold-hover flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-[13px] font-bold text-brand-navy">Asesores</p>
+              <p class="text-[11px] font-medium text-brand-faint">Equipo</p>
+            </div>
+          </a>
+
+          <a href="/dashboard/simulacion"
+            class="bg-white rounded-[16px] p-4 flex flex-col items-center justify-center text-center gap-3 border border-brand-border transition-all duration-180 hover:border-brand-gold hover:shadow-[0_4px_16px_rgba(212,168,67,0.15)] hover:-translate-y-px"
+            id="qa-simulacion">
+            <div
+              class="w-[38px] h-[38px] rounded-lg bg-brand-gold-xlight text-brand-gold-hover flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-[13px] font-bold text-brand-navy">Simulación</p>
+              <p class="text-[11px] font-medium text-brand-faint">Calcular</p>
+            </div>
+          </a>
+
+          <a href="/dashboard/prestamos"
+            class="bg-white rounded-[16px] p-4 flex flex-col items-center justify-center text-center gap-3 border border-brand-border transition-all duration-180 hover:border-brand-gold hover:shadow-[0_4px_16px_rgba(212,168,67,0.15)] hover:-translate-y-px"
+            id="qa-prestamos">
+            <div
+              class="w-[38px] h-[38px] rounded-lg bg-brand-gold-xlight text-brand-gold-hover flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-[13px] font-bold text-brand-navy">Préstamos</p>
+              <p class="text-[11px] font-medium text-brand-faint">Ver cartera</p>
+            </div>
+          </a>
+
+          <a href="/admin/pagos/vencidos"
+            class="bg-white rounded-[16px] p-4 flex flex-col items-center justify-center text-center gap-3 border border-brand-border transition-all duration-180 hover:border-brand-gold hover:shadow-[0_4px_16px_rgba(212,168,67,0.15)] hover:-translate-y-px"
+            id="qa-vencidos">
+            <div
+              class="w-[38px] h-[38px] rounded-lg bg-brand-gold-xlight text-brand-gold-hover flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-[13px] font-bold text-brand-navy">Vencidos</p>
+              <p class="text-[11px] font-medium text-brand-faint">Urgente</p>
+            </div>
+          </a>
+
+        </div>
+      </div>
+
+      <!-- Recent Loans Table -->
+      <div
+        class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col animate-in delay-4">
+        <div class="flex items-start justify-between mb-5">
+          <div>
+            <p class="text-[15px] font-bold tracking-tight text-brand-navy mb-0.5">Préstamos Recientes</p>
+            <p class="text-xs font-medium text-brand-faint">Últimas operaciones registradas</p>
+          </div>
+          <a href="/dashboard/prestamos"
+            class="text-[13px] font-semibold text-brand-blue transition-colors hover:text-brand-blue-hover">Ver todos
+            →</a>
+        </div>
+
+        <% if (recentPrestamos.length===0) { %>
+          <div class="py-10 flex flex-col items-center justify-center text-center">
+            <svg class="w-12 h-12 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p class="text-[14px] font-medium">Sin préstamos registrados todavía</p>
+            <a href="/dashboard/simulacion"
+              class="mt-2.5 text-[13px] text-brand-blue font-semibold hover:underline">Crear el primer préstamo →</a>
+          </div>
+          <% } else { %>
+            <div class="w-full overflow-x-auto">
+              <table class="w-full min-w-[800px] border-collapse text-left">
+                <thead>
+                  <tr>
+                    <th
+                      class="px-5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-brand-muted bg-brand-surface2 border-y border-brand-border">
+                      Cliente</th>
+                    <th
+                      class="px-5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-brand-muted bg-brand-surface2 border-y border-brand-border">
+                      Inversionista</th>
+                    <th
+                      class="px-5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-brand-muted bg-brand-surface2 border-y border-brand-border">
+                      Monto</th>
+                    <th
+                      class="px-5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-brand-muted bg-brand-surface2 border-y border-brand-border">
+                      Interés</th>
+                    <th
+                      class="px-5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-brand-muted bg-brand-surface2 border-y border-brand-border">
+                      Plazo</th>
+                    <th
+                      class="px-5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-brand-muted bg-brand-surface2 border-y border-brand-border">
+                      Estado</th>
+                    <th
+                      class="px-5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-brand-muted bg-brand-surface2 border-y border-brand-border">
+                      Fecha</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% recentPrestamos.forEach(p=> {
+                    const initials = (p.cliente_nombre || 'NA')
+                    .split(' ')
+                    .slice(0, 2)
+                    .map(w => w[0])
+                    .join('')
+                    .toUpperCase();
+
+                    const fechaFmt = new Date(p.fecha_registro).toLocaleDateString('es-MX', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                    });
+
+                    const montoFmt = Number(p.monto).toLocaleString('es-MX', {
+                    minimumFractionDigits: 2
+                    });
+                    %>
+                    <tr class="hover:bg-brand-surface2 border-b border-brand-border last:border-0 transition-colors">
+                      <td class="px-5 py-3.5 text-[13px]">
+                        <div class="flex items-center gap-3">
+                          <div
+                            class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-blue to-brand-blue-light text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-[0_2px_8px_rgba(27,79,216,.2)]">
+                            <%= initials %>
+                          </div>
+                          <span class="font-bold text-brand-navy">
+                            <%= p.cliente_nombre || 'N/A' %>
+                          </span>
+                        </div>
+                      </td>
+                      <td class="px-5 py-3.5 text-[13px] text-brand-muted font-medium">
+                        <%= p.inversor_nombre || 'N/A' %>
+                      </td>
+                      <td class="px-5 py-3.5 text-[13px] font-bold text-brand-text tabular-nums">$<%= montoFmt %>
+                      </td>
+                      <td class="px-5 py-3.5 text-[13px]">
+                        <%= p.interes %>%
+                      </td>
+                      <td class="px-5 py-3.5 text-[13px]">
+                        <%= p.plazo_meses %> m
+                      </td>
+                      <td class="px-5 py-3.5 text-[13px]">
+                        <% if (p.estado==='activo' ) { %>
+                          <span
+                            class="inline-flex items-center gap-1.5 px-2 py-1 rounded-[6px] font-semibold text-[11px] uppercase tracking-wider bg-brand-success-light text-brand-success before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-current">Activo</span>
+                          <% } else if (p.estado==='vencido' ) { %>
+                            <span
+                              class="inline-flex items-center gap-1.5 px-2 py-1 rounded-[6px] font-semibold text-[11px] uppercase tracking-wider bg-brand-danger-light text-brand-danger before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-current">Vencido</span>
+                            <% } else { %>
+                              <span
+                                class="inline-flex items-center gap-1.5 px-2 py-1 rounded-[6px] font-semibold text-[11px] uppercase tracking-wider bg-brand-blue-xlight text-brand-blue before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-current">Pagado</span>
+                              <% } %>
+                      </td>
+                      <td class="px-5 py-3.5 text-[13px] text-brand-muted font-medium">
+                        <%= fechaFmt %>
+                      </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+              </table>
+            </div>
+            <% } %>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 animate-in delay-2">
+
+        <!-- Bar Chart -->
+        <div
+          class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col">
+          <div class="flex items-start justify-between mb-5">
+            <div>
+              <p class="text-[15px] font-bold tracking-tight text-brand-navy mb-0.5">Préstamos — últimos 6 meses</p>
+              <p class="text-xs font-medium text-brand-faint">Monto desembolsado en MXN</p>
+            </div>
+            <span
+              class="inline-flex items-center gap-1.5 px-2 py-1 rounded-[6px] font-semibold text-[11px] uppercase tracking-wider bg-brand-gold-xlight text-brand-gold-hover before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-current">Cartera</span>
+          </div>
+          <div class="flex-1">
+            <canvas id="barChart" height="110"></canvas>
+          </div>
+        </div>
+
+        <!-- Donut Chart -->
+        <div
+          class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col">
+          <div class="flex items-start justify-between mb-5">
+            <p class="text-[15px] font-bold tracking-tight text-brand-navy mb-0.5">Estado de Cartera</p>
+          </div>
+          <div class="flex-1 flex flex-col items-center gap-5">
+            <div class="relative w-[170px] h-[170px]">
+              <canvas id="donutChart" width="170" height="170"></canvas>
+              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span class="text-[22px] font-extrabold text-brand-text">
+                  <%= kpi.totalPrestamos %>
+                </span>
+                <span class="text-[10px] text-brand-muted font-semibold uppercase">Total</span>
+              </div>
+            </div>
+            <div class="w-full space-y-3">
+              <div class="flex items-center justify-between text-[13px]">
+                <span><span class="w-2 h-2 rounded-[2px] inline-block mr-2 align-middle bg-brand-success"></span><span
+                    class="text-brand-text-md font-medium">Activos</span></span>
+                <span class="font-bold text-brand-success">
+                  <%= kpi.prestamosActivos %>
+                </span>
+              </div>
+              <div class="flex items-center justify-between text-[13px]">
+                <span><span class="w-2 h-2 rounded-[2px] inline-block mr-2 align-middle bg-brand-danger"></span><span
+                    class="text-brand-text-md font-medium">Vencidos</span></span>
+                <span class="font-bold text-brand-danger">
+                  <%= kpi.prestamosVencidos %>
+                </span>
+              </div>
+              <div class="flex items-center justify-between text-[13px]">
+                <span><span class="w-2 h-2 rounded-[2px] inline-block mr-2 align-middle bg-brand-blue"></span><span
+                    class="text-brand-text-md font-medium">Pagados</span></span>
+                <span class="font-bold text-brand-blue">
+                  <%= kpi.prestamosPagados %>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script>
+    // Reloj
+    (function () {
+      var el = document.getElementById('dashClock');
+      function tick() { el.textContent = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
+      tick(); setInterval(tick, 1000);
+    })();
+    var rawChart = <% - chartData %>;
+    // Bar Chart
+    (function () {
+      var labels = rawChart.map(r => r.mes);
+      var montos = rawChart.map(r => Number(r.monto));
+      if (!labels.length) { labels.push('Sin datos'); montos.push(0); }
+
+      var ctx = document.getElementById('barChart').getContext('2d');
+      var grad = ctx.createLinearGradient(0, 0, 0, 220);
+      grad.addColorStop(0, 'rgba(27,79,216,.75)');
+      grad.addColorStop(1, 'rgba(27,79,216,.05)');
+
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Monto ($)',
+            data: montos,
+            backgroundColor: grad,
+            borderColor: '#1B4FD8',
+            borderWidth: 2,
+            borderRadius: 10,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0A1628',
+              titleColor: '#D4A843',
+              bodyColor: '#FFFFFF',
+              padding: 12,
+              cornerRadius: 8,
+              callbacks: { label: c => ' $' + Number(c.raw).toLocaleString('es-MX', { minimumFractionDigits: 2 }) }
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#6B7A99', font: { size: 11 } } },
+            y: {
+              grid: { color: '#F4F6FB' },
+              ticks: {
+                color: '#6B7A99',
+                font: { size: 11 },
+                callback: v => '$' + (v >= 1e6 ? (v / 1e6).toFixed(1) + 'M' : v >= 1e3 ? (v / 1e3).toFixed(0) + 'K' : v)
+              }
+            }
+          }
+        }
+      });
+    })();
+
+    // Donut Chart
+    (function () {
+      var activos = <%= kpi.prestamosActivos %>;
+      var vencidos = <%= kpi.prestamosVencidos %>;
+      var pagados = <%= kpi.prestamosPagados %>;
+      var total = activos + vencidos + pagados;
+
+      new Chart(document.getElementById('donutChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Activos', 'Vencidos', 'Pagados'],
+          datasets: [{
+            data: total > 0 ? [activos, vencidos, pagados] : [1, 0, 0],
+            backgroundColor: ['#18A865', '#E53E3E', '#1B4FD8'],
+            borderWidth: 4,
+            borderColor: '#FFFFFF',
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          responsive: false,
+          cutout: '74%',
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0A1628',
+              titleColor: '#D4A843',
+              bodyColor: '#FFFFFF',
+              padding: 10,
+              cornerRadius: 8,
+              callbacks: { label: c => c.label + ': ' + c.raw }
+            }
+          }
+        }
+      });
+    })();
+  </script>

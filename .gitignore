@@ -1,0 +1,5 @@
+node_modules
+database.sql
+.env
+setup_db.js
+update_passwords.js
