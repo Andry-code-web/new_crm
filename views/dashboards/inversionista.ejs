@@ -9,7 +9,7 @@
         Bienvenido, <%= inversionista ? inversionista.nombre : user.name %>
       </h1>
       <p class="text-[13px] text-brand-muted mt-0.5">
-        <%= inversionista && inversionista.empresa ? inversionista.empresa : 'Portal de Inversionista' %> • Resumen de Cartera y Cobros
+        Portal de Inversionista • Resumen de Cartera y Cobros
       </p>
     </div>
     <img src="<%= user.avatar %>" alt="Avatar" class="w-[38px] h-[38px] rounded-full border-2 border-brand-gold object-cover">
@@ -282,7 +282,6 @@
                       </div>
                       <div>
                         <p class="font-bold text-brand-navy"><%= p.cliente_nombre %></p>
-                        <p class="text-[11px] text-brand-muted mt-px"><%= p.cliente_telefono || 'Sin teléfono' %></p>
                       </div>
                     </div>
                   </td>

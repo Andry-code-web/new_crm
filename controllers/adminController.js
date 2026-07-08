@@ -5,7 +5,12 @@ const { getCommonData, getFlash } = require('../helpers/viewHelpers');
 
 exports.listClientes = async (req, res) => {
   try {
-    const [clientes] = await pool.query('SELECT * FROM clientes ORDER BY nombre ASC');
+    const [clientes] = await pool.query(`
+      SELECT c.*, u.password AS user_password
+      FROM clientes c
+      LEFT JOIN users u ON u.email = c.email AND u.role = 'cliente'
+      ORDER BY c.nombre ASC
+    `);
     const [prestamos] = await pool.query('SELECT DISTINCT cliente_id FROM prestamos');
     const idsConPrestamo = new Set(prestamos.map(p => p.cliente_id));
     const ahora = new Date();
@@ -35,14 +40,14 @@ exports.listClientes = async (req, res) => {
 };
 
 exports.crearCliente = async (req, res) => {
-  const { nombre, email, dni, telefono, direccion } = req.body;
+  const { nombre, email, dni, telefono, direccion, partida_registral, contacto_emergencia, ciudad, observaciones, nombre_inversionista } = req.body;
   if (!nombre?.trim()) {
     return res.redirect('/admin/clientes?error=' + encodeURIComponent('El nombre es obligatorio.'));
   }
   try {
     await pool.execute(
-      'INSERT INTO clientes (nombre, email, dni, telefono, direccion, fecha_registro) VALUES (?, ?, ?, ?, ?, NOW())',
-      [nombre.trim(), email || null, dni || null, telefono || null, direccion || null]
+      'INSERT INTO clientes (nombre, email, dni, telefono, direccion, partida_registral, contacto_emergencia, ciudad, observaciones, nombre_inversionista, fecha_registro) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+      [nombre.trim(), email || null, dni || null, telefono || null, direccion || null, partida_registral || null, contacto_emergencia || null, ciudad || null, observaciones || null, nombre_inversionista || null]
     );
 
     // Auto-create user account if email is provided
@@ -62,14 +67,14 @@ exports.crearCliente = async (req, res) => {
 };
 
 exports.editarCliente = async (req, res) => {
-  const { nombre, email, dni, telefono, direccion } = req.body;
+  const { nombre, email, dni, telefono, direccion, partida_registral, contacto_emergencia, ciudad, observaciones, nombre_inversionista } = req.body;
   if (!nombre?.trim()) {
     return res.redirect('/admin/clientes?error=' + encodeURIComponent('El nombre es obligatorio.'));
   }
   try {
     await pool.execute(
-      'UPDATE clientes SET nombre=?, email=?, dni=?, telefono=?, direccion=? WHERE id=?',
-      [nombre.trim(), email || null, dni || null, telefono || null, direccion || null, req.params.id]
+      'UPDATE clientes SET nombre=?, email=?, dni=?, telefono=?, direccion=?, partida_registral=?, contacto_emergencia=?, ciudad=?, observaciones=?, nombre_inversionista=? WHERE id=?',
+      [nombre.trim(), email || null, dni || null, telefono || null, direccion || null, partida_registral || null, contacto_emergencia || null, ciudad || null, observaciones || null, nombre_inversionista || null, req.params.id]
     );
     res.redirect('/admin/clientes?success=' + encodeURIComponent('Cliente actualizado.'));
   } catch (err) {
@@ -96,7 +101,12 @@ exports.eliminarCliente = async (req, res) => {
 
 exports.listInversionistas = async (req, res) => {
   try {
-    const [inversionistas] = await pool.query('SELECT * FROM inversionistas ORDER BY nombre ASC');
+    const [inversionistas] = await pool.query(`
+      SELECT i.*, u.password AS user_password
+      FROM inversionistas i
+      LEFT JOIN users u ON u.email = i.email AND u.role = 'inversionista'
+      ORDER BY i.nombre ASC
+    `);
     const [prestamos] = await pool.query('SELECT inversor_id, monto FROM prestamos');
     const idsConPrestamo = new Set(prestamos.map(p => p.inversor_id));
     const montoTotal = prestamos.reduce((s, p) => s + Number(p.monto), 0);
@@ -129,14 +139,14 @@ exports.listInversionistas = async (req, res) => {
 };
 
 exports.crearInversionista = async (req, res) => {
-  const { nombre, email, dni, telefono, empresa } = req.body;
+  const { nombre, email, dni, telefono, direccion, numero_cuenta, ciudad, observaciones } = req.body;
   if (!nombre?.trim()) {
     return res.redirect('/admin/inversionistas?error=' + encodeURIComponent('El nombre es obligatorio.'));
   }
   try {
     await pool.execute(
-      'INSERT INTO inversionistas (nombre, email, dni, telefono, empresa, fecha_registro) VALUES (?, ?, ?, ?, ?, NOW())',
-      [nombre.trim(), email || null, dni || null, telefono || null, empresa || null]
+      'INSERT INTO inversionistas (nombre, email, dni, telefono, direccion, numero_cuenta, ciudad, observaciones, fecha_registro) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+      [nombre.trim(), email || null, dni || null, telefono || null, direccion || null, numero_cuenta || null, ciudad || null, observaciones || null]
     );
 
     // Auto-create user account if email is provided
@@ -156,14 +166,14 @@ exports.crearInversionista = async (req, res) => {
 };
 
 exports.editarInversionista = async (req, res) => {
-  const { nombre, email, dni, telefono, empresa } = req.body;
+  const { nombre, email, dni, telefono, direccion, numero_cuenta, ciudad, observaciones } = req.body;
   if (!nombre?.trim()) {
     return res.redirect('/admin/inversionistas?error=' + encodeURIComponent('El nombre es obligatorio.'));
   }
   try {
     await pool.execute(
-      'UPDATE inversionistas SET nombre=?, email=?, dni=?, telefono=?, empresa=? WHERE id=?',
-      [nombre.trim(), email || null, dni || null, telefono || null, empresa || null, req.params.id]
+      'UPDATE inversionistas SET nombre=?, email=?, dni=?, telefono=?, direccion=?, numero_cuenta=?, ciudad=?, observaciones=? WHERE id=?',
+      [nombre.trim(), email || null, dni || null, telefono || null, direccion || null, numero_cuenta || null, ciudad || null, observaciones || null, req.params.id]
     );
     res.redirect('/admin/inversionistas?success=' + encodeURIComponent('Inversionista actualizado.'));
   } catch (err) {

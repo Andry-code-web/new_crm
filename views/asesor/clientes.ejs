@@ -43,6 +43,7 @@
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase">Contacto</th>
                         <th class="px-6 py-4 text-center text-xs font-semibold text-gray-400 uppercase">Préstamos</th>
                         <th class="px-6 py-4 text-right text-xs font-semibold text-gray-400 uppercase">Monto Activo</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase">Contraseña</th>
                     </tr></thead>
                     <tbody class="divide-y divide-gray-50">
                         <% clientes.forEach(c => { %>
@@ -50,12 +51,26 @@
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center"><span class="text-sm font-bold text-white"><%= c.nombre.charAt(0).toUpperCase() %></span></div>
-                                    <div><p class="font-semibold text-gray-800"><%= c.nombre %></p><p class="text-xs text-gray-400"><%= c.direccion || 'Sin dirección' %></p></div>
+                                    <div><p class="font-semibold text-gray-800"><%= c.nombre %></p><p class="text-xs text-gray-400"><%= c.ciudad || 'Sin ciudad' %></p></div>
                                 </div>
                             </td>
                             <td class="px-6 py-4"><p class="text-gray-600"><%= c.email || '—' %></p><p class="text-xs text-gray-400"><%= c.telefono || '—' %></p></td>
                             <td class="px-6 py-4 text-center"><span class="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold"><%= c.num_prestamos || 0 %></span></td>
                             <td class="px-6 py-4 text-right font-semibold text-gray-800">$<%= Number(c.monto_activo || 0).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></td>
+                            <td class="px-6 py-4">
+                                <% if (c.user_password) { %>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-mono text-[13px] text-gray-700 tracking-wider ase-pwd-text-<%= c.id %>">••••••••</span>
+                                    <span class="font-mono text-[13px] text-gray-700 tracking-wider ase-pwd-value-<%= c.id %> hidden"><%= c.user_password %></span>
+                                    <button type="button" onclick="toggleAsePwd(<%= c.id %>)" class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-700" title="Ver contraseña">
+                                        <svg class="ase-eye-off-<%= c.id %>" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                                        <svg class="ase-eye-on-<%= c.id %> hidden" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    </button>
+                                </div>
+                                <% } else { %>
+                                <span class="text-gray-400 text-xs">Sin usuario</span>
+                                <% } %>
+                            </td>
                         </tr>
                         <% }) %>
                     </tbody>
@@ -71,4 +86,15 @@
         const q = this.value.toLowerCase();
         document.querySelectorAll('.row').forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none'; });
     });
+    function toggleAsePwd(id) {
+        const dots   = document.querySelector('.ase-pwd-text-' + id);
+        const val    = document.querySelector('.ase-pwd-value-' + id);
+        const eyeOff = document.querySelector('.ase-eye-off-' + id);
+        const eyeOn  = document.querySelector('.ase-eye-on-' + id);
+        const hidden = val.classList.contains('hidden');
+        dots.classList.toggle('hidden', hidden);
+        val.classList.toggle('hidden', !hidden);
+        eyeOff.classList.toggle('hidden', hidden);
+        eyeOn.classList.toggle('hidden', !hidden);
+    }
 </script>

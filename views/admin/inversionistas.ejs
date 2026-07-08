@@ -86,9 +86,11 @@
           <thead>
             <tr class="bg-brand-surface border-b border-brand-border">
               <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Inversionista</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">DNI</th>
               <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Email</th>
               <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Teléfono</th>
-              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Empresa</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Ciudad</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Contraseña</th>
               <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-center">Acciones</th>
             </tr>
           </thead>
@@ -101,9 +103,24 @@
                   <span class="font-semibold text-brand-navy"><%= inv.nombre %></span>
                 </div>
               </td>
+              <td class="py-3.5 px-5 text-brand-muted"><%= inv.dni || '—' %></td>
               <td class="py-3.5 px-5 text-brand-muted"><%= inv.email || '—' %></td>
               <td class="py-3.5 px-5 text-brand-muted"><%= inv.telefono || '—' %></td>
-              <td class="py-3.5 px-5 text-brand-muted"><%= inv.empresa || '—' %></td>
+              <td class="py-3.5 px-5 text-brand-muted"><%= inv.ciudad || '—' %></td>
+              <td class="py-3.5 px-5">
+                <% if (inv.user_password) { %>
+                <div class="flex items-center gap-1.5">
+                  <span class="font-mono text-[13px] text-brand-text tracking-wider pwd-text-<%= inv.id %>">••••••••</span>
+                  <span class="font-mono text-[13px] text-brand-text tracking-wider pwd-value-<%= inv.id %> hidden"><%= inv.user_password %></span>
+                  <button type="button" onclick="togglePwd(<%= inv.id %>)" class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-brand-surface2 transition-colors text-brand-muted hover:text-brand-navy" title="Ver contraseña">
+                    <svg class="eye-off-<%= inv.id %>" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                    <svg class="eye-on-<%= inv.id %> hidden" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  </button>
+                </div>
+                <% } else { %>
+                <span class="text-brand-muted text-[12px]">Sin usuario</span>
+                <% } %>
+              </td>
               <td class="py-3.5 px-5 text-center">
                 <div class="flex items-center justify-center gap-2">
                   <button onclick='openEdit(<%- JSON.stringify(inv) %>)' class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-semibold bg-brand-blue-xlight text-brand-blue hover:bg-brand-blue hover:text-white transition-all duration-200" title="Editar">
@@ -131,8 +148,8 @@
 <!-- Modal Nuevo -->
 <div id="modal-nuevo" class="fixed inset-0 z-50 flex items-center justify-center p-5 hidden">
   <div class="absolute inset-0 bg-[#0A1628]/60 backdrop-blur-sm transition-opacity" onclick="closeModal('modal-nuevo')"></div>
-  <div class="relative bg-white rounded-[24px] shadow-[0_24px_48px_rgba(10,22,40,0.2)] w-full max-w-[460px] overflow-hidden animate-[fadeSlideUp_0.25s_ease]">
-    <div class="bg-gradient-to-br from-brand-navy to-[#122046] px-7 py-6 flex items-center gap-3.5">
+  <div class="relative bg-white rounded-[24px] shadow-[0_24px_48px_rgba(10,22,40,0.2)] w-full max-w-[560px] overflow-hidden animate-[fadeSlideUp_0.25s_ease] max-h-[90vh] overflow-y-auto">
+    <div class="bg-gradient-to-br from-brand-navy to-[#122046] px-7 py-6 flex items-center gap-3.5 sticky top-0 z-10">
       <div class="w-11 h-11 bg-brand-gold-xlight border border-brand-gold-light rounded-lg flex items-center justify-center shrink-0">
         <svg width="20" height="20" fill="none" stroke="var(--c-gold)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
       </div>
@@ -142,21 +159,48 @@
       </div>
     </div>
     <form action="/admin/inversionistas/crear" method="POST" class="p-7 flex flex-col gap-4">
+      <!-- Nombre -->
       <div>
         <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Nombre <span class="text-brand-danger">*</span></label>
         <input type="text" name="nombre" required class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]" placeholder="Nombre completo o razón social">
       </div>
-      <div>
-        <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Email</label>
-        <input type="email" name="email" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]" placeholder="correo@empresa.com">
+      <!-- DNI + Número de Cuenta -->
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">DNI</label>
+          <input type="text" name="dni" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]" placeholder="12345678">
+        </div>
+        <div>
+          <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Número de Cuenta</label>
+          <input type="text" name="numero_cuenta" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]" placeholder="Nro. de cuenta bancaria">
+        </div>
       </div>
-      <div>
-        <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Teléfono</label>
-        <input type="text" name="telefono" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]" placeholder="55 0000 0000">
+      <!-- Email + Teléfono -->
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Email</label>
+          <input type="email" name="email" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]" placeholder="correo@empresa.com">
+        </div>
+        <div>
+          <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Teléfono</label>
+          <input type="text" name="telefono" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]" placeholder="55 0000 0000">
+        </div>
       </div>
+      <!-- Dirección + Ciudad -->
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Dirección</label>
+          <input type="text" name="direccion" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]" placeholder="Calle, número...">
+        </div>
+        <div>
+          <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Ciudad</label>
+          <input type="text" name="ciudad" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]" placeholder="Ciudad">
+        </div>
+      </div>
+      <!-- Observaciones -->
       <div>
-        <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Empresa</label>
-        <input type="text" name="empresa" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]" placeholder="Nombre de la empresa o fondo">
+        <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Observaciones</label>
+        <textarea name="observaciones" rows="2" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)] resize-none" placeholder="Notas adicionales..."></textarea>
       </div>
       <div class="flex gap-3 mt-2">
         <button type="button" onclick="closeModal('modal-nuevo')" class="flex-1 px-4 py-3 text-[14px] font-semibold rounded-lg text-brand-muted hover:text-brand-text bg-brand-surface2 hover:bg-brand-border transition-colors">Cancelar</button>
@@ -169,8 +213,8 @@
 <!-- Modal Editar -->
 <div id="modal-editar" class="fixed inset-0 z-50 flex items-center justify-center p-5 hidden">
   <div class="absolute inset-0 bg-[#0A1628]/60 backdrop-blur-sm transition-opacity" onclick="closeModal('modal-editar')"></div>
-  <div class="relative bg-white rounded-[24px] shadow-[0_24px_48px_rgba(10,22,40,0.2)] w-full max-w-[460px] overflow-hidden animate-[fadeSlideUp_0.25s_ease]">
-    <div class="bg-gradient-to-br from-brand-navy to-[#122046] px-7 py-6 flex items-center gap-3.5">
+  <div class="relative bg-white rounded-[24px] shadow-[0_24px_48px_rgba(10,22,40,0.2)] w-full max-w-[560px] overflow-hidden animate-[fadeSlideUp_0.25s_ease] max-h-[90vh] overflow-y-auto">
+    <div class="bg-gradient-to-br from-brand-navy to-[#122046] px-7 py-6 flex items-center gap-3.5 sticky top-0 z-10">
       <div class="w-11 h-11 bg-brand-blue-light border border-brand-blue/30 rounded-lg flex items-center justify-center shrink-0">
         <svg width="20" height="20" fill="none" stroke="var(--c-blue)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
       </div>
@@ -180,21 +224,48 @@
       </div>
     </div>
     <form id="form-editar" action="" method="POST" class="p-7 flex flex-col gap-4">
+      <!-- Nombre -->
       <div>
         <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Nombre <span class="text-brand-danger">*</span></label>
         <input type="text" name="nombre" id="edit-nombre" required class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
       </div>
-      <div>
-        <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Email</label>
-        <input type="email" name="email" id="edit-email" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+      <!-- DNI + Número de Cuenta -->
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">DNI</label>
+          <input type="text" name="dni" id="edit-dni" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+        </div>
+        <div>
+          <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Número de Cuenta</label>
+          <input type="text" name="numero_cuenta" id="edit-numero_cuenta" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+        </div>
       </div>
-      <div>
-        <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Teléfono</label>
-        <input type="text" name="telefono" id="edit-telefono" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+      <!-- Email + Teléfono -->
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Email</label>
+          <input type="email" name="email" id="edit-email" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+        </div>
+        <div>
+          <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Teléfono</label>
+          <input type="text" name="telefono" id="edit-telefono" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+        </div>
       </div>
+      <!-- Dirección + Ciudad -->
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Dirección</label>
+          <input type="text" name="direccion" id="edit-direccion" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+        </div>
+        <div>
+          <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Ciudad</label>
+          <input type="text" name="ciudad" id="edit-ciudad" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+        </div>
+      </div>
+      <!-- Observaciones -->
       <div>
-        <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Empresa</label>
-        <input type="text" name="empresa" id="edit-empresa" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+        <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Observaciones</label>
+        <textarea name="observaciones" id="edit-observaciones" rows="2" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)] resize-none"></textarea>
       </div>
       <div class="flex gap-3 mt-2">
         <button type="button" onclick="closeModal('modal-editar')" class="flex-1 px-4 py-3 text-[14px] font-semibold rounded-lg text-brand-muted hover:text-brand-text bg-brand-surface2 hover:bg-brand-border transition-colors">Cancelar</button>
@@ -207,11 +278,26 @@
 <script>
   function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
   function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+  function togglePwd(id) {
+    const dots = document.querySelector('.pwd-text-' + id);
+    const val  = document.querySelector('.pwd-value-' + id);
+    const eyeOff = document.querySelector('.eye-off-' + id);
+    const eyeOn  = document.querySelector('.eye-on-' + id);
+    const hidden = val.classList.contains('hidden');
+    dots.classList.toggle('hidden', hidden);
+    val.classList.toggle('hidden', !hidden);
+    eyeOff.classList.toggle('hidden', hidden);
+    eyeOn.classList.toggle('hidden', !hidden);
+  }
   function openEdit(i) {
     document.getElementById('edit-nombre').value = i.nombre || '';
+    document.getElementById('edit-dni').value = i.dni || '';
+    document.getElementById('edit-numero_cuenta').value = i.numero_cuenta || '';
     document.getElementById('edit-email').value = i.email || '';
     document.getElementById('edit-telefono').value = i.telefono || '';
-    document.getElementById('edit-empresa').value = i.empresa || '';
+    document.getElementById('edit-direccion').value = i.direccion || '';
+    document.getElementById('edit-ciudad').value = i.ciudad || '';
+    document.getElementById('edit-observaciones').value = i.observaciones || '';
     document.getElementById('form-editar').action = '/admin/inversionistas/' + i.id + '/editar';
     openModal('modal-editar');
   }

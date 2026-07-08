@@ -15,11 +15,13 @@ exports.listClientes = async (req, res) => {
     // Solo clientes que tienen prestamos asignados a este asesor
     const [clientes] = await pool.query(`
       SELECT c.*,
+        u.password AS user_password,
         COUNT(p.id)          AS num_prestamos,
         SUM(CASE WHEN p.estado = 'activo' THEN p.monto ELSE 0 END) AS monto_activo,
         SUM(CASE WHEN p.estado = 'pendiente' THEN 1 ELSE 0 END)    AS prest_pendientes,
         SUM(CASE WHEN p.estado = 'vencido'   THEN 1 ELSE 0 END)    AS prest_vencidos
       FROM clientes c
+      LEFT JOIN users u ON u.email = c.email AND u.role = 'cliente'
       INNER JOIN prestamos p ON p.cliente_id = c.id AND p.asesor_id = ?
       GROUP BY c.id
       ORDER BY c.nombre ASC
@@ -55,11 +57,13 @@ exports.listInversionistas = async (req, res) => {
     // Solo inversionistas con prestamos de este asesor
     const [inversionistas] = await pool.query(`
       SELECT i.*,
+        u.password AS user_password,
         COUNT(p.id)       AS num_prestamos,
         SUM(p.monto)      AS monto_invertido,
         SUM(CASE WHEN p.estado = 'activo' THEN p.monto ELSE 0 END)  AS monto_activo,
         SUM(CASE WHEN p.estado = 'pagado' THEN p.monto ELSE 0 END)  AS monto_recuperado
       FROM inversionistas i
+      LEFT JOIN users u ON u.email = i.email AND u.role = 'inversionista'
       INNER JOIN prestamos p ON p.inversor_id = i.id AND p.asesor_id = ?
       GROUP BY i.id
       ORDER BY i.nombre ASC

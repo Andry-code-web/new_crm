@@ -1,184 +1,309 @@
 ﻿<%- include('../partials/sidebar_cliente') %>
 
-<main class="flex-1 flex flex-col h-screen overflow-y-auto bg-brand-bg relative min-w-0">
-    <header class="flex items-center justify-between px-8 py-5 bg-white/92 backdrop-blur-md sticky top-0 z-40 border-b border-brand-border">
-        <div>
-            <h1 class="text-[22px] font-bold text-brand-navy tracking-tight">Mi Préstamo</h1>
-            <p class="text-[13px] text-brand-muted mt-0.5">Detalle de tu préstamo hipotecario y seguimiento de cuotas</p>
-        </div>
-        <img src="<%= user.avatar %>" alt="Avatar" class="w-[38px] h-[38px] rounded-full border-2 border-brand-gold object-cover">
-    </header>
-
-    <div class="p-8 max-w-[1200px] mx-auto w-full flex-1 flex flex-col gap-6">
-        <% if (!cliente) { %>
-        <div class="bg-[#FFF4E5] border border-[#FEE1BB] px-6 py-8 rounded-[20px] text-center shadow-sm animate-in">
-            <div class="w-16 h-16 bg-[#FEE1BB] rounded-full flex items-center justify-center mx-auto mb-4 text-[#C26B0B]">
-                <i class="ri-user-unfollow-line text-[28px]"></i>
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-brand-bg relative min-w-0">
+        <header
+            class="flex items-center justify-between px-8 py-5 bg-white/92 backdrop-blur-md sticky top-0 z-40 border-b border-brand-border">
+            <div>
+                <h1 class="text-[22px] font-bold text-brand-navy tracking-tight">Mi Préstamo</h1>
+                <p class="text-[13px] text-brand-muted mt-0.5">Detalle de tu préstamo hipotecario y seguimiento de
+                    cuotas</p>
             </div>
-            <h3 class="text-[18px] font-bold text-[#9D5608] mb-2">Perfil no vinculado</h3>
-            <p class="text-[#B97017] mb-6 text-[14px]">Tu cuenta no está asociada a un cliente. Contacta a tu asesor o actualiza tu perfil.</p>
-            <a href="/cliente/perfil" class="inline-flex px-6 py-2.5 bg-[#D57F1C] text-white rounded-xl font-bold text-[13px] hover:bg-[#B97017] transition-colors shadow-md">Ir a Mi Perfil</a>
-        </div>
-        <% } else if (!prestamo) { %>
-        <div class="bg-brand-blue-light/30 border border-brand-blue/20 rounded-[20px] p-12 text-center shadow-sm animate-in">
-            <div class="w-16 h-16 bg-brand-blue-light rounded-full flex items-center justify-center mx-auto mb-4 text-brand-blue">
-                <i class="ri-wallet-3-line text-[28px]"></i>
-            </div>
-            <h3 class="text-[18px] font-bold text-brand-navy mb-2">Sin préstamos registrados</h3>
-            <p class="text-brand-muted text-[14px]">Aún no tienes préstamos a tu nombre, <%= cliente.nombre %>.</p>
-        </div>
-        <% } else { %>
+            <img src="<%= user.avatar %>" alt="Avatar"
+                class="w-[38px] h-[38px] rounded-full border-2 border-brand-gold object-cover">
+        </header>
 
-        <!-- Seleccionador si hay múltiples préstamos -->
-        <% if (prestamos.length > 1) { %>
-        <div class="flex gap-2 flex-wrap mb-2 animate-in delay-75">
-            <% prestamos.forEach(p => { %>
-            <a href="/cliente/prestamo?id=<%= p.id %>" class="px-4 py-2 rounded-[12px] text-[13px] font-semibold transition-colors shadow-sm <%= prestamo.id === p.id ? 'bg-brand-navy text-white shadow-md pointer-events-none' : 'bg-white border border-brand-border text-brand-text hover:bg-brand-surface hover:text-brand-navy' %>">
-                Préstamo #<%= p.id %> — S/%= Number(p.monto).toLocaleString('es-MX') %>
-            </a>
-            <% }) %>
-        </div>
-        <% } %>
-
-        <!-- Hero Resumen -->
-        <div class="bg-gradient-to-br from-brand-navy via-[#0f1e38] to-[#122046] rounded-[24px] p-8 text-white relative overflow-hidden shadow-[0_8px_32px_rgba(10,22,40,0.18)] animate-in delay-100">
-            <div class="absolute -right-16 -top-16 w-72 h-72 bg-[radial-gradient(circle,rgba(212,168,67,0.18)_0%,transparent_65%)] rounded-full pointer-events-none"></div>
-            <div class="absolute -bottom-10 left-32 w-48 h-48 bg-[radial-gradient(circle,rgba(27,79,216,0.2)_0%,transparent_65%)] rounded-full pointer-events-none"></div>
-
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-                <div>
-                    <p class="text-[12px] font-bold uppercase tracking-widest text-brand-gold mb-2">Tu Préstamo Actual</p>
-                    <p class="text-[44px] font-extrabold tracking-tight leading-none">
-                        S/%= Number(prestamo.monto).toLocaleString('es-MX', {minimumFractionDigits: 2}) %>
-                    </p>
-                    <p class="text-white/60 text-[13px] mt-2 font-medium flex items-center gap-2">
-                        <% if (prestamo.estado === 'activo') { %>
-                            <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-bold bg-brand-success/20 text-[#A7F3D0]"><i class="ri-checkbox-circle-line"></i> ACTIVO</span>
-                        <% } else if (prestamo.estado === 'vencido') { %>
-                            <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-bold bg-red-500/20 text-red-300"><i class="ri-error-warning-line"></i> VENCIDO</span>
-                        <% } else if (prestamo.estado === 'pendiente') { %>
-                            <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-bold bg-amber-500/20 text-amber-300"><i class="ri-time-line"></i> PENDIENTE</span>
-                        <% } else { %>
-                            <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-bold bg-brand-success/20 text-brand-success-light"><i class="ri-check-double-line"></i> PAGADO</span>
-                        <% } %>
-                        Registrado el <%= new Date(prestamo.fecha_registro).toLocaleDateString('es-MX', {day: '2-digit', month: 'long', year: 'numeric'}) %>
-                    </p>
-                </div>
-                
-                <div class="flex flex-wrap gap-8">
-                    <div class="flex flex-col gap-1">
-                        <p class="text-[11px] font-semibold text-white/50 uppercase tracking-widest">Cuota <%= prestamo.tipo_pago %></p>
-                        <p class="text-[22px] font-bold text-white">S/%= Number(prestamo.cuota).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></p>
+        <div class="p-8 max-w-[1200px] mx-auto w-full flex-1 flex flex-col gap-6">
+            <% if (!cliente) { %>
+                <div
+                    class="bg-[#FFF4E5] border border-[#FEE1BB] px-6 py-8 rounded-[20px] text-center shadow-sm animate-in">
+                    <div
+                        class="w-16 h-16 bg-[#FEE1BB] rounded-full flex items-center justify-center mx-auto mb-4 text-[#C26B0B]">
+                        <i class="ri-user-unfollow-line text-[28px]"></i>
                     </div>
-                    <div class="w-px h-12 bg-white/10 hidden sm:block"></div>
-                    <div class="flex flex-col gap-1">
-                        <p class="text-[11px] font-semibold text-white/50 uppercase tracking-widest">Interés / Plazo</p>
-                        <p class="text-[22px] font-bold text-white"><%= prestamo.interes %>% <span class="text-[16px] text-white/70 font-medium">/ <%= prestamo.plazo_meses %>m</span></p>
+                    <h3 class="text-[18px] font-bold text-[#9D5608] mb-2">Perfil no vinculado</h3>
+                    <p class="text-[#B97017] mb-6 text-[14px]">Tu cuenta no está asociada a un cliente. Contacta a tu
+                        asesor o actualiza tu perfil.</p>
+                    <a href="/cliente/perfil"
+                        class="inline-flex px-6 py-2.5 bg-[#D57F1C] text-white rounded-xl font-bold text-[13px] hover:bg-[#B97017] transition-colors shadow-md">Ir
+                        a Mi Perfil</a>
+                </div>
+                <% } else if (!prestamo) { %>
+                    <div
+                        class="bg-brand-blue-light/30 border border-brand-blue/20 rounded-[20px] p-12 text-center shadow-sm animate-in">
+                        <div
+                            class="w-16 h-16 bg-brand-blue-light rounded-full flex items-center justify-center mx-auto mb-4 text-brand-blue">
+                            <i class="ri-wallet-3-line text-[28px]"></i>
+                        </div>
+                        <h3 class="text-[18px] font-bold text-brand-navy mb-2">Sin préstamos registrados</h3>
+                        <p class="text-brand-muted text-[14px]">Aún no tienes préstamos a tu nombre, <%= cliente.nombre
+                                %>.</p>
                     </div>
-                </div>
-            </div>
-        </div>
+                    <% } else { %>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in delay-150">
-            <div class="bg-white rounded-[16px] p-5 border border-brand-border shadow-[0_2px_8px_rgba(10,22,40,0.04)]">
-                <p class="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Total a pagar</p>
-                <p class="text-[20px] font-bold text-brand-navy mt-1">S/%= Number(prestamo.total_pagar).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></p>
-            </div>
-            <div class="bg-white rounded-[16px] p-5 border border-brand-border shadow-[0_2px_8px_rgba(10,22,40,0.04)]">
-                <p class="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Total Intereses</p>
-                <p class="text-[20px] font-bold text-brand-navy mt-1">S/%= Number(prestamo.total_intereses).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></p>
-            </div>
-            <div class="bg-white rounded-[16px] p-5 border border-brand-border shadow-[0_2px_8px_rgba(10,22,40,0.04)] col-span-2 md:col-span-2">
-                <p class="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Financiado por</p>
-                <p class="text-[16px] font-semibold text-brand-text mt-1 truncate"><%= prestamo.inversor_nombre || 'Asignación pendiente' %></p>
-            </div>
-        </div>
-
-        <!-- Tabla de Cronograma / Cuotas -->
-        <div class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border overflow-hidden animate-in delay-200">
-            <div class="px-7 py-5 border-b border-brand-border flex items-center justify-between">
-                <div>
-                    <h2 class="text-[16px] font-bold text-brand-navy">Cronograma de Pagos</h2>
-                    <p class="text-[12px] text-brand-muted mt-0.5">Seguimiento y detalle de todas tus cuotas</p>
-                </div>
-                <% if (cuotas && cuotas.length > 0) { %>
-                <div class="flex items-center gap-3">
-                    <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-brand-success"><i class="ri-checkbox-circle-fill"></i> Pagadas</span>
-                    <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-500"><i class="ri-time-fill"></i> Pendientes</span>
-                </div>
-                <% } else { %>
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-brand-surface2 text-brand-muted border border-brand-border">Proyección de simulación</span>
-                <% } %>
-            </div>
-            
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-[13px] whitespace-nowrap">
-                    <thead class="bg-brand-surface border-b border-brand-border">
-                        <tr>
-                            <th class="py-3 px-6 font-semibold text-brand-muted tracking-wide text-center">N°</th>
-                            <th class="py-3 px-6 font-semibold text-brand-muted tracking-wide">Fecha de Vencimiento</th>
-                            <th class="py-3 px-6 font-semibold text-brand-muted tracking-wide text-right">Cuota Total</th>
-                            <th class="py-3 px-6 font-semibold text-brand-muted tracking-wide text-right">Capital</th>
-                            <th class="py-3 px-6 font-semibold text-brand-muted tracking-wide text-right">Interés</th>
-                            <th class="py-3 px-6 font-semibold text-brand-muted tracking-wide text-right">Saldo Restante</th>
-                            <% if (cuotas && cuotas.length > 0) { %>
-                            <th class="py-3 px-6 font-semibold text-brand-muted tracking-wide text-center">Estado</th>
+                        <!-- Seleccionador si hay múltiples préstamos -->
+                        <% if (prestamos.length> 1) { %>
+                            <div class="flex gap-2 flex-wrap mb-2 animate-in delay-75">
+                                <% prestamos.forEach(p=> { %>
+                                    <a href="/cliente/prestamo?id=<%= p.id %>"
+                                        class="px-4 py-2 rounded-[12px] text-[13px] font-semibold transition-colors shadow-sm <%= prestamo.id === p.id ? 'bg-brand-navy text-white shadow-md pointer-events-none' : 'bg-white border border-brand-border text-brand-text hover:bg-brand-surface hover:text-brand-navy' %>">
+                                        Préstamo #<%= p.id %> — S/<%= Number(p.monto).toLocaleString('es-MX') %>
+                                    </a>
+                                    <% }) %>
+                            </div>
                             <% } %>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-brand-border">
-                        <% if (cuotas && cuotas.length > 0) { 
-                            const hoy = new Date(); hoy.setHours(0,0,0,0);
-                            cuotas.forEach(c => { 
-                                const venc = new Date(c.fecha_vencimiento);
-                                const estadoReal = c.estado === 'pagada' ? 'pagada' : (c.estado !== 'pagada' && venc < hoy ? 'vencida' : 'pendiente');
-                                const fmt = (num) => Number(num).toLocaleString('es-MX', {minimumFractionDigits: 2});
-                        %>
-                        <tr class="hover:bg-brand-surface transition-colors <%= estadoReal === 'pagada' ? 'bg-green-50/30' : estadoReal === 'vencida' ? 'bg-red-50/40' : '' %>">
-                            <td class="py-3.5 px-6 text-center">
-                                <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-[12px] font-bold <%= estadoReal === 'pagada' ? 'bg-brand-success text-white' : estadoReal === 'vencida' ? 'bg-brand-danger text-white' : 'bg-brand-surface2 text-brand-navy' %>">
-                                    <%= c.numero_cuota %>
-                                </span>
-                            </td>
-                            <td class="py-3.5 px-6 font-medium text-brand-text">
-                                <%= venc.toLocaleDateString('es-MX', {weekday: 'short', day: '2-digit', month: 'short', year: 'numeric'}) %>
-                            </td>
-                            <td class="py-3.5 px-6 text-right font-bold text-brand-blue">S/%= fmt(c.monto_cuota) %></td>
-                            <td class="py-3.5 px-6 text-right text-brand-muted">S/%= fmt(c.capital) %></td>
-                            <td class="py-3.5 px-6 text-right text-brand-muted">S/%= fmt(c.interes) %></td>
-                            <td class="py-3.5 px-6 text-right font-medium text-brand-text">S/%= fmt(c.saldo) %></td>
-                            <td class="py-3.5 px-6 text-center">
-                                <% if (estadoReal === 'pagada') { %>
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-[11px] font-bold bg-brand-success-light text-brand-success"><i class="ri-check-double-line"></i> Pagada</span>
-                                <% } else if (estadoReal === 'vencida') { %>
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-[11px] font-bold bg-brand-danger-light text-brand-danger"><i class="ri-error-warning-line"></i> Vencida</span>
-                                <% } else { %>
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-[11px] font-bold bg-amber-50 text-amber-600 border border-amber-200"><i class="ri-time-line"></i> Pendiente</span>
+
+                                <!-- Hero Resumen -->
+                                <div
+                                    class="bg-gradient-to-br from-brand-navy via-[#0f1e38] to-[#122046] rounded-[24px] p-8 text-white relative overflow-hidden shadow-[0_8px_32px_rgba(10,22,40,0.18)] animate-in delay-100">
+                                    <div
+                                        class="absolute -right-16 -top-16 w-72 h-72 bg-[radial-gradient(circle,rgba(212,168,67,0.18)_0%,transparent_65%)] rounded-full pointer-events-none">
+                                    </div>
+                                    <div
+                                        class="absolute -bottom-10 left-32 w-48 h-48 bg-[radial-gradient(circle,rgba(27,79,216,0.2)_0%,transparent_65%)] rounded-full pointer-events-none">
+                                    </div>
+
+                                    <div
+                                        class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                                        <div>
+                                            <p
+                                                class="text-[12px] font-bold uppercase tracking-widest text-brand-gold mb-2">
+                                                Tu Préstamo Actual</p>
+                                            <p class="text-[44px] font-extrabold tracking-tight leading-none">
+                                                S/<%= Number(prestamo.monto).toLocaleString('es-MX',
+                                                    {minimumFractionDigits: 2}) %>
+                                            </p>
+                                            <p
+                                                class="text-white/60 text-[13px] mt-2 font-medium flex items-center gap-2">
+                                                <% if (prestamo.estado==='activo' ) { %>
+                                                    <span
+                                                        class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-bold bg-brand-success/20 text-[#A7F3D0]"><i
+                                                            class="ri-checkbox-circle-line"></i> ACTIVO</span>
+                                                    <% } else if (prestamo.estado==='vencido' ) { %>
+                                                        <span
+                                                            class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-bold bg-red-500/20 text-red-300"><i
+                                                                class="ri-error-warning-line"></i> VENCIDO</span>
+                                                        <% } else if (prestamo.estado==='pendiente' ) { %>
+                                                            <span
+                                                                class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-bold bg-amber-500/20 text-amber-300"><i
+                                                                    class="ri-time-line"></i> PENDIENTE</span>
+                                                            <% } else { %>
+                                                                <span
+                                                                    class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-bold bg-brand-success/20 text-brand-success-light"><i
+                                                                        class="ri-check-double-line"></i> PAGADO</span>
+                                                                <% } %>
+                                                                    Registrado el <%= new
+                                                                        Date(prestamo.fecha_registro).toLocaleDateString('es-MX',
+                                                                        {day: '2-digit' , month: 'long' ,
+                                                                        year: 'numeric' }) %>
+                                            </p>
+                                        </div>
+
+                                        <div class="flex flex-wrap gap-8">
+                                            <div class="flex flex-col gap-1">
+                                                <p
+                                                    class="text-[11px] font-semibold text-white/50 uppercase tracking-widest">
+                                                    Cuota <%= prestamo.tipo_pago %>
+                                                </p>
+                                                <p class="text-[22px] font-bold text-white">S/<%=
+                                                        Number(prestamo.cuota).toLocaleString('es-MX',
+                                                        {minimumFractionDigits: 2}) %>
+                                                </p>
+                                            </div>
+                                            <div class="w-px h-12 bg-white/10 hidden sm:block"></div>
+                                            <div class="flex flex-col gap-1">
+                                                <p
+                                                    class="text-[11px] font-semibold text-white/50 uppercase tracking-widest">
+                                                    Interés / Plazo</p>
+                                                <p class="text-[22px] font-bold text-white">
+                                                    <%= prestamo.interes %>% <span
+                                                            class="text-[16px] text-white/70 font-medium">/ <%=
+                                                                prestamo.plazo_meses %>m</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in delay-150">
+                                    <div
+                                        class="bg-white rounded-[16px] p-5 border border-brand-border shadow-[0_2px_8px_rgba(10,22,40,0.04)]">
+                                        <p class="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">
+                                            Total a pagar</p>
+                                        <p class="text-[20px] font-bold text-brand-navy mt-1">S/<%=
+                                                Number(prestamo.total_pagar).toLocaleString('es-MX',
+                                                {minimumFractionDigits: 2}) %>
+                                        </p>
+                                    </div>
+                                    <div
+                                        class="bg-white rounded-[16px] p-5 border border-brand-border shadow-[0_2px_8px_rgba(10,22,40,0.04)]">
+                                        <p class="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">
+                                            Total Intereses</p>
+                                        <p class="text-[20px] font-bold text-brand-navy mt-1">S/<%=
+                                                Number(prestamo.total_intereses).toLocaleString('es-MX',
+                                                {minimumFractionDigits: 2}) %>
+                                        </p>
+                                    </div>
+                                    <div
+                                        class="bg-white rounded-[16px] p-5 border border-brand-border shadow-[0_2px_8px_rgba(10,22,40,0.04)] col-span-2 md:col-span-2">
+                                        <p class="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">
+                                            Financiado por</p>
+                                        <p class="text-[16px] font-semibold text-brand-text mt-1 truncate">
+                                            <%= prestamo.inversor_nombre || 'Asignación pendiente' %>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Tabla de Cronograma / Cuotas -->
+                                <div
+                                    class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border overflow-hidden animate-in delay-200">
+                                    <div
+                                        class="px-7 py-5 border-b border-brand-border flex items-center justify-between">
+                                        <div>
+                                            <h2 class="text-[16px] font-bold text-brand-navy">Cronograma de Pagos</h2>
+                                            <p class="text-[12px] text-brand-muted mt-0.5">Seguimiento y detalle de
+                                                todas tus cuotas</p>
+                                        </div>
+                                        <% if (cuotas && cuotas.length> 0) { %>
+                                            <div class="flex items-center gap-3">
+                                                <span
+                                                    class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-brand-success"><i
+                                                        class="ri-checkbox-circle-fill"></i> Pagadas</span>
+                                                <span
+                                                    class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-500"><i
+                                                        class="ri-time-fill"></i> Pendientes</span>
+                                            </div>
+                                            <% } else { %>
+                                                <span
+                                                    class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-brand-surface2 text-brand-muted border border-brand-border">Proyección
+                                                    de simulación</span>
+                                                <% } %>
+                                    </div>
+
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full text-left text-[13px] whitespace-nowrap">
+                                            <thead class="bg-brand-surface border-b border-brand-border">
+                                                <tr>
+                                                    <th
+                                                        class="py-3 px-6 font-semibold text-brand-muted tracking-wide text-center">
+                                                        N°</th>
+                                                    <th class="py-3 px-6 font-semibold text-brand-muted tracking-wide">
+                                                        Fecha de Vencimiento</th>
+                                                    <th
+                                                        class="py-3 px-6 font-semibold text-brand-muted tracking-wide text-right">
+                                                        Cuota Total</th>
+                                                    <th
+                                                        class="py-3 px-6 font-semibold text-brand-muted tracking-wide text-right">
+                                                        Capital</th>
+                                                    <th
+                                                        class="py-3 px-6 font-semibold text-brand-muted tracking-wide text-right">
+                                                        Interés</th>
+                                                    <th
+                                                        class="py-3 px-6 font-semibold text-brand-muted tracking-wide text-right">
+                                                        Saldo Restante</th>
+                                                    <% if (cuotas && cuotas.length> 0) { %>
+                                                        <th
+                                                            class="py-3 px-6 font-semibold text-brand-muted tracking-wide text-center">
+                                                            Estado</th>
+                                                        <% } %>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-brand-border">
+                                                <% if (cuotas && cuotas.length> 0) {
+                                                    const hoy = new Date(); hoy.setHours(0,0,0,0);
+                                                    cuotas.forEach(c => {
+                                                    const venc = new Date(c.fecha_vencimiento);
+                                                    const estadoReal = c.estado === 'pagada' ? 'pagada' : (c.estado !==
+                                                    'pagada' && venc < hoy ? 'vencida' : 'pendiente' ); const
+                                                        fmt=(num)=> Number(num).toLocaleString('es-MX',
+                                                        {minimumFractionDigits: 2});
+                                                        %>
+                                                        <tr
+                                                            class="hover:bg-brand-surface transition-colors <%= estadoReal === 'pagada' ? 'bg-green-50/30' : estadoReal === 'vencida' ? 'bg-red-50/40' : '' %>">
+                                                            <td class="py-3.5 px-6 text-center">
+                                                                <span
+                                                                    class="inline-flex items-center justify-center w-7 h-7 rounded-full text-[12px] font-bold <%= estadoReal === 'pagada' ? 'bg-brand-success text-white' : estadoReal === 'vencida' ? 'bg-brand-danger text-white' : 'bg-brand-surface2 text-brand-navy' %>">
+                                                                    <%= c.numero_cuota %>
+                                                                </span>
+                                                            </td>
+                                                            <td class="py-3.5 px-6 font-medium text-brand-text">
+                                                                <%= venc.toLocaleDateString('es-MX', {weekday: 'short' ,
+                                                                    day: '2-digit' , month: 'short' , year: 'numeric' })
+                                                                    %>
+                                                            </td>
+                                                            <td
+                                                                class="py-3.5 px-6 text-right font-bold text-brand-blue">
+                                                                S/<%= fmt(c.monto_cuota) %>
+                                                            </td>
+                                                            <td class="py-3.5 px-6 text-right text-brand-muted">S/<%=
+                                                                    fmt(c.capital) %>
+                                                            </td>
+                                                            <td class="py-3.5 px-6 text-right text-brand-muted">S/<%=
+                                                                    fmt(c.interes) %>
+                                                            </td>
+                                                            <td
+                                                                class="py-3.5 px-6 text-right font-medium text-brand-text">
+                                                                S/<%= fmt(c.saldo) %>
+                                                            </td>
+                                                            <td class="py-3.5 px-6 text-center">
+                                                                <% if (estadoReal==='pagada' ) { %>
+                                                                    <span
+                                                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-[11px] font-bold bg-brand-success-light text-brand-success"><i
+                                                                            class="ri-check-double-line"></i>
+                                                                        Pagada</span>
+                                                                    <% } else if (estadoReal==='vencida' ) { %>
+                                                                        <span
+                                                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-[11px] font-bold bg-brand-danger-light text-brand-danger"><i
+                                                                                class="ri-error-warning-line"></i>
+                                                                            Vencida</span>
+                                                                        <% } else { %>
+                                                                            <span
+                                                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-[11px] font-bold bg-amber-50 text-amber-600 border border-amber-200"><i
+                                                                                    class="ri-time-line"></i>
+                                                                                Pendiente</span>
+                                                                            <% } %>
+                                                            </td>
+                                                        </tr>
+                                                        <% }); } else { tablaAmortizacion.forEach(f=> { %>
+                                                            <tr class="hover:bg-brand-surface transition-colors">
+                                                                <td
+                                                                    class="py-3 px-6 text-center text-brand-muted font-medium">
+                                                                    <%= f.num %>
+                                                                </td>
+                                                                <td class="py-3 px-6 text-brand-text">
+                                                                    <%= f.fecha %>
+                                                                </td>
+                                                                <td
+                                                                    class="py-3 px-6 text-right font-bold text-brand-blue">
+                                                                    S/<%= Number(f.cuota).toLocaleString('es-MX',
+                                                                        {minimumFractionDigits: 2}) %>
+                                                                </td>
+                                                                <td class="py-3 px-6 text-right text-brand-muted">S/<%=
+                                                                        Number(f.capital).toLocaleString('es-MX',
+                                                                        {minimumFractionDigits: 2}) %>
+                                                                </td>
+                                                                <td class="py-3 px-6 text-right text-brand-muted">S/<%=
+                                                                        Number(f.interes).toLocaleString('es-MX',
+                                                                        {minimumFractionDigits: 2}) %>
+                                                                </td>
+                                                                <td
+                                                                    class="py-3 px-6 text-right font-medium text-brand-text">
+                                                                    S/<%= Number(f.saldo).toLocaleString('es-MX',
+                                                                        {minimumFractionDigits: 2}) %>
+                                                                </td>
+                                                            </tr>
+                                                            <% }); } %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <% if (!cuotas || cuotas.length===0) { %>
+                                        <div
+                                            class="px-7 py-4 bg-brand-surface2 border-t border-brand-border text-center">
+                                            <p class="text-[12px] text-brand-muted"><i class="ri-information-line"></i>
+                                                El cronograma oficial aparecerá aquí una vez que el préstamo sea
+                                                activado.</p>
+                                        </div>
+                                        <% } %>
+                                </div>
                                 <% } %>
-                            </td>
-                        </tr>
-                        <%  });
-                        } else { 
-                            tablaAmortizacion.forEach(f => { %>
-                        <tr class="hover:bg-brand-surface transition-colors">
-                            <td class="py-3 px-6 text-center text-brand-muted font-medium"><%= f.num %></td>
-                            <td class="py-3 px-6 text-brand-text"><%= f.fecha %></td>
-                            <td class="py-3 px-6 text-right font-bold text-brand-blue">S/%= Number(f.cuota).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></td>
-                            <td class="py-3 px-6 text-right text-brand-muted">S/%= Number(f.capital).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></td>
-                            <td class="py-3 px-6 text-right text-brand-muted">S/%= Number(f.interes).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></td>
-                            <td class="py-3 px-6 text-right font-medium text-brand-text">S/%= Number(f.saldo).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></td>
-                        </tr>
-                        <%  }); 
-                        } %>
-                    </tbody>
-                </table>
-            </div>
-            <% if (!cuotas || cuotas.length === 0) { %>
-            <div class="px-7 py-4 bg-brand-surface2 border-t border-brand-border text-center">
-                <p class="text-[12px] text-brand-muted"><i class="ri-information-line"></i> El cronograma oficial aparecerá aquí una vez que el préstamo sea activado.</p>
-            </div>
-            <% } %>
         </div>
-        <% } %>
-    </div>
-</main>
+    </main>
