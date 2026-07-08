@@ -8,6 +8,7 @@ const dashboardRoutes = require('./routes/dashboard');
 const adminRoutes = require('./routes/admin');
 const asesorRoutes = require('./routes/asesor');
 const clienteRoutes = require('./routes/cliente');
+const inversionistaRoutes = require('./routes/inversionista');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,6 +41,7 @@ app.use('/dashboard', dashboardRoutes);
 app.use('/admin', adminRoutes);
 app.use('/asesor', asesorRoutes);
 app.use('/cliente', clienteRoutes);
+app.use('/inversionista', inversionistaRoutes);
 
 // Catch-all route to redirect to dashboard or login
 app.get('/', (req, res) => {

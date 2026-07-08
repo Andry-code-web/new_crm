@@ -1,6 +1,7 @@
 const pool = require('../config/db');
 const { getCommonData } = require('../helpers/viewHelpers');
 const PDFDocument = require('pdfkit');
+const path = require('path');
 
 exports.renderAdminDashboard = async (req, res) => {
   try {
@@ -89,68 +90,113 @@ exports.renderAdminDashboard = async (req, res) => {
 
 exports.renderAsesorDashboard = async (req, res) => {
   try {
-    let asesorId = null;
-    const [asesorRows] = await pool.query('SELECT id FROM asesores WHERE user_id = ?', [req.session.userId]);
-    if (asesorRows.length > 0) asesorId = asesorRows[0].id;
+    const [asesorRows] = await pool.query(
+      'SELECT id, nombre, apellidos, especialidad FROM asesores WHERE user_id = ?',
+      [req.session.userId]
+    );
+    const asesor = asesorRows[0] || null;
+    const asesorId = asesor ? asesor.id : null;
 
-    let rows = [];
-    if (asesorId) {
-      [rows] = await pool.query(`
-        SELECT
-          COALESCE(SUM(monto), 0) AS total,
-          SUM(estado = 'activo') AS activos,
-          COUNT(DISTINCT cliente_id) AS clientes
-        FROM prestamos
-        WHERE asesor_id = ?
-      `, [asesorId]);
-    }
-    const data = rows[0] || { total: 0, activos: 0, clientes: 0 };
     const fmt = (n) => Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    let kpi = { total: 0, activos: 0, pendientes: 0, vencidos: 0, pagados: 0, montoTotal: '0.00', interesTotal: '0.00', clientes: 0, cuotasPorVencer: 0 };
+    let recentPrestamos = [];
+    let cuotasPorVencer = [];
+    let chartData = [];
+
+    if (asesorId) {
+      // KPIs generales de la cartera del asesor
+      const [[stats]] = await pool.query(`
+        SELECT
+          COUNT(*)                                AS total,
+          SUM(estado = 'activo')                  AS activos,
+          SUM(estado = 'pendiente')               AS pendientes,
+          SUM(estado = 'vencido')                 AS vencidos,
+          SUM(estado = 'pagado')                  AS pagados,
+          COALESCE(SUM(monto), 0)                 AS montoTotal,
+          COALESCE(SUM(total_intereses), 0)       AS interesTotal,
+          COUNT(DISTINCT cliente_id)              AS clientes
+        FROM prestamos WHERE asesor_id = ?
+      `, [asesorId]);
+
+      // Cuotas por vencer en 5 dias de los prestamos del asesor
+      const [cpv] = await pool.query(`
+        SELECT cu.id, cu.numero_cuota, cu.fecha_vencimiento, cu.monto_cuota,
+               DATEDIFF(cu.fecha_vencimiento, CURDATE()) AS dias_restantes,
+               c.nombre AS cliente_nombre
+        FROM cuotas cu
+        JOIN prestamos p ON cu.prestamo_id = p.id AND p.asesor_id = ?
+        JOIN clientes c  ON p.cliente_id = c.id
+        WHERE cu.estado IN ('pendiente','vencida')
+          AND cu.fecha_vencimiento BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 5 DAY)
+        ORDER BY cu.fecha_vencimiento ASC
+        LIMIT 5
+      `, [asesorId]);
+
+      // Prestamos recientes del asesor
+      const [recent] = await pool.query(`
+        SELECT p.id, p.monto, p.interes, p.plazo_meses, p.tipo_pago, p.estado, p.fecha_registro,
+               c.nombre AS cliente_nombre, i.nombre AS inversor_nombre
+        FROM prestamos p
+        LEFT JOIN clientes       c ON p.cliente_id  = c.id
+        LEFT JOIN inversionistas i ON p.inversor_id = i.id
+        WHERE p.asesor_id = ?
+        ORDER BY p.fecha_registro DESC
+        LIMIT 6
+      `, [asesorId]);
+
+      // Chart data: prestamos por mes (ultimos 6 meses)
+      const [chart] = await pool.query(`
+        SELECT DATE_FORMAT(fecha_registro, '%b %Y') AS mes,
+               COUNT(*) AS cantidad,
+               COALESCE(SUM(monto), 0) AS monto
+        FROM prestamos
+        WHERE asesor_id = ? AND fecha_registro >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+        GROUP BY DATE_FORMAT(fecha_registro, '%Y-%m'), DATE_FORMAT(fecha_registro, '%b %Y')
+        ORDER BY MIN(fecha_registro) ASC
+      `, [asesorId]);
+
+      kpi = {
+        total:       stats.total       || 0,
+        activos:     stats.activos     || 0,
+        pendientes:  stats.pendientes  || 0,
+        vencidos:    stats.vencidos    || 0,
+        pagados:     stats.pagados     || 0,
+        montoTotal:  fmt(stats.montoTotal),
+        interesTotal: fmt(stats.interesTotal),
+        clientes:    stats.clientes    || 0,
+        cuotasPorVencer: cpv.length
+      };
+      recentPrestamos = recent;
+      cuotasPorVencer = cpv;
+      chartData = chart;
+    }
 
     res.render('dashboards/asesor', {
       ...getCommonData(req),
-      balance: {
-        total: fmt(data.total),
-        currency: 'MXN',
-        activos: data.activos || 0,
-        clientes: data.clientes || 0
-      }
+      asesor,
+      kpi,
+      recentPrestamos,
+      cuotasPorVencer,
+      chartData: JSON.stringify(chartData)
     });
   } catch (err) {
     console.error('Error cargando asesor dashboard:', err);
     res.render('dashboards/asesor', {
       ...getCommonData(req),
-      balance: { total: '0.00', currency: 'MXN', activos: 0, clientes: 0 }
+      asesor: null,
+      kpi: { total: 0, activos: 0, pendientes: 0, vencidos: 0, pagados: 0, montoTotal: '0.00', interesTotal: '0.00', clientes: 0, cuotasPorVencer: 0 },
+      recentPrestamos: [],
+      cuotasPorVencer: [],
+      chartData: '[]'
     });
   }
 };
 
 exports.renderSimulacion = async (req, res) => {
   try {
-    let clientes = [];
-    let inversionistas = [];
-
-    try {
-      const [rowsClientes] = await pool.query('SELECT id, nombre FROM clientes ORDER BY nombre ASC');
-      clientes = rowsClientes;
-    } catch (e) {
-      clientes = [
-        { id: 1, nombre: 'Juan García López' },
-        { id: 2, nombre: 'María Rodríguez Pérez' },
-        { id: 3, nombre: 'Carlos Martínez Silva' }
-      ];
-    }
-
-    try {
-      const [rowsInv] = await pool.query('SELECT id, nombre FROM inversionistas ORDER BY nombre ASC');
-      inversionistas = rowsInv;
-    } catch (e) {
-      inversionistas = [
-        { id: 1, nombre: 'Inversiones del Norte S.A.' },
-        { id: 2, nombre: 'Grupo Capital MX' },
-        { id: 3, nombre: 'Fondo Hipotecario Premium' }
-      ];
-    }
+    const [clientes] = await pool.query('SELECT id, nombre FROM clientes ORDER BY nombre ASC');
+    const [inversionistas] = await pool.query('SELECT id, nombre FROM inversionistas ORDER BY nombre ASC');
 
     res.render('simulacion', {
       ...getCommonData(req),
@@ -160,7 +206,7 @@ exports.renderSimulacion = async (req, res) => {
       error: req.query.error || null
     });
   } catch (err) {
-    console.error('Error al cargar simulación:', err);
+    console.error('Error al cargar simulaci\u00f3n:', err);
     res.render('simulacion', {
       ...getCommonData(req),
       clientes: [],
@@ -171,6 +217,8 @@ exports.renderSimulacion = async (req, res) => {
   }
 };
 
+
+
 exports.generarSimulacionPdf = (req, res) => {
   try {
     const {
@@ -180,7 +228,8 @@ exports.generarSimulacionPdf = (req, res) => {
 
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
 
-    res.setHeader('Content-disposition', 'attachment; filename="Simulacion_Coinest.pdf"');
+    const safeMonto = monto ? Number(monto).toString().replace('.', '_') : 'prestamo';
+    res.setHeader('Content-disposition', `attachment; filename="simulacion_${safeMonto}.pdf"`);
     res.setHeader('Content-type', 'application/pdf');
     doc.pipe(res);
 
@@ -191,15 +240,20 @@ exports.generarSimulacionPdf = (req, res) => {
     const colorMuted = '#94A3B8';
     const colorBgRow = '#F8FAFC';
 
-    // Encabezado
-    doc.fillColor(colorNavy)
-      .fontSize(28)
-      .font('Helvetica-Bold')
-      .text('COINEST', { align: 'left' });
+    // Función para dibujar la marca de agua
+    const drawWatermark = () => {
+      doc.save();
+      doc.opacity(0.05);
+      const wmSize = 350;
+      doc.image(path.join(__dirname, '../public/img/logo_icon.png'), (doc.page.width - wmSize) / 2, (doc.page.height - wmSize) / 2, { width: wmSize });
+      doc.restore();
+    };
 
-    doc.fillColor(colorGold)
-      .fontSize(10)
-      .text('SOLUCIONES FINANCIERAS', { align: 'left' });
+    doc.on('pageAdded', drawWatermark);
+    drawWatermark();
+
+    // Encabezado
+    doc.image(path.join(__dirname, '../public/img/logo_horizontal.png'), 50, 40, { height: 40 });
 
     // Fecha en la esquina superior derecha alineada con el Header
     doc.page.fonts['Helvetica'] ? doc.font('Helvetica') : doc.font('Helvetica');
@@ -414,8 +468,8 @@ exports.registrarPrestamo = async (req, res) => {
 
     await pool.query(
       `INSERT INTO prestamos
-        (cliente_id, inversor_id, asesor_id, monto, interes, plazo_meses, tipo_pago, cuota, total_pagar, total_intereses, fecha_registro)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (cliente_id, inversor_id, asesor_id, monto, interes, plazo_meses, tipo_pago, cuota, total_pagar, total_intereses, fecha_registro, estado)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente')`,
       [cliente_id, inversor_id, finalAsesorId, monto, interes, plazo_meses, tipo_pago, cuota, total_pagar, total_intereses, fechaFinal]
     );
     res.redirect('/dashboard/prestamos?success=' + encodeURIComponent('\u00a1Préstamo registrado correctamente!'));
@@ -431,21 +485,32 @@ exports.renderPrestamos = async (req, res) => {
     let stats = { total: 0, montoTotal: '0.00', interesPromedio: '0.00', clientesActivos: 0 };
 
     try {
+      // Si es asesor, filtrar solo sus prestamos
+      let whereClause = '';
+      let params = [];
+      if (req.session.role === 'asesor') {
+        const [asesorRows] = await pool.query('SELECT id FROM asesores WHERE user_id = ?', [req.session.userId]);
+        if (asesorRows.length > 0) {
+          whereClause = 'WHERE p.asesor_id = ?';
+          params = [asesorRows[0].id];
+        }
+      }
+
       const [rows] = await pool.query(`
         SELECT p.*, c.nombre AS cliente_nombre, c.telefono AS cliente_telefono, i.nombre AS inversor_nombre,
                (SELECT COUNT(*) FROM cuotas WHERE prestamo_id = p.id) AS tiene_cronograma
         FROM prestamos p
         LEFT JOIN clientes c ON p.cliente_id = c.id
         LEFT JOIN inversionistas i ON p.inversor_id = i.id
+        ${whereClause}
         ORDER BY p.fecha_registro DESC
-      `);
+      `, params);
       prestamos = rows;
 
       if (rows.length > 0) {
-        const totalMonto = rows.reduce(function (sum, p) { return sum + Number(p.monto); }, 0);
-        const interesSum = rows.reduce(function (sum, p) { return sum + Number(p.interes); }, 0);
-        const clientesUnicos = new Set(rows.map(function (p) { return p.cliente_id; })).size;
-
+        const totalMonto = rows.reduce((sum, p) => sum + Number(p.monto), 0);
+        const interesSum = rows.reduce((sum, p) => sum + Number(p.interes), 0);
+        const clientesUnicos = new Set(rows.map(p => p.cliente_id)).size;
         stats = {
           total: rows.length,
           montoTotal: totalMonto.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
@@ -465,16 +530,17 @@ exports.renderPrestamos = async (req, res) => {
       error: req.query.error || null
     });
   } catch (err) {
-    console.error('Error al cargar préstamos:', err);
+    console.error('Error al cargar pr\u00e9stamos:', err);
     res.render('prestamos', {
       ...getCommonData(req),
       prestamos: [],
       stats: { total: 0, montoTotal: '0.00', interesPromedio: '0.00', clientesActivos: 0 },
       success: null,
-      error: 'Error al cargar los préstamos.'
+      error: 'Error al cargar los pr\u00e9stamos.'
     });
   }
 };
+
 
 exports.activarPrestamo = async (req, res) => {
   try {

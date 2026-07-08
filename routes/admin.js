@@ -26,5 +26,6 @@ router.post('/asesores/:id/eliminar', adminController.eliminarAsesor);
 // Pagos
 router.get('/pagos/por-vencer', adminController.pagosPorVencer);
 router.get('/pagos/vencidos', adminController.pagosVencidos);
+router.post('/pagos/mora', adminController.guardarMora);
 
 module.exports = router;

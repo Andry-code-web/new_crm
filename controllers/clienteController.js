@@ -59,6 +59,7 @@ exports.renderPrestamo = async (req, res) => {
         cliente: null,
         prestamos: [],
         prestamo: null,
+        cuotas: [],
         tablaAmortizacion: []
       });
     }
@@ -73,13 +74,23 @@ exports.renderPrestamo = async (req, res) => {
 
     const prestamoId = req.query.id || (prestamos[0]?.id);
     const prestamo = prestamos.find(p => p.id == prestamoId) || null;
-    const tablaAmortizacion = prestamo ? generarAmortizacion(prestamo) : [];
+    
+    let cuotas = [];
+    if (prestamo) {
+        const [rows] = await pool.query(`
+            SELECT * FROM cuotas WHERE prestamo_id = ? ORDER BY numero_cuota ASC
+        `, [prestamo.id]);
+        cuotas = rows;
+    }
+
+    const tablaAmortizacion = (prestamo && cuotas.length === 0) ? generarAmortizacion(prestamo) : [];
 
     res.render('cliente/prestamo', {
       ...getCommonData(req),
       cliente,
       prestamos,
       prestamo,
+      cuotas,
       tablaAmortizacion
     });
   } catch (err) {
@@ -89,6 +100,7 @@ exports.renderPrestamo = async (req, res) => {
       cliente: null,
       prestamos: [],
       prestamo: null,
+      cuotas: [],
       tablaAmortizacion: []
     });
   }

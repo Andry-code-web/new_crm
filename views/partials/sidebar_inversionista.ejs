@@ -1,0 +1,60 @@
+<aside class="w-[260px] h-screen bg-brand-navy text-white flex flex-col shrink-0 border-r border-[#1A2D4F] relative overflow-hidden z-10">
+  <!-- Decoration -->
+  <div class="absolute -top-20 -left-20 w-60 h-60 bg-[radial-gradient(circle,rgba(212,168,67,0.12)_0%,transparent_70%)] pointer-events-none"></div>
+
+  <!-- Logo -->
+  <div class="flex items-center justify-center pt-7 pb-5 px-6 relative z-10">
+    <div class="bg-white/95 px-4 py-2.5 rounded-xl w-full flex justify-center shadow-lg shadow-black/10">
+      <img src="/img/logo_horizontal.png" alt="Financiera Guzmán" class="h-15 object-contain">
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="flex-1 px-4 overflow-y-auto relative z-10 sidebar-nav">
+    <p class="text-[10px] font-semibold tracking-wider uppercase text-white/30 pt-3.5 px-3 pb-1.5">Inversionista</p>
+
+    <a href="/dashboard/inversionista" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 border-l-[3px] border-transparent transition-colors hover:text-white/90 hover:bg-white/5" id="nav-inicio">
+      <i class="ri-dashboard-line text-[18px]"></i>
+      Inicio (Resumen)
+    </a>
+
+    <a href="/inversionista/prestamo" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 border-l-[3px] border-transparent transition-colors hover:text-white/90 hover:bg-white/5" id="nav-prestamo">
+      <i class="ri-hand-coin-line text-[18px]"></i>
+      Mis Préstamos
+    </a>
+
+    <a href="/inversionista/perfil" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 border-l-[3px] border-transparent transition-colors hover:text-white/90 hover:bg-white/5" id="nav-perfil">
+      <i class="ri-user-settings-line text-[18px]"></i>
+      Mi Perfil
+    </a>
+  </nav>
+
+  <!-- User -->
+  <div class="p-5 border-t border-[#1A2D4F] relative z-10 bg-[#0A1628]">
+    <div class="flex items-center gap-3 mb-4">
+      <img src="<%= user.avatar %>" alt="Avatar" class="w-9 h-9 rounded-full border-2 border-brand-gold object-cover">
+      <div class="truncate">
+        <p class="text-sm font-semibold truncate"><%= user.name %></p>
+        <p class="text-[11px] text-white/40 capitalize mt-px">Inversionista</p>
+      </div>
+    </div>
+    <form action="/logout" method="POST">
+      <button type="submit" class="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl bg-transparent text-white/40 text-[13px] font-medium transition-colors hover:bg-red-500/15 hover:text-red-300">
+        <i class="ri-logout-box-line"></i>
+        Cerrar Sesión
+      </button>
+    </form>
+  </div>
+</aside>
+
+<script>
+  (function() {
+    const path = window.location.pathname;
+    document.querySelectorAll('.sidebar-nav .nav-link').forEach(a => {
+      if (a.getAttribute('href') === path) {
+        a.classList.remove('text-white/60', 'border-transparent');
+        a.classList.add('bg-white/10', 'text-white', 'border-brand-gold', 'shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]');
+      }
+    });
+  })();
+</script>

@@ -1,4 +1,4 @@
-﻿<% if (user.role === 'admin') { %>
+<% if (user.role === 'admin') { %>
     <%- include('partials/sidebar_admin') %>
 <% } else if (user.role === 'asesor') { %>
     <%- include('partials/sidebar_asesor') %>
@@ -55,7 +55,7 @@
         </div>
         <div>
           <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Monto Pr&eacute;stamo</p>
-          <p class="text-[18px] font-extrabold text-brand-navy mt-0.5">$<%= fmt(prestamo.monto) %></p>
+          <p class="text-[18px] font-extrabold text-brand-navy mt-0.5">S/<%= fmt(prestamo.monto) %></p>
         </div>
       </div>
       <div class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4">
@@ -82,7 +82,7 @@
         </div>
         <div>
           <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Saldo Pendiente</p>
-          <p class="text-[18px] font-extrabold text-brand-navy mt-0.5">$<%= fmt(stats.montoPendiente) %></p>
+          <p class="text-[18px] font-extrabold text-brand-navy mt-0.5">S/<%= fmt(stats.montoPendiente) %></p>
         </div>
       </div>
     </div>
@@ -100,8 +100,8 @@
         <div class="h-3 rounded-full bg-gradient-to-r from-brand-blue to-brand-success transition-all duration-700" style="width: <%= progreso %>%"></div>
       </div>
       <div class="flex items-center justify-between mt-3 text-[12px] text-brand-muted">
-        <span>Pagado: <strong class="text-brand-success">$<%= fmt(stats.montoPagado) %></strong></span>
-        <span>Pendiente: <strong class="text-brand-navy">$<%= fmt(stats.montoPendiente) %></strong></span>
+        <span>Pagado: <strong class="text-brand-success">S/<%= fmt(stats.montoPagado) %></strong></span>
+        <span>Pendiente: <strong class="text-brand-navy">S/<%= fmt(stats.montoPendiente) %></strong></span>
       </div>
     </div>
     <!-- Panel Cambiar Fecha de Inicio -->
@@ -125,11 +125,14 @@
               class="w-full bg-brand-surface border border-brand-border rounded-[10px] py-2.5 pr-3.5 pl-9 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 hover:border-brand-blue-light focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
           </div>
         </div>
-        <button type="button" id="btn-cambiar-fecha"
-          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-[10px] text-[13px] font-bold text-white bg-brand-navy hover:bg-brand-navy/90 shadow-md transition-all flex-shrink-0">
+        <button type="button" id="btn-cambiar-fecha" disabled
+          title="Selecciona una fecha para habilitar"
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-[10px] text-[13px] font-bold text-white bg-brand-navy/40 shadow-md transition-all flex-shrink-0 cursor-not-allowed opacity-50"
+          style="pointer-events:none">
           <i class="ri-refresh-line text-[15px]"></i>
           Actualizar Fechas
         </button>
+
       </div>
       <div id="fecha-result" class="hidden mt-3 px-4 py-2.5 rounded-[10px] text-[12px] font-medium"></div>
     </div>
@@ -191,10 +194,10 @@
                 </span>
               </td>
               <td class="py-3 px-4 text-brand-text font-medium"><%= fmtDate(c.fecha_vencimiento) %></td>
-              <td class="py-3 px-4 text-right text-brand-muted">$<%= fmt(c.capital) %></td>
-              <td class="py-3 px-4 text-right text-brand-muted">$<%= fmt(c.interes) %></td>
-              <td class="py-3 px-4 text-right font-bold text-brand-blue">$<%= cuotaFmt %></td>
-              <td class="py-3 px-4 text-right text-brand-text">$<%= fmt(c.saldo) %></td>
+              <td class="py-3 px-4 text-right text-brand-muted">S/<%= fmt(c.capital) %></td>
+              <td class="py-3 px-4 text-right text-brand-muted">S/<%= fmt(c.interes) %></td>
+              <td class="py-3 px-4 text-right font-bold text-brand-blue">S/<%= cuotaFmt %></td>
+              <td class="py-3 px-4 text-right text-brand-text">S/<%= fmt(c.saldo) %></td>
               <td class="py-3 px-4 text-brand-muted text-[12px]"><%= c.fecha_pago ? fmtDate(c.fecha_pago) : '\u2014' %></td>
               <td class="py-3 px-4 text-center">
                 <% if (estadoReal === 'pagada') { %>
@@ -276,7 +279,7 @@
     <div class="p-6 flex flex-col gap-4">
       <div class="p-4 rounded-xl bg-brand-surface border border-brand-border">
         <p class="text-[12px] text-brand-muted font-semibold uppercase tracking-wide">Cuota N&deg; <span id="modal-pago-num" class="text-brand-blue"></span></p>
-        <p class="text-[22px] font-extrabold text-brand-navy mt-1">$<span id="modal-pago-monto"></span></p>
+        <p class="text-[22px] font-extrabold text-brand-navy mt-1">S/<span id="modal-pago-monto"></span></p>
         <p class="text-[12px] text-brand-muted mt-1">Este monto se marcar&aacute; como pagado en el sistema.</p>
       </div>
       <div class="flex flex-col gap-1.5">
@@ -297,7 +300,10 @@
   </div>
 </div>
 
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 <script>
+
   setTimeout(() => {
     const s = document.getElementById('flash-success');
     if (s) { s.style.opacity = '0'; setTimeout(() => s.remove(), 300); }
@@ -343,17 +349,61 @@
     });
   });
 
-    // Cambiar Fecha de Inicio
+  // ── Cambiar Fecha de Inicio ─────────────────────────────────────
   const btnCambiarFecha = document.getElementById('btn-cambiar-fecha');
+  const inpFechaInicio  = document.getElementById('inp-fecha-inicio');
+
+  // Habilitar botón solo cuando el input tenga una fecha seleccionada
+  if (inpFechaInicio && btnCambiarFecha) {
+    inpFechaInicio.addEventListener('change', function() {
+      const tieneValor = this.value.trim() !== '';
+      btnCambiarFecha.disabled           = !tieneValor;
+      btnCambiarFecha.style.pointerEvents = tieneValor ? '' : 'none';
+      btnCambiarFecha.style.opacity       = tieneValor ? '1' : '';
+      btnCambiarFecha.className = [
+        'inline-flex items-center gap-2 px-4 py-2.5 rounded-[10px] text-[13px] font-bold text-white shadow-md transition-all flex-shrink-0',
+        tieneValor
+          ? 'bg-brand-navy hover:bg-brand-navy/90 cursor-pointer'
+          : 'bg-brand-navy/40 cursor-not-allowed opacity-50'
+      ].join(' ');
+    });
+  }
+
   if (btnCambiarFecha) {
     btnCambiarFecha.addEventListener('click', async function() {
-      const fechaInput = document.getElementById('inp-fecha-inicio').value;
-      if (!fechaInput) { alert('Por favor selecciona una fecha de inicio.'); return; }
-      const resultDiv = document.getElementById('fecha-result');
+      const fechaInput = inpFechaInicio ? inpFechaInicio.value : '';
+      if (!fechaInput) return;
+
+      // Confirmación SweetAlert2
+      const fechaLegible = new Date(fechaInput + 'T12:00:00').toLocaleDateString('es-MX', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+      const confirm = await Swal.fire({
+        title: '¿Cambiar fecha de inicio?',
+        html:
+          '<p style="color:#64748B;font-size:14px;margin:0">Se recalcularán <strong>todas las fechas de vencimiento</strong> del cronograma a partir de:</p>' +
+          '<p style="color:#0B162C;font-size:16px;font-weight:700;margin:12px 0 0">' + fechaLegible + '</p>' +
+          '<p style="color:#DC2626;font-size:12px;margin:8px 0 0">⚠ Esta acción no se puede deshacer fácilmente.</p>',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: '<i class="ri-refresh-line"></i> Sí, actualizar fechas',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#0B162C',
+        cancelButtonColor: '#94A3B8',
+        reverseButtons: true,
+        customClass: {
+          popup:         'swal-cronograma-popup',
+          confirmButton: 'swal-cronograma-confirm',
+          cancelButton:  'swal-cronograma-cancel'
+        }
+      });
+
+      if (!confirm.isConfirmed) return;
+
+      const resultDiv  = document.getElementById('fecha-result');
       const originalHtml = this.innerHTML;
       try {
         this.innerHTML = '<i class="ri-loader-4-line animate-spin text-[15px]"></i> Actualizando...';
-        this.disabled = true;
+        this.disabled  = true;
+        this.style.pointerEvents = 'none';
         const prestamoId = '<%= prestamo.id %>';
         const response = await fetch(`/dashboard/prestamos/${prestamoId}/fecha-inicio`, {
           method: 'POST',
@@ -365,20 +415,32 @@
         if (data.success) {
           resultDiv.classList.add('bg-brand-success-light', 'text-brand-success');
           resultDiv.innerHTML = '<i class="ri-checkbox-circle-line mr-1"></i>' + data.message;
-          setTimeout(() => window.location.reload(), 1500);
+          await Swal.fire({
+            title: '¡Fechas actualizadas!',
+            text: data.message,
+            icon: 'success',
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#0B162C',
+            timer: 2500,
+            timerProgressBar: true
+          });
+          window.location.reload();
         } else {
           resultDiv.classList.add('bg-brand-danger-light', 'text-brand-danger');
           resultDiv.innerHTML = '<i class="ri-error-warning-line mr-1"></i>' + data.message;
+          Swal.fire({ title: 'Error', text: data.message, icon: 'error', confirmButtonColor: '#0B162C' });
         }
       } catch (err) {
         console.error(err);
-        alert('Error de conexion al servidor.');
+        Swal.fire({ title: 'Error de conexión', text: 'No se pudo comunicar con el servidor.', icon: 'error', confirmButtonColor: '#0B162C' });
       } finally {
         this.innerHTML = originalHtml;
-        this.disabled = false;
+        this.disabled  = false;
+        this.style.pointerEvents = '';
       }
     });
   }
+
 document.getElementById('btn-confirmar-pago').addEventListener('click', async function() {
     if (!currentCuotaId || !currentPrestamoId) return;
     const obs = document.getElementById('modal-pago-obs').value.trim();

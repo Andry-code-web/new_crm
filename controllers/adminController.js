@@ -44,7 +44,17 @@ exports.crearCliente = async (req, res) => {
       'INSERT INTO clientes (nombre, email, dni, telefono, direccion, fecha_registro) VALUES (?, ?, ?, ?, ?, NOW())',
       [nombre.trim(), email || null, dni || null, telefono || null, direccion || null]
     );
-    res.redirect('/admin/clientes?success=' + encodeURIComponent('Cliente creado correctamente.'));
+
+    // Auto-create user account if email is provided
+    if (email?.trim()) {
+      const defaultPassword = dni?.trim() || 'cliente123';
+      await pool.execute(
+        'INSERT IGNORE INTO users (email, password, role) VALUES (?, ?, ?)',
+        [email.trim(), defaultPassword, 'cliente']
+      );
+    }
+
+    res.redirect('/admin/clientes?success=' + encodeURIComponent('Cliente creado correctamente y usuario habilitado.'));
   } catch (err) {
     console.error('Error creando cliente:', err);
     res.redirect('/admin/clientes?error=' + encodeURIComponent('Error al crear el cliente.'));
@@ -128,7 +138,17 @@ exports.crearInversionista = async (req, res) => {
       'INSERT INTO inversionistas (nombre, email, dni, telefono, empresa, fecha_registro) VALUES (?, ?, ?, ?, ?, NOW())',
       [nombre.trim(), email || null, dni || null, telefono || null, empresa || null]
     );
-    res.redirect('/admin/inversionistas?success=' + encodeURIComponent('Inversionista creado correctamente.'));
+
+    // Auto-create user account if email is provided
+    if (email?.trim()) {
+      const defaultPassword = dni?.trim() || 'inversor123';
+      await pool.execute(
+        'INSERT IGNORE INTO users (email, password, role) VALUES (?, ?, ?)',
+        [email.trim(), defaultPassword, 'inversionista']
+      );
+    }
+
+    res.redirect('/admin/inversionistas?success=' + encodeURIComponent('Inversionista creado correctamente y usuario habilitado.'));
   } catch (err) {
     console.error('Error creando inversionista:', err);
     res.redirect('/admin/inversionistas?error=' + encodeURIComponent('Error al crear el inversionista.'));
@@ -298,11 +318,150 @@ exports.eliminarAsesor = async (req, res) => {
 
 // ─── PAGOS ──────────────────────────────────────────────────
 
-exports.pagosPorVencer = (req, res) => {
-  res.render('pagos/por_vencer', { ...getCommonData(req), ...getFlash(req) });
+exports.pagosPorVencer = async (req, res) => {
+  try {
+    // Cuotas que vencen en los próximos 5 días (no pagadas)
+    const [cuotas] = await pool.query(`
+      SELECT
+        cu.id, cu.numero_cuota, cu.fecha_vencimiento, cu.monto_cuota, cu.saldo,
+        DATEDIFF(cu.fecha_vencimiento, CURDATE()) AS dias_restantes,
+        c.nombre  AS cliente_nombre,
+        c.telefono AS cliente_telefono,
+        i.nombre  AS inversor_nombre,
+        p.id      AS prestamo_id,
+        p.monto, p.cuota, p.interes
+      FROM cuotas cu
+      JOIN prestamos p ON cu.prestamo_id = p.id
+      JOIN clientes  c ON p.cliente_id   = c.id
+      LEFT JOIN inversionistas i ON p.inversor_id = i.id
+      WHERE cu.estado IN ('pendiente', 'vencida')
+        AND cu.fecha_vencimiento BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 5 DAY)
+      ORDER BY cu.fecha_vencimiento ASC
+    `);
+
+    const montoEnRiesgo = cuotas
+      .reduce((sum, c) => sum + Number(c.monto_cuota), 0)
+      .toLocaleString('es-MX', { minimumFractionDigits: 2 });
+
+    const urgentes = cuotas.filter(c => Number(c.dias_restantes) <= 2).length;
+
+    res.render('pagos/por_vencer', {
+      ...getCommonData(req),
+      ...getFlash(req),
+      porVencer: cuotas,
+      montoEnRiesgo,
+      urgentes
+    });
+  } catch (err) {
+    console.error('Error en pagosPorVencer:', err);
+    res.render('pagos/por_vencer', {
+      ...getCommonData(req),
+      ...getFlash(req),
+      porVencer: [],
+      montoEnRiesgo: '0.00',
+      urgentes: 0,
+      error: 'Error al cargar los pagos por vencer.'
+    });
+  }
 };
 
-exports.pagosVencidos = (req, res) => {
-  res.render('pagos/vencidos', { ...getCommonData(req), ...getFlash(req) });
+exports.pagosVencidos = async (req, res) => {
+  try {
+    // Leer mora configurada (tabla config simple)
+    let moraPorDia = 0;
+    try {
+      const [cfg] = await pool.query("SELECT valor FROM config WHERE clave = 'mora_por_dia' LIMIT 1");
+      if (cfg.length > 0) moraPorDia = Number(cfg[0].valor);
+    } catch (e) { /* tabla config puede no existir aún */ }
+
+    // Cuotas vencidas (fecha_vencimiento < HOY y no pagadas)
+    const [cuotas] = await pool.query(`
+      SELECT
+        cu.id, cu.numero_cuota, cu.fecha_vencimiento, cu.monto_cuota, cu.saldo, cu.mora,
+        DATEDIFF(CURDATE(), cu.fecha_vencimiento) AS dias_vencido,
+        c.nombre   AS cliente_nombre,
+        c.telefono AS cliente_telefono,
+        i.nombre   AS inversor_nombre,
+        p.id       AS prestamo_id,
+        p.monto, p.cuota, p.interes
+      FROM cuotas cu
+      JOIN prestamos p ON cu.prestamo_id = p.id
+      JOIN clientes  c ON p.cliente_id   = c.id
+      LEFT JOIN inversionistas i ON p.inversor_id = i.id
+      WHERE cu.estado IN ('pendiente', 'vencida')
+        AND cu.fecha_vencimiento < CURDATE()
+      ORDER BY dias_vencido DESC
+    `);
+
+    // Calcular mora acumulada por cuota según config
+    const cuotasConMora = cuotas.map(c => ({
+      ...c,
+      mora_calculada: moraPorDia > 0
+        ? (Number(c.dias_vencido) * moraPorDia).toFixed(2)
+        : Number(c.mora || 0).toFixed(2),
+      total_con_mora: (Number(c.monto_cuota) + (moraPorDia > 0
+        ? Number(c.dias_vencido) * moraPorDia
+        : Number(c.mora || 0))).toFixed(2)
+    }));
+
+    const montoVencido = cuotasConMora
+      .reduce((sum, c) => sum + Number(c.total_con_mora), 0)
+      .toLocaleString('es-MX', { minimumFractionDigits: 2 });
+
+    const moraTotalAcumulada = cuotasConMora
+      .reduce((sum, c) => sum + Number(c.mora_calculada), 0)
+      .toLocaleString('es-MX', { minimumFractionDigits: 2 });
+
+    res.render('pagos/vencidos', {
+      ...getCommonData(req),
+      ...getFlash(req),
+      vencidos: cuotasConMora,
+      montoVencido,
+      moraTotalAcumulada,
+      moraPorDia
+    });
+  } catch (err) {
+    console.error('Error en pagosVencidos:', err);
+    res.render('pagos/vencidos', {
+      ...getCommonData(req),
+      ...getFlash(req),
+      vencidos: [],
+      montoVencido: '0.00',
+      moraTotalAcumulada: '0.00',
+      moraPorDia: 0,
+      error: 'Error al cargar los pagos vencidos.'
+    });
+  }
 };
+
+exports.guardarMora = async (req, res) => {
+  try {
+    const { mora_por_dia } = req.body;
+    const valor = parseFloat(mora_por_dia);
+    if (isNaN(valor) || valor < 0) {
+      return res.status(400).json({ success: false, message: 'Valor de mora inválido.' });
+    }
+
+    // Crear tabla config si no existe
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS config (
+        id    INT AUTO_INCREMENT PRIMARY KEY,
+        clave VARCHAR(100) NOT NULL UNIQUE,
+        valor VARCHAR(255) NOT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    await pool.query(
+      "INSERT INTO config (clave, valor) VALUES ('mora_por_dia', ?) ON DUPLICATE KEY UPDATE valor = ?",
+      [valor.toString(), valor.toString()]
+    );
+
+    res.json({ success: true, message: `Mora actualizada a $${valor.toFixed(2)} por día.` });
+  } catch (err) {
+    console.error('Error guardando mora:', err);
+    res.status(500).json({ success: false, message: 'Error al guardar la configuración de mora.' });
+  }
+};
+
 

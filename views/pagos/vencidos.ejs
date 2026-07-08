@@ -1,81 +1,106 @@
-<%- include('../partials/sidebar_admin') %>
+﻿<%- include('../partials/sidebar_admin') %>
 
 <main class="flex-1 h-screen overflow-y-auto bg-brand-bg relative flex flex-col min-w-0">
   <header class="flex items-center justify-between px-8 py-4 bg-white/92 backdrop-blur-md border-b border-brand-border sticky top-0 z-40">
     <div>
-      <h1 class="text-[22px] font-bold tracking-tight text-brand-navy">Pagos Vencidos</h1>
-      <p class="text-[13px] text-brand-muted mt-0.5">Préstamos con pagos atrasados que requieren atención urgente</p>
+      <h1 class="text-[22px] font-bold tracking-tight text-brand-navy">Cuotas Vencidas</h1>
+      <p class="text-[13px] text-brand-muted mt-0.5">Cuotas con fecha de vencimiento superada &mdash; <strong class="font-bold text-brand-text"><%= user.name %></strong></p>
     </div>
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-3">
+      <!-- Boton config mora global -->
+      <button id="btn-open-config-mora" type="button"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-[10px] text-[13px] font-semibold bg-brand-navy text-white hover:opacity-90 shadow transition-all">
+        <i class="ri-settings-4-line text-[15px]"></i>
+        Configurar Mora
+      </button>
       <img src="<%= user.avatar %>" alt="Avatar" class="w-[38px] h-[38px] rounded-full border-2 border-brand-gold object-cover">
     </div>
   </header>
 
   <div class="p-8 max-w-[1400px] mx-auto w-full flex-1 flex flex-col gap-6">
 
+    <!-- Flash -->
+    <% if (typeof error !== 'undefined' && error) { %>
+    <div class="bg-brand-danger-light border border-brand-danger text-brand-danger px-5 py-4 rounded-[12px] flex items-center gap-3 animate-in">
+      <i class="ri-error-warning-line text-[18px]"></i>
+      <p class="text-[13px] font-medium"><%= error %></p>
+    </div>
+    <% } %>
+
     <!-- KPI strip -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 animate-in">
-      <div class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border-l-[3px] border-l-brand-danger border-t border-r border-b border-t-brand-border border-r-brand-border border-b-brand-border flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.08)] transition-all duration-300">
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-5 animate-in">
+      <div class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border-l-[3px] border-l-brand-danger border border-brand-border flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.08)] transition-all duration-300">
         <div class="w-12 h-12 rounded-[14px] flex items-center justify-center bg-brand-danger-light text-brand-danger border border-brand-danger/20">
-          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <i class="ri-error-warning-line text-[22px]"></i>
         </div>
         <div>
-          <p class="text-[12px] font-semibold text-brand-muted tracking-wide uppercase">Préstamos Vencidos</p>
-          <p class="text-[24px] font-extrabold tracking-tight text-brand-danger mt-0.5"><%= typeof vencidos !== 'undefined' ? vencidos.length : 0 %></p>
+          <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Cuotas Vencidas</p>
+          <p class="text-[28px] font-extrabold tracking-tight text-brand-danger mt-0.5"><%= typeof vencidos !== 'undefined' ? vencidos.length : 0 %></p>
         </div>
       </div>
       <div class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.08)] transition-all duration-300">
         <div class="w-12 h-12 rounded-[14px] flex items-center justify-center bg-brand-blue-light text-brand-blue">
-          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          <i class="ri-money-dollar-circle-line text-[22px]"></i>
         </div>
         <div>
-          <p class="text-[12px] font-semibold text-brand-muted tracking-wide uppercase">Deuda Total Vencida</p>
-          <p class="text-[17px] font-extrabold tracking-tight text-brand-blue mt-0.5">$<%= typeof montoVencido !== 'undefined' ? montoVencido : '0.00' %></p>
+          <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Deuda + Mora</p>
+          <p class="text-[18px] font-extrabold tracking-tight text-brand-blue mt-0.5">S/<%= typeof montoVencido !== 'undefined' ? montoVencido : '0.00' %></p>
+        </div>
+      </div>
+      <div class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.08)] transition-all duration-300">
+        <div class="w-12 h-12 rounded-[14px] flex items-center justify-center bg-red-50 text-red-500 border border-red-200">
+          <i class="ri-percent-line text-[22px]"></i>
+        </div>
+        <div>
+          <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Mora Acumulada</p>
+          <p class="text-[18px] font-extrabold tracking-tight text-red-500 mt-0.5">S/<%= typeof moraTotalAcumulada !== 'undefined' ? moraTotalAcumulada : '0.00' %></p>
         </div>
       </div>
       <div class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.08)] transition-all duration-300">
         <div class="w-12 h-12 rounded-[14px] flex items-center justify-center bg-brand-surface2 text-brand-navy">
-          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          <i class="ri-settings-4-line text-[22px]"></i>
         </div>
         <div>
-          <p class="text-[12px] font-semibold text-brand-muted tracking-wide uppercase">Requieren Contacto</p>
-          <p class="text-[24px] font-extrabold tracking-tight text-brand-navy mt-0.5"><%= typeof vencidos !== 'undefined' ? vencidos.length : 0 %></p>
+          <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Mora por Día</p>
+          <p class="text-[20px] font-extrabold tracking-tight text-brand-navy mt-0.5" id="kpi-mora-dia">
+            S/<%= typeof moraPorDia !== 'undefined' ? Number(moraPorDia).toFixed(2) : '0.00' %>
+          </p>
         </div>
       </div>
     </div>
 
-    <!-- Alerta roja -->
-    <div class="bg-brand-danger-light/60 border-l-[4px] border-l-brand-danger border-t border-r border-b border-t-brand-danger/30 border-r-brand-danger/30 border-b-brand-danger/30 px-5 py-4 rounded-[12px] flex flex-col gap-1 transition-opacity duration-300 animate-in delay-100">
-      <div class="flex items-center gap-3">
-        <svg width="20" height="20" fill="none" stroke="var(--c-danger)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-        <div>
-          <p class="font-bold text-[14px] text-brand-danger">Acción urgente requerida</p>
-          <p class="text-[13px] text-brand-text opacity-90">Los siguientes préstamos están vencidos. Comunícate con los clientes de inmediato para gestionar el cobro o la reestructuración.</p>
-        </div>
+    <!-- Alerta -->
+    <% if (typeof vencidos !== 'undefined' && vencidos.length > 0) { %>
+    <div class="bg-brand-danger-light/60 border-l-[4px] border-l-brand-danger border border-brand-danger/20 px-5 py-4 rounded-[12px] flex items-start gap-3 animate-in delay-100">
+      <i class="ri-error-warning-fill text-brand-danger text-[22px] flex-shrink-0 mt-0.5"></i>
+      <div>
+        <p class="font-bold text-[14px] text-brand-danger">Accion urgente &mdash; <%= vencidos.length %> cuota<%= vencidos.length !== 1 ? 's' : '' %> vencida<%= vencidos.length !== 1 ? 's' : '' %></p>
+        <p class="text-[13px] text-brand-text opacity-90 mt-0.5">Usa el boton <strong>Calcular Mora</strong> en cada fila para ver el total a cobrar y notificar al cliente.</p>
       </div>
     </div>
+    <% } %>
 
     <!-- Tabla -->
     <div class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col overflow-hidden animate-in delay-200">
-      <div class="px-7 py-6 border-b border-brand-border flex items-center justify-between gap-4 flex-wrap bg-white">
+      <div class="px-7 py-5 border-b border-brand-border flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <p class="text-[16px] font-bold tracking-tight text-brand-navy">Listado &mdash; Vencidos</p>
-          <p class="text-[13px] text-brand-muted mt-0.5">Préstamos que han superado su fecha de vencimiento</p>
+          <p class="text-[15px] font-bold tracking-tight text-brand-navy">Listado de cuotas vencidas</p>
+          <p class="text-[13px] text-brand-muted mt-0.5">Ordenadas por mayor antiguedad de vencimiento</p>
         </div>
         <div class="relative">
-          <input type="text" id="search" placeholder="Buscar..."
+          <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted text-[15px] pointer-events-none"></i>
+          <input type="text" id="search" placeholder="Buscar cliente..."
             class="py-2.5 pr-3.5 pl-9 border-[1.5px] border-brand-border rounded-lg text-[13px] bg-brand-surface2 outline-none w-[220px] transition-all duration-200 text-brand-text focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
-          <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-muted" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         </div>
       </div>
 
       <% if (typeof vencidos === 'undefined' || vencidos.length === 0) { %>
       <div class="py-16 px-6 text-center flex flex-col items-center">
-        <div class="w-[60px] h-[60px] bg-brand-surface2 rounded-full flex items-center justify-center text-brand-muted mb-4">
-          <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div class="w-[68px] h-[68px] bg-brand-success-light rounded-full flex items-center justify-center text-brand-success mb-4">
+          <i class="ri-checkbox-circle-line text-[32px]"></i>
         </div>
-        <p class="text-[15px] font-bold text-brand-success">¡Sin préstamos vencidos!</p>
-        <p class="mt-1 text-[13px] text-brand-muted">Todos los préstamos están al corriente. Excelente gestión.</p>
+        <p class="text-[15px] font-bold text-brand-success">Sin cuotas vencidas</p>
+        <p class="mt-1 text-[13px] text-brand-muted">Todos los pagos estan al corriente. Excelente gestion.</p>
       </div>
       <% } else { %>
       <div class="w-full overflow-x-auto">
@@ -84,38 +109,72 @@
             <tr class="bg-brand-surface border-b border-brand-border">
               <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">#</th>
               <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Cliente</th>
-              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Inversionista</th>
-              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-right">Monto Original</th>
-              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-right">Cuota Pendiente</th>
-              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-center">Días Vencido</th>
-              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-center">Estado</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Cuota N&deg;</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-right">Monto Cuota</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-center">Vencio</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-center">Dias Vencido</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            <% vencidos.forEach((p, i) => {
-              const diasVencido = p.fecha_vencimiento ?
-                Math.ceil((new Date() - new Date(p.fecha_vencimiento)) / (1000 * 60 * 60 * 24)) : '—';
-              const critico = typeof diasVencido === 'number' && diasVencido > 30;
+            <% vencidos.forEach((c, i) => {
+              const diasVencido = Number(c.dias_vencido);
+              const critico = diasVencido > 30;
+              const fechaFmt = new Date(c.fecha_vencimiento).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+              const telLimpio = (c.cliente_telefono || '').replace(/[^0-9]/g, '');
             %>
             <tr class="row border-b border-brand-border last:border-b-0 hover:bg-brand-surface transition-colors duration-150">
               <td class="py-3.5 px-5 text-brand-muted font-medium">#<%= i + 1 %></td>
               <td class="py-3.5 px-5">
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-danger to-[#C41C1C] text-white flex items-center justify-center text-[12px] font-bold"><%= (p.cliente_nombre || '?').charAt(0).toUpperCase() %></div>
-                  <span class="font-semibold text-brand-navy"><%= p.cliente_nombre || '—' %></span>
+                  <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-danger to-red-700 text-white flex items-center justify-center text-[12px] font-bold">
+                    <%= (c.cliente_nombre || '?').charAt(0).toUpperCase() %>
+                  </div>
+                  <div>
+                    <span class="font-semibold text-brand-navy block"><%= c.cliente_nombre || '&mdash;' %></span>
+                    <% if (c.cliente_telefono) { %><span class="text-[11px] text-brand-muted"><%= c.cliente_telefono %></span><% } %>
+                  </div>
                 </div>
               </td>
-              <td class="py-3.5 px-5 text-brand-muted"><%= p.inversor_nombre || '—' %></td>
-              <td class="py-3.5 px-5 text-right font-medium text-brand-text">$<%= Number(p.monto).toLocaleString('es-MX',{minimumFractionDigits:2}) %></td>
-              <td class="py-3.5 px-5 text-right font-bold text-brand-danger">$<%= Number(p.cuota).toLocaleString('es-MX',{minimumFractionDigits:2}) %></td>
               <td class="py-3.5 px-5 text-center">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] font-bold bg-brand-danger-light text-brand-danger">
-                  <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                  <%= diasVencido %> días
+                <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-brand-danger text-white text-[12px] font-bold"><%= c.numero_cuota %></span>
+              </td>
+              <td class="py-3.5 px-5 text-right font-bold text-brand-navy">S/<%= Number(c.monto_cuota).toLocaleString('es-MX',{minimumFractionDigits:2}) %></td>
+              <td class="py-3.5 px-5 text-center text-[12px] text-brand-text font-medium"><%= fechaFmt %></td>
+              <td class="py-3.5 px-5 text-center">
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[12px] font-bold <%= critico ? 'bg-red-100 text-red-700 border border-red-300' : 'bg-brand-danger-light text-brand-danger border border-brand-danger/30' %>">
+                  <i class="ri-alarm-warning-line text-[12px]"></i>
+                  <%= diasVencido %> dias
                 </span>
               </td>
               <td class="py-3.5 px-5 text-center">
-                <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[12px] font-semibold bg-brand-danger-light text-brand-danger border border-brand-danger/30">Vencido</span>
+                <div class="flex items-center justify-center gap-2">
+                  <!-- Boton calcular mora -->
+                  <button type="button"
+                    class="btn-mora inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12px] font-bold bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors"
+                    data-cliente="<%= c.cliente_nombre %>"
+                    data-cuota-num="<%= c.numero_cuota %>"
+                    data-monto="<%= c.monto_cuota %>"
+                    data-dias="<%= diasVencido %>"
+                    data-telefono="<%= telLimpio %>"
+                    data-mora-dia="<%= typeof moraPorDia !== 'undefined' ? moraPorDia : 0 %>">
+                    <i class="ri-percent-line text-[13px]"></i>
+                    Mora
+                  </button>
+                  <!-- Cronograma -->
+                  <a href="/dashboard/prestamos/<%= c.prestamo_id %>/cronograma" title="Ver cronograma"
+                    class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-brand-surface hover:bg-brand-blue-light hover:text-brand-blue transition-colors text-brand-muted">
+                    <i class="ri-calendar-line text-[15px]"></i>
+                  </a>
+                  <!-- WhatsApp (se llena desde el modal) -->
+                  <% if (telLimpio) { %>
+                  <a href="https://wa.me/<%= telLimpio %>" target="_blank"
+                    class="wa-link-<%= c.id %> inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-50 hover:bg-green-100 text-green-600 transition-colors border border-green-200"
+                    title="WhatsApp">
+                    <i class="ri-whatsapp-line text-[16px]"></i>
+                  </a>
+                  <% } %>
+                </div>
               </td>
             </tr>
             <% }) %>
@@ -127,9 +186,297 @@
   </div>
 </main>
 
+<!-- ═══════════════════════════════════════════════════════
+     MODAL: Calcular Mora por Cuota
+═══════════════════════════════════════════════════════ -->
+<div id="modal-mora" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+  <!-- Backdrop -->
+  <div id="mora-backdrop" class="absolute inset-0 bg-brand-navy/50 backdrop-blur-sm"></div>
+
+  <!-- Card -->
+  <div class="relative bg-white rounded-[24px] shadow-[0_24px_64px_rgba(10,22,40,0.22)] w-full max-w-[420px] overflow-hidden animate-in">
+
+    <!-- Header rojo -->
+    <div class="bg-gradient-to-br from-red-600 to-red-800 px-7 py-5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-[12px] bg-white/15 flex items-center justify-center">
+          <i class="ri-percent-line text-white text-[20px]"></i>
+        </div>
+        <div>
+          <p class="text-white font-bold text-[16px]">Calcular Mora</p>
+          <p class="text-white/60 text-[12px] mt-0.5" id="mora-subtitulo">Cuota N&deg; —</p>
+        </div>
+      </div>
+      <button id="btn-close-mora" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white transition-colors">
+        <i class="ri-close-line text-[18px]"></i>
+      </button>
+    </div>
+
+    <div class="p-7 flex flex-col gap-5">
+
+      <!-- Info del cliente -->
+      <div class="bg-brand-surface rounded-[12px] p-4 flex flex-col gap-2">
+        <div class="flex items-center justify-between text-[13px]">
+          <span class="text-brand-muted font-medium">Cliente</span>
+          <span class="font-bold text-brand-navy" id="mora-cliente">&mdash;</span>
+        </div>
+        <div class="flex items-center justify-between text-[13px]">
+          <span class="text-brand-muted font-medium">Monto de la cuota</span>
+          <span class="font-bold text-brand-navy" id="mora-monto-cuota">&mdash;</span>
+        </div>
+        <div class="flex items-center justify-between text-[13px]">
+          <span class="text-brand-muted font-medium flex items-center gap-1">
+            <i class="ri-alarm-warning-line text-brand-danger text-[13px]"></i>
+            Dias vencido
+          </span>
+          <span class="font-extrabold text-brand-danger text-[15px]" id="mora-dias">&mdash;</span>
+        </div>
+      </div>
+
+      <!-- Input mora por dia -->
+      <div>
+        <label class="block text-[12px] font-bold text-brand-navy uppercase tracking-wide mb-2">
+          <i class="ri-coin-line text-brand-gold mr-1"></i>
+          Mora por dia (monto fijo)
+        </label>
+        <div class="relative">
+          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-muted font-bold text-[15px]">S/</span>
+          <input type="number" id="mora-dia-input" min="0" step="0.01" placeholder="0.00"
+            class="w-full bg-brand-surface border-2 border-brand-border rounded-[10px] py-3 pr-4 pl-10 text-[15px] font-bold text-brand-text outline-none transition-all duration-200 focus:border-red-400 focus:bg-white focus:shadow-[0_0_0_3px_rgba(220,38,38,0.1)]">
+        </div>
+        <p class="text-[11px] text-brand-muted mt-1.5">
+          <i class="ri-information-line mr-0.5"></i>
+          Se precarga la mora global configurada. Puedes modificarla.
+        </p>
+      </div>
+
+      <!-- Boton calcular -->
+      <button type="button" id="btn-calcular-mora"
+        class="w-full flex items-center justify-center gap-2 py-3 rounded-[10px] font-bold text-[14px] bg-red-600 text-white hover:bg-red-700 transition-all shadow-md">
+        <i class="ri-calculator-line text-[17px]"></i>
+        Calcular
+      </button>
+
+      <!-- Resultado (oculto hasta calcular) -->
+      <div id="mora-resultado" class="hidden flex-col gap-3">
+        <div class="w-full h-px bg-brand-border"></div>
+
+        <!-- Desglose -->
+        <div class="bg-red-50 border border-red-200 rounded-[12px] p-4 flex flex-col gap-2.5">
+          <div class="flex items-center justify-between text-[13px]">
+            <span class="text-brand-muted">Dias vencido</span>
+            <span class="font-semibold text-brand-text" id="res-dias">&mdash;</span>
+          </div>
+          <div class="flex items-center justify-between text-[13px]">
+            <span class="text-brand-muted">Mora por dia</span>
+            <span class="font-semibold text-red-600" id="res-mora-dia">&mdash;</span>
+          </div>
+          <div class="flex items-center justify-between text-[13px]">
+            <span class="text-brand-muted">Mora total</span>
+            <span class="font-bold text-red-600 text-[15px]" id="res-mora-total">&mdash;</span>
+          </div>
+          <div class="h-px bg-red-200 my-0.5"></div>
+          <div class="flex items-center justify-between">
+            <span class="text-[13px] font-bold text-brand-navy">Total a cobrar</span>
+            <span class="text-[20px] font-extrabold text-brand-danger" id="res-total-cobrar">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Botones de accion post-calculo -->
+        <div class="flex gap-3">
+          <a id="btn-wa-mora" href="#" target="_blank"
+            class="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-[10px] text-[13px] font-bold bg-green-500 text-white hover:bg-green-600 transition-all shadow">
+            <i class="ri-whatsapp-line text-[16px]"></i>
+            Notificar por WhatsApp
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     MODAL: Configuracion de Mora Global
+═══════════════════════════════════════════════════════ -->
+<div id="modal-config-mora" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div id="config-mora-backdrop" class="absolute inset-0 bg-brand-navy/50 backdrop-blur-sm"></div>
+  <div class="relative bg-white rounded-[24px] shadow-[0_24px_64px_rgba(10,22,40,0.22)] w-full max-w-[400px] overflow-hidden animate-in">
+    <div class="bg-gradient-to-br from-brand-navy to-[#122046] px-7 py-5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-[12px] bg-white/15 flex items-center justify-center">
+          <i class="ri-settings-4-line text-white text-[20px]"></i>
+        </div>
+        <div>
+          <p class="text-white font-bold text-[16px]">Configurar Mora Global</p>
+          <p class="text-white/60 text-[12px] mt-0.5">Mora por dia predeterminada para todos los vencidos</p>
+        </div>
+      </div>
+      <button id="btn-close-config" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white transition-colors">
+        <i class="ri-close-line text-[18px]"></i>
+      </button>
+    </div>
+    <div class="p-7 flex flex-col gap-5">
+      <div>
+        <label class="block text-[12px] font-bold text-brand-navy uppercase tracking-wide mb-2">
+          <i class="ri-coin-line text-brand-gold mr-1"></i>
+          Mora fija por dia (S/)
+        </label>
+        <div class="relative">
+          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-muted font-bold text-[15px]">S/</span>
+          <input type="number" id="inp-mora-global" min="0" step="0.01" placeholder="0.00"
+            value="<%= typeof moraPorDia !== 'undefined' ? moraPorDia : 0 %>"
+            class="w-full bg-brand-surface border-2 border-brand-border rounded-[10px] py-3 pr-4 pl-10 text-[15px] font-bold text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+        </div>
+        <p class="text-[11px] text-brand-muted mt-1.5">
+          <i class="ri-information-line mr-0.5"></i>
+          Este valor se precargara automaticamente en el calculo de mora de cada cuota.
+        </p>
+      </div>
+      <button type="button" id="btn-guardar-mora-global"
+        class="w-full flex items-center justify-center gap-2 py-3 rounded-[10px] font-bold text-[14px] bg-gradient-to-br from-brand-navy to-[#122046] text-white hover:opacity-90 transition-all shadow-md">
+        <i class="ri-save-line text-[16px]"></i>
+        Guardar Configuracion
+      </button>
+      <div id="config-mora-result" class="hidden px-4 py-3 rounded-[10px] text-[13px] font-medium"></div>
+    </div>
+  </div>
+</div>
+
 <script>
+  const moraPorDiaGlobal = <%= typeof moraPorDia !== 'undefined' ? moraPorDia : 0 %>;
+
+  function fmt(n) {
+    return 'S/ ' + Number(n).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // ── Busqueda ──────────────────────────────────────────────
   document.getElementById('search')?.addEventListener('input', function() {
     const q = this.value.toLowerCase();
-    document.querySelectorAll('.row').forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+    document.querySelectorAll('.row').forEach(r => {
+      r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+
+  // ── Modal Calcular Mora ───────────────────────────────────
+  const modalMora = document.getElementById('modal-mora');
+
+  document.querySelectorAll('.btn-mora').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cliente  = btn.dataset.cliente;
+      const cuotaNum = btn.dataset.cuotaNum;
+      const monto    = parseFloat(btn.dataset.monto);
+      const dias     = parseInt(btn.dataset.dias);
+      const tel      = btn.dataset.telefono;
+
+      // Llenar datos en el modal
+      document.getElementById('mora-subtitulo').textContent  = 'Cuota N\u00b0 ' + cuotaNum + ' \u2014 ' + cliente;
+      document.getElementById('mora-cliente').textContent    = cliente;
+      document.getElementById('mora-monto-cuota').textContent = fmt(monto);
+      document.getElementById('mora-dias').textContent       = dias + ' dias';
+      document.getElementById('mora-dia-input').value        = moraPorDiaGlobal > 0 ? moraPorDiaGlobal : '';
+
+      // Guardar contexto en el boton calcular
+      document.getElementById('btn-calcular-mora').dataset.monto = monto;
+      document.getElementById('btn-calcular-mora').dataset.dias  = dias;
+      document.getElementById('btn-calcular-mora').dataset.tel   = tel;
+      document.getElementById('btn-calcular-mora').dataset.cliente = cliente;
+      document.getElementById('btn-calcular-mora').dataset.cuota  = cuotaNum;
+
+      // Ocultar resultado anterior
+      document.getElementById('mora-resultado').classList.add('hidden');
+      document.getElementById('mora-resultado').style.display = '';
+
+      modalMora.classList.remove('hidden');
+    });
+  });
+
+  document.getElementById('btn-close-mora').addEventListener('click', () => modalMora.classList.add('hidden'));
+  document.getElementById('mora-backdrop').addEventListener('click', () => modalMora.classList.add('hidden'));
+
+  document.getElementById('btn-calcular-mora').addEventListener('click', function() {
+    const moraDia  = parseFloat(document.getElementById('mora-dia-input').value);
+    const monto    = parseFloat(this.dataset.monto);
+    const dias     = parseInt(this.dataset.dias);
+    const tel      = this.dataset.tel;
+    const cliente  = this.dataset.cliente;
+    const cuotaNum = this.dataset.cuota;
+
+    if (isNaN(moraDia) || moraDia < 0) {
+      alert('Ingresa un valor de mora por dia valido.');
+      return;
+    }
+
+    const moraTotal   = moraDia * dias;
+    const totalCobrar = monto + moraTotal;
+
+    document.getElementById('res-dias').textContent        = dias + ' dias';
+    document.getElementById('res-mora-dia').textContent    = fmt(moraDia) + ' / dia';
+    document.getElementById('res-mora-total').textContent  = fmt(moraTotal);
+    document.getElementById('res-total-cobrar').textContent = fmt(totalCobrar);
+
+    // Link WhatsApp con desglose
+    if (tel) {
+      const msg = encodeURIComponent(
+        'Hola ' + cliente + ', le informamos que su cuota N\u00b0 ' + cuotaNum +
+        ' tiene ' + dias + ' dias vencida.\n\n' +
+        '- Monto cuota: ' + fmt(monto) + '\n' +
+        '- Mora acumulada (' + dias + ' dias x ' + fmt(moraDia) + '): ' + fmt(moraTotal) + '\n' +
+        '- *Total a pagar: ' + fmt(totalCobrar) + '*\n\n' +
+        'Por favor regularice su pago a la brevedad. Gracias.'
+      );
+      const btnWa = document.getElementById('btn-wa-mora');
+      btnWa.href = 'https://wa.me/' + tel + '?text=' + msg;
+      btnWa.parentElement.classList.remove('hidden');
+    } else {
+      document.getElementById('btn-wa-mora').parentElement.classList.add('hidden');
+    }
+
+    const resDiv = document.getElementById('mora-resultado');
+    resDiv.classList.remove('hidden');
+    resDiv.style.display = 'flex';
+    resDiv.style.flexDirection = 'column';
+    resDiv.style.gap = '12px';
+  });
+
+  // ── Modal Config Mora Global ──────────────────────────────
+  const modalConfig = document.getElementById('modal-config-mora');
+
+  document.getElementById('btn-open-config-mora').addEventListener('click', () => {
+    modalConfig.classList.remove('hidden');
+  });
+  document.getElementById('btn-close-config').addEventListener('click', () => modalConfig.classList.add('hidden'));
+  document.getElementById('config-mora-backdrop').addEventListener('click', () => modalConfig.classList.add('hidden'));
+
+  document.getElementById('btn-guardar-mora-global').addEventListener('click', async function() {
+    const val = parseFloat(document.getElementById('inp-mora-global').value);
+    if (isNaN(val) || val < 0) { alert('Ingresa un valor valido.'); return; }
+    const resultDiv = document.getElementById('config-mora-result');
+    const origHtml  = this.innerHTML;
+    try {
+      this.innerHTML = '<i class="ri-loader-4-line text-[15px]"></i> Guardando...';
+      this.disabled = true;
+      const resp = await fetch('/admin/pagos/mora', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mora_por_dia: val })
+      });
+      const data = await resp.json();
+      resultDiv.classList.remove('hidden', 'bg-brand-success-light', 'text-brand-success', 'bg-brand-danger-light', 'text-brand-danger');
+      if (data.success) {
+        resultDiv.classList.add('bg-brand-success-light', 'text-brand-success');
+        resultDiv.innerHTML = '<i class="ri-checkbox-circle-line mr-1.5"></i>' + data.message;
+        document.getElementById('kpi-mora-dia').textContent = 'S/ ' + val.toFixed(2);
+        setTimeout(() => { modalConfig.classList.add('hidden'); window.location.reload(); }, 1200);
+      } else {
+        resultDiv.classList.add('bg-brand-danger-light', 'text-brand-danger');
+        resultDiv.innerHTML = '<i class="ri-error-warning-line mr-1.5"></i>' + data.message;
+      }
+    } catch (e) {
+      alert('Error de conexion.');
+    } finally {
+      this.innerHTML = origHtml;
+      this.disabled = false;
+    }
   });
 </script>

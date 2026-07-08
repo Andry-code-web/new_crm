@@ -54,7 +54,7 @@
         </div>
         <div>
           <p class="text-[12px] font-semibold text-brand-muted tracking-wide uppercase">Monto Total</p>
-          <p class="text-[18px] font-extrabold tracking-tight text-brand-navy mt-0.5">$<%= stats.montoTotal %></p>
+          <p class="text-[18px] font-extrabold tracking-tight text-brand-navy mt-0.5">S/<%= stats.montoTotal %></p>
         </div>
       </div>
       <div class="bg-white rounded-[20px] p-6 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.08)] transition-all duration-300">
@@ -143,25 +143,35 @@
                   <span class="text-brand-muted"><%= p.inversor_nombre || '—' %></span>
                 </div>
               </td>
-              <td class="py-3.5 px-5 text-right font-medium text-brand-text">$<%= montoFmt %></td>
+              <td class="py-3.5 px-5 text-right font-medium text-brand-text">S/<%= montoFmt %></td>
               <td class="py-3.5 px-5 text-right">
                 <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[12px] font-semibold bg-brand-gold-xlight text-brand-gold-hover border border-brand-gold-light"><%= p.interes %>%</span>
               </td>
-              <td class="py-3.5 px-5 text-right font-bold text-[14px] text-brand-blue">$<%= cuotaFmt %></td>
+              <td class="py-3.5 px-5 text-right font-bold text-[14px] text-brand-blue">S/<%= cuotaFmt %></td>
               <td class="py-3.5 px-5 text-center">
                 <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[12px] font-semibold <%= p.tipo_pago === 'mensual' ? 'bg-brand-success-light text-brand-success border border-brand-success' : 'bg-brand-blue-light text-brand-blue border border-brand-blue' %>">
                   <%= p.tipo_pago ? p.tipo_pago.charAt(0).toUpperCase() + p.tipo_pago.slice(1) : '—' %>
                 </span>
               </td>
               <td class="py-3.5 px-5 text-center text-brand-muted"><%= p.plazo_meses %> meses</td>
-              <td class="py-3.5 px-5 text-right font-bold text-brand-navy">$<%= totalFmt %></td>
+              <td class="py-3.5 px-5 text-right font-bold text-brand-navy">S/<%= totalFmt %></td>
               <td class="py-3.5 px-5 text-center">
                 <% if (p.estado === 'activo') { %>
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[12px] font-semibold bg-brand-blue-light text-brand-blue border border-brand-blue">Activo</span>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[12px] font-semibold bg-brand-blue-light text-brand-blue border border-brand-blue">
+                    <i class="ri-flashlight-line text-[11px]"></i> Activo
+                  </span>
+                <% } else if (p.estado === 'pendiente') { %>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[12px] font-semibold bg-amber-50 text-amber-600 border border-amber-300">
+                    <i class="ri-time-line text-[11px]"></i> Pendiente
+                  </span>
                 <% } else if (p.estado === 'vencido') { %>
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[12px] font-semibold bg-brand-danger-light text-brand-danger border border-brand-danger">Vencido</span>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[12px] font-semibold bg-brand-danger-light text-brand-danger border border-brand-danger">
+                    <i class="ri-alarm-warning-line text-[11px]"></i> Vencido
+                  </span>
                 <% } else { %>
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[12px] font-semibold bg-brand-success-light text-brand-success border border-brand-success">Pagado</span>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[12px] font-semibold bg-brand-success-light text-brand-success border border-brand-success">
+                    <i class="ri-checkbox-circle-line text-[11px]"></i> Pagado
+                  </span>
                 <% } %>
               </td>
               <td class="py-3.5 px-5 text-brand-muted"><%= fecha %></td>
@@ -270,41 +280,73 @@
     document.getElementById('modal-inversor').textContent = data.inversor;
     document.getElementById('modal-inversor-ini').textContent = data.inversor.charAt(0).toUpperCase();
 
-    const btnActivar = document.getElementById('btn-activar-prestamo');
-    const btnRegistrar = document.getElementById('btn-registrar-cronograma');
+    const btnActivar   = document.getElementById('btn-activar-prestamo');
+    const btnRegistrar  = document.getElementById('btn-registrar-cronograma');
 
     btnActivar.setAttribute('data-id', data.id);
     btnRegistrar.setAttribute('data-id', data.id);
 
-    // Lógica de habilitar/deshabilitar botones según el estado del préstamo
-    if (data.estado === 'activo') {
-      // Si ya está activo, ocultar botón de activar y habilitar registro
-      btnActivar.style.display = 'none';
+    // ─── Reglas por rol ───────────────────────────────────────
+    // Admin : puede activar préstamos Y registrar/ver cronogramas
+    // Asesor: NO puede activar préstamos NI crear cronogramas,
+    //         SOLO puede VER un cronograma ya existente
+    const esAdmin = '<%= user.role %>' === 'admin';
 
+    // Botón Activar: solo visible para admin y solo cuando está pendiente
+    btnActivar.style.display = 'none';
+
+    if (data.estado === 'activo') {
+      // ── Préstamo activo ─────────────────────────────────────
       if (data.tiene_cronograma > 0) {
-        // El cronograma ya fue registrado → botón verde "Mostrar Cronograma"
+        // Cronograma ya existe → ambos roles pueden VERLO
         btnRegistrar.disabled = false;
-        btnRegistrar.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-brand-gold', 'hover:bg-brand-gold-hover', 'text-brand-navy');
+        btnRegistrar.title = '';
+        btnRegistrar.classList.remove('opacity-50', 'cursor-not-allowed',
+          'bg-brand-gold', 'hover:bg-brand-gold-hover', 'text-brand-navy');
         btnRegistrar.classList.add('bg-brand-success', 'text-white', 'hover:opacity-90');
         btnRegistrar.setAttribute('data-mode', 'ver');
-        btnRegistrar.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Mostrar Cronograma`;
+        btnRegistrar.innerHTML = `<i class="ri-calendar-check-line text-[15px]"></i> Mostrar Cronograma`;
       } else {
-        // Sin cronograma → botón dorado "Registrar Cronograma"
-        btnRegistrar.disabled = false;
-        btnRegistrar.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-brand-success', 'text-white', 'hover:opacity-90');
-        btnRegistrar.classList.add('bg-brand-gold', 'hover:bg-brand-gold-hover', 'text-brand-navy');
-        btnRegistrar.setAttribute('data-mode', 'registrar');
-        btnRegistrar.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Registrar Cronograma`;
+        // Sin cronograma: solo el admin puede crearlo
+        if (esAdmin) {
+          btnRegistrar.disabled = false;
+          btnRegistrar.title = '';
+          btnRegistrar.classList.remove('opacity-50', 'cursor-not-allowed',
+            'bg-brand-success', 'text-white', 'hover:opacity-90');
+          btnRegistrar.classList.add('bg-brand-gold', 'hover:bg-brand-gold-hover', 'text-brand-navy');
+          btnRegistrar.setAttribute('data-mode', 'registrar');
+          btnRegistrar.innerHTML = `<i class="ri-calendar-add-line text-[15px]"></i> Registrar Cronograma`;
+        } else {
+          // Asesor: no puede crear cronograma
+          btnRegistrar.disabled = true;
+          btnRegistrar.title = 'El administrador aún no ha registrado el cronograma';
+          btnRegistrar.classList.remove('bg-brand-success', 'text-white',
+            'bg-brand-gold', 'hover:bg-brand-gold-hover', 'text-brand-navy', 'hover:opacity-90');
+          btnRegistrar.classList.add('opacity-50', 'cursor-not-allowed', 'bg-brand-surface2', 'text-brand-muted');
+          btnRegistrar.setAttribute('data-mode', 'none');
+          btnRegistrar.innerHTML = `<i class="ri-calendar-close-line text-[15px]"></i> Sin cronograma aún`;
+        }
       }
+
     } else {
-      // Si no está activo (pendiente, vencido, etc.), obligar a activar primero
-      btnActivar.style.display = 'inline-flex';
+      // ── Pendiente / vencido / otro ──────────────────────────
+      // Admin ve botón Activar
+      if (esAdmin) {
+        btnActivar.style.display = 'inline-flex';
+      }
+      // Cronograma bloqueado para todos hasta que esté activo
       btnRegistrar.disabled = true;
-      btnRegistrar.classList.remove('bg-brand-success', 'text-white', 'hover:opacity-90');
-      btnRegistrar.classList.add('bg-brand-gold', 'hover:bg-brand-gold-hover', 'text-brand-navy', 'opacity-50', 'cursor-not-allowed');
-      btnRegistrar.setAttribute('data-mode', 'registrar');
-      btnRegistrar.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Registrar Cronograma`;
+      btnRegistrar.title = esAdmin
+        ? 'Activa el préstamo primero para registrar el cronograma'
+        : 'El préstamo aún no está activo';
+      btnRegistrar.classList.remove('bg-brand-success', 'text-white',
+        'bg-brand-gold', 'hover:bg-brand-gold-hover', 'text-brand-navy', 'hover:opacity-90');
+      btnRegistrar.classList.add('opacity-50', 'cursor-not-allowed', 'bg-brand-surface2', 'text-brand-muted');
+      btnRegistrar.setAttribute('data-mode', 'none');
+      btnRegistrar.innerHTML = `<i class="ri-lock-line text-[15px]"></i> Préstamo no activo`;
     }
+
+
 
     modal.classList.remove('hidden');
     // Forzar reflow

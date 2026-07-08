@@ -1,0 +1,188 @@
+<%- include('../partials/sidebar_inversionista') %>
+
+<main class="flex-1 flex flex-col h-full bg-brand-bg relative overflow-y-auto">
+    <header class="flex items-center justify-between px-8 py-5 bg-white/92 backdrop-blur-md sticky top-0 z-40 border-b border-brand-border">
+        <div>
+            <h1 class="text-[22px] font-bold text-brand-navy tracking-tight">Mi Perfil</h1>
+            <p class="text-[13px] text-brand-muted mt-0.5">Consulta y actualiza tu información de inversionista</p>
+        </div>
+        <img src="<%= user.avatar %>" alt="Avatar" class="w-[38px] h-[38px] rounded-full border-2 border-brand-gold object-cover">
+    </header>
+
+    <div class="p-4 max-w-3xl mx-auto w-full space-y-6">
+        <% if (typeof success !== 'undefined' && success) { %>
+        <div id="flash" class="p-4 bg-brand-success-light/50 border border-brand-success/30 rounded-xl flex items-center gap-3 animate-in fade-in">
+            <i class="ri-checkbox-circle-fill text-[20px] text-brand-success"></i>
+            <p class="text-[14px] text-brand-success font-semibold"><%= success %></p>
+        </div>
+        <% } %>
+        <% if (typeof error !== 'undefined' && error) { %>
+        <div id="flash" class="p-4 bg-brand-danger-light/50 border border-brand-danger/30 rounded-xl flex items-center gap-3 animate-in fade-in">
+            <i class="ri-error-warning-fill text-[20px] text-brand-danger"></i>
+            <p class="text-[14px] text-brand-danger font-semibold"><%= error %></p>
+        </div>
+        <% } %>
+
+        <% if (!inversionista) { %>
+        <div class="bg-white rounded-[24px] p-10 shadow-[0_4px_24px_rgba(10,22,40,0.06)] border border-brand-border animate-in delay-75">
+            <div class="text-center mb-10">
+                <div class="w-24 h-24 bg-gradient-to-br from-brand-gold-hover to-brand-gold rounded-[20px] flex items-center justify-center mx-auto mb-6 shadow-[0_8px_24px_rgba(212,168,67,0.25)] rotate-3">
+                    <span class="text-[40px] font-bold text-brand-navy -rotate-3"><%= user.name.charAt(0).toUpperCase() %></span>
+                </div>
+                <h3 class="text-[20px] font-bold text-brand-navy">Completa tu perfil de Inversionista</h3>
+                <p class="text-brand-muted text-[14px] mt-2 max-w-md mx-auto">Vincule su usuario con los fondos o inversiones registradas ingresando los datos correspondientes.</p>
+            </div>
+            
+            <form action="/inversionista/perfil" method="POST" class="space-y-5">
+                <div class="space-y-1.5">
+                    <label class="block text-[13px] font-bold text-brand-navy">Nombre o Razón Social <span class="text-brand-danger">*</span></label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-muted">
+                            <i class="ri-user-line"></i>
+                        </div>
+                        <input type="text" name="nombre" required class="w-full pl-11 pr-4 py-3 bg-brand-surface border border-brand-border rounded-[14px] text-[14px] text-brand-text outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all placeholder:text-brand-muted/60" placeholder="Ej. Inversiones del Norte S.A.">
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-[13px] font-bold text-brand-navy">Email Corporativo</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-muted">
+                            <i class="ri-mail-line"></i>
+                        </div>
+                        <input type="email" name="email" value="<%= user.email %>" class="w-full pl-11 pr-4 py-3 bg-brand-surface border border-brand-border rounded-[14px] text-[14px] text-brand-text outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="block text-[13px] font-bold text-brand-navy">Empresa / Consorcio</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-muted">
+                                <i class="ri-building-line"></i>
+                            </div>
+                            <input type="text" name="empresa" class="w-full pl-11 pr-4 py-3 bg-brand-surface border border-brand-border rounded-[14px] text-[14px] text-brand-text outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all placeholder:text-brand-muted/60" placeholder="Nombre de la empresa">
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-[13px] font-bold text-brand-navy">DNI / ID Tributario</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-muted">
+                                <i class="ri-file-user-line"></i>
+                            </div>
+                            <input type="text" name="dni" maxlength="8" class="w-full pl-11 pr-4 py-3 bg-brand-surface border border-brand-border rounded-[14px] text-[14px] text-brand-text outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all placeholder:text-brand-muted/60" placeholder="Ej. 12345678">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-[13px] font-bold text-brand-navy">Teléfono de Contacto</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-muted">
+                            <i class="ri-phone-line"></i>
+                        </div>
+                        <input type="text" name="telefono" class="w-full pl-11 pr-4 py-3 bg-brand-surface border border-brand-border rounded-[14px] text-[14px] text-brand-text outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all placeholder:text-brand-muted/60" placeholder="Ej. +52 555-0199">
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full flex items-center justify-center gap-2 py-3.5 bg-brand-blue text-white rounded-[14px] font-bold text-[14px] hover:bg-brand-blue-hover transition-all shadow-[0_4px_14px_rgba(27,79,216,0.3)] hover:-translate-y-0.5">
+                        <i class="ri-save-line"></i> Guardar perfil
+                    </button>
+                </div>
+            </form>
+            <p class="text-[12px] font-medium text-brand-muted text-center mt-6 flex items-center justify-center gap-1.5">
+                <i class="ri-information-line"></i> Si ya tienes inversiones, asegúrate de ingresar el email exacto con el que te registraron.
+            </p>
+        </div>
+        <% } else { %>
+        <div class="bg-white rounded-[24px] shadow-[0_4px_24px_rgba(10,22,40,0.06)] border border-brand-border overflow-hidden animate-in delay-75">
+            <div class="bg-gradient-to-r from-brand-navy via-[#0f1e38] to-[#122046] px-5 py-5 text-white relative overflow-hidden">
+                <div class="absolute -right-10 -top-10 w-40 h-40 bg-[radial-gradient(circle,rgba(212,168,67,0.2)_0%,transparent_70%)] pointer-events-none"></div>
+                <div class="flex flex-col sm:flex-row items-center gap-6 relative z-10 text-center sm:text-left">
+                    <div class="w-20 h-20 bg-gradient-to-br from-brand-gold to-brand-gold-light rounded-[18px] flex items-center justify-center shadow-[0_8px_20px_rgba(212,168,67,0.3)] shrink-0 rotate-3">
+                        <span class="text-[32px] font-extrabold text-brand-navy -rotate-3"><%= inversionista.nombre.charAt(0).toUpperCase() %></span>
+                    </div>
+                    <div>
+                        <h2 class="text-[24px] font-bold tracking-tight"><%= inversionista.nombre %></h2>
+                        <p class="text-white/60 text-[14px] mt-1 font-medium flex items-center justify-center sm:justify-start gap-1.5">
+                            <i class="ri-building-line text-brand-gold"></i> <%= inversionista.empresa || 'Empresa no especificada' %>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <form action="/inversionista/perfil" method="POST" class="p-5 space-y-5">
+                <div class="space-y-1.5">
+                    <label class="block text-[13px] font-bold text-brand-navy">Nombre o Razón Social <span class="text-brand-danger">*</span></label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-muted">
+                            <i class="ri-user-line"></i>
+                        </div>
+                        <input type="text" name="nombre" value="<%= inversionista.nombre %>" required class="w-full pl-11 pr-4 py-3 bg-brand-surface border border-brand-border rounded-[14px] text-[14px] text-brand-text outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all">
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-[13px] font-bold text-brand-navy">Email Corporativo</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-muted">
+                            <i class="ri-mail-line"></i>
+                        </div>
+                        <input type="email" name="email" value="<%= inversionista.email || '' %>" class="w-full pl-11 pr-4 py-3 bg-brand-surface border border-brand-border rounded-[14px] text-[14px] text-brand-text outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="block text-[13px] font-bold text-brand-navy">Empresa / Consorcio</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-muted">
+                                <i class="ri-building-line"></i>
+                            </div>
+                            <input type="text" name="empresa" value="<%= inversionista.empresa || '' %>" class="w-full pl-11 pr-4 py-3 bg-brand-surface border border-brand-border rounded-[14px] text-[14px] text-brand-text outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all">
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-[13px] font-bold text-brand-navy">DNI / ID Tributario</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-muted">
+                                <i class="ri-file-user-line"></i>
+                            </div>
+                            <input type="text" name="dni" value="<%= inversionista.dni || '' %>" maxlength="8" class="w-full pl-11 pr-4 py-3 bg-brand-surface border border-brand-border rounded-[14px] text-[14px] text-brand-text outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-[13px] font-bold text-brand-navy">Teléfono de Contacto</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-muted">
+                            <i class="ri-phone-line"></i>
+                        </div>
+                        <input type="text" name="telefono" value="<%= inversionista.telefono || '' %>" class="w-full pl-11 pr-4 py-3 bg-brand-surface border border-brand-border rounded-[14px] text-[14px] text-brand-text outline-none focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 transition-all">
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full flex items-center justify-center gap-2 py-3.5 bg-brand-blue text-white rounded-[14px] font-bold text-[14px] hover:bg-brand-blue-hover transition-all shadow-[0_4px_14px_rgba(27,79,216,0.3)] hover:-translate-y-0.5">
+                        <i class="ri-save-line"></i> Actualizar perfil
+                    </button>
+                </div>
+            </form>
+        </div>
+        <% } %>
+    </div>
+</main>
+
+<script>
+    setTimeout(() => { 
+        const f = document.getElementById('flash'); 
+        if (f) {
+            f.style.opacity = '0';
+            f.style.transform = 'translateY(-10px)';
+            f.style.transition = 'all 0.3s ease';
+            setTimeout(() => f.remove(), 300);
+        }
+    }, 4000);
+</script>

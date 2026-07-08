@@ -1,0 +1,362 @@
+<%- include('../partials/sidebar_inversionista') %>
+
+<main class="flex-1 h-screen overflow-y-auto bg-brand-bg relative flex flex-col min-w-0">
+
+  <!-- Top Header -->
+  <header class="flex items-center justify-between px-8 py-4 bg-white/92 backdrop-blur-md border-b border-brand-border sticky top-0 z-40">
+    <div>
+      <h1 class="text-[22px] font-bold tracking-tight text-brand-navy">
+        Bienvenido, <%= inversionista ? inversionista.nombre : user.name %>
+      </h1>
+      <p class="text-[13px] text-brand-muted mt-0.5">
+        <%= inversionista && inversionista.empresa ? inversionista.empresa : 'Portal de Inversionista' %> • Resumen de Cartera y Cobros
+      </p>
+    </div>
+    <img src="<%= user.avatar %>" alt="Avatar" class="w-[38px] h-[38px] rounded-full border-2 border-brand-gold object-cover">
+  </header>
+
+  <div class="p-8 max-w-[1400px] mx-auto w-full flex-1 flex flex-col gap-6">
+
+    <% if (!inversionista) { %>
+      <!-- Alert link profile -->
+      <div class="bg-[#FFF4E5] border-l-[4px] border-l-orange-500 border border-[#FEE1BB] px-5 py-4 rounded-[12px] flex items-center gap-4 transition-opacity duration-300 animate-in">
+        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 shrink-0">
+          <i class="ri-user-unfollow-line text-[20px]"></i>
+        </div>
+        <div>
+          <p class="font-bold text-[14px] text-orange-800">Vincula tu perfil de Inversionista</p>
+          <p class="text-[13px] text-orange-700 opacity-90">Para visualizar tus inversiones y cronogramas de cobro, <a href="/inversionista/perfil" class="font-bold hover:underline underline-offset-2">completa tus datos aquí</a>.</p>
+        </div>
+      </div>
+    <% } else { %>
+
+      <!-- Next cobro block if exists -->
+      <% if (kpi.proximoCobro) { 
+        const dateCobro = new Date(kpi.proximoCobro.fecha_vencimiento);
+      %>
+        <div class="bg-gradient-to-r from-brand-blue to-[#1b4fd8]/90 rounded-[20px] p-6 text-white flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg animate-in">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-brand-gold shrink-0">
+              <i class="ri-calendar-todo-line text-[24px]"></i>
+            </div>
+            <div>
+              <p class="text-white/70 text-[12px] uppercase font-bold tracking-wider">Próximo Cobro Programado</p>
+              <p class="text-[16px] font-bold mt-0.5">
+                S/%= Number(kpi.proximoCobro.monto_cuota).toLocaleString('es-MX', {minimumFractionDigits: 2}) %> MXN de <span class="text-brand-gold font-extrabold"><%= kpi.proximoCobro.cliente_nombre %></span> (Préstamo #<%= kpi.proximoCobro.prestamo_id %>)
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="px-3 py-1.5 rounded-lg bg-white/10 text-[13px] font-bold text-white border border-white/20">
+              Vence el <%= dateCobro.toLocaleDateString('es-MX', {day: '2-digit', month: 'short', year: 'numeric'}) %>
+            </span>
+            <a href="/inversionista/prestamo?id=<%= kpi.proximoCobro.prestamo_id %>" class="px-4 py-2 rounded-lg bg-brand-gold text-brand-navy hover:bg-brand-gold-hover text-[13px] font-bold transition-all shadow-md">
+              Ver Cronograma
+            </a>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- KPI Strip -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 animate-in delay-75">
+        <!-- Capital Activo -->
+        <div class="bg-white rounded-[20px] border border-brand-border p-6 shadow-[0_2px_8px_rgba(10,22,40,0.04)] flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-brand-muted uppercase tracking-wider">Capital Activo en Juego</span>
+              <span class="w-7 h-7 rounded-lg bg-brand-blue-light text-brand-blue flex items-center justify-center"><i class="ri-money-dollar-box-line"></i></span>
+            </div>
+            <p class="text-[24px] font-extrabold text-brand-navy mt-4 leading-none">
+              S/%= kpi.totalInvertido.toLocaleString('es-MX', {minimumFractionDigits:2}) %>
+            </p>
+          </div>
+          <p class="text-[12px] text-brand-muted mt-3">Suma de préstamos activos y vencidos</p>
+        </div>
+
+        <!-- Intereses Cobrados -->
+        <div class="bg-white rounded-[20px] border border-brand-border p-6 shadow-[0_2px_8px_rgba(10,22,40,0.04)] flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-brand-muted uppercase tracking-wider">Intereses Recibidos (Ganancia)</span>
+              <span class="w-7 h-7 rounded-lg bg-brand-success-light text-brand-success flex items-center justify-center"><i class="ri-hand-heart-line"></i></span>
+            </div>
+            <p class="text-[24px] font-extrabold text-brand-success mt-4 leading-none">
+              S/%= kpi.interesesCobrados.toLocaleString('es-MX', {minimumFractionDigits:2}) %>
+            </p>
+          </div>
+          <p class="text-[12px] text-brand-muted mt-3">Intereses totales cobrados de cuotas pagadas</p>
+        </div>
+
+        <!-- Intereses Pendientes -->
+        <div class="bg-white rounded-[20px] border border-brand-border p-6 shadow-[0_2px_8px_rgba(10,22,40,0.04)] flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-brand-muted uppercase tracking-wider">Intereses por Recibir</span>
+              <span class="w-7 h-7 rounded-lg bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center"><i class="ri-line-chart-line"></i></span>
+            </div>
+            <p class="text-[24px] font-extrabold text-amber-600 mt-4 leading-none">
+              S/%= kpi.interesesPendientes.toLocaleString('es-MX', {minimumFractionDigits:2}) %>
+            </p>
+          </div>
+          <p class="text-[12px] text-brand-muted mt-3">Proyección de intereses en cuotas pendientes</p>
+        </div>
+
+        <!-- Moras Acumuladas -->
+        <div class="bg-white rounded-[20px] border border-brand-border p-6 shadow-[0_2px_8px_rgba(10,22,40,0.04)] flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-brand-muted uppercase tracking-wider">Moras Cobradas / Pendientes</span>
+              <span class="w-7 h-7 rounded-lg bg-brand-danger-light text-brand-danger flex items-center justify-center"><i class="ri-error-warning-line"></i></span>
+            </div>
+            <p class="text-[24px] font-extrabold text-brand-danger mt-4 leading-none">
+              S/%= kpi.totalMoras.toLocaleString('es-MX', {minimumFractionDigits:2}) %>
+            </p>
+          </div>
+          <p class="text-[12px] text-brand-muted mt-3">Penalizaciones de cuotas vencidas</p>
+        </div>
+      </div>
+
+      <!-- Detalle por estado -->
+      <div class="grid grid-cols-3 gap-5 animate-in delay-100">
+        <div class="bg-brand-surface border border-brand-border p-4 rounded-xl text-center">
+          <span class="text-[11px] font-bold text-brand-muted uppercase tracking-wider">Préstamos Activos</span>
+          <p class="text-[20px] font-bold text-brand-navy mt-1"><%= kpi.prestamosActivos %></p>
+        </div>
+        <div class="bg-red-50 border border-red-100 p-4 rounded-xl text-center">
+          <span class="text-[11px] font-bold text-red-400 uppercase tracking-wider">Préstamos Vencidos</span>
+          <p class="text-[20px] font-bold text-brand-danger mt-1"><%= kpi.prestamosVencidos %></p>
+        </div>
+        <div class="bg-green-50 border border-green-100 p-4 rounded-xl text-center">
+          <span class="text-[11px] font-bold text-brand-success uppercase tracking-wider">Préstamos Liquidados</span>
+          <p class="text-[20px] font-bold text-brand-success mt-1"><%= kpi.prestamosPagados %></p>
+        </div>
+      </div>
+
+      <!-- View Switcher -->
+      <div class="flex items-center justify-between mt-2 flex-wrap gap-4 animate-in">
+        <div>
+          <h3 class="text-[16px] font-bold text-brand-navy">Mis Préstamos Financiados</h3>
+          <p class="text-[12px] text-brand-muted mt-0.5">Seguimiento de inversiones y cuotas asociadas</p>
+        </div>
+        <div class="inline-flex bg-brand-surface border border-brand-border p-1 rounded-xl gap-1">
+          <button id="btn-view-cards" class="px-3.5 py-1.5 rounded-lg text-[12px] font-bold transition-all flex items-center gap-1.5 bg-white text-brand-navy shadow-sm">
+            <i class="ri-grid-fill"></i> Tarjetas (Línea de tiempo)
+          </button>
+          <button id="btn-view-table" class="px-3.5 py-1.5 rounded-lg text-[12px] font-bold transition-all flex items-center gap-1.5 text-brand-muted hover:text-brand-navy">
+            <i class="ri-list-check"></i> Tabla Detallada
+          </button>
+        </div>
+      </div>
+
+      <!-- Cards Grid View -->
+      <div id="view-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in delay-150">
+        <% if (prestamos.length === 0) { %>
+          <div class="col-span-full bg-white border border-brand-border rounded-[20px] p-12 text-center text-brand-muted font-medium">
+            No se han registrado préstamos financiados por ti.
+          </div>
+        <% } else { %>
+          <% prestamos.forEach(p => { 
+            const total = p.total_cuotas || 0;
+            const pagadas = p.cuotas_pagadas || 0;
+            const vencidas = p.cuotas_vencidas || 0;
+            const pendientes = p.cuotas_pendientes || 0;
+            
+            const pctPagado = total > 0 ? Math.round((pagadas / total) * 100) : 0;
+            const pctVencido = total > 0 ? Math.round((vencidas / total) * 100) : 0;
+            const pctPendiente = total > 0 ? (100 - pctPagado - pctVencido) : 0;
+          %>
+          <div class="bg-white rounded-[24px] border border-brand-border p-6 shadow-[0_4px_20px_rgba(10,22,40,0.03)] hover:shadow-[0_8px_30px_rgba(10,22,40,0.08)] transition-all duration-200 hover:-translate-y-1 flex flex-col justify-between gap-5 relative overflow-hidden group">
+            
+            <!-- Card Header -->
+            <div class="flex items-start justify-between">
+              <div>
+                <span class="text-[10px] font-bold text-brand-muted uppercase tracking-wider">Inversión #<%= p.id %></span>
+                <h4 class="text-[15px] font-bold text-brand-navy mt-1 group-hover:text-brand-blue transition-colors"><%= p.cliente_nombre %></h4>
+              </div>
+              
+              <!-- Badges -->
+              <div>
+                <% if (p.estado === 'activo') { %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[10px] font-bold bg-brand-success-light text-brand-success border border-brand-success/20">Activo</span>
+                <% } else if (p.estado === 'vencido') { %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[10px] font-bold bg-brand-danger-light text-brand-danger border border-brand-danger/20">Vencido</span>
+                <% } else if (p.estado === 'pendiente') { %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-200">Pendiente</span>
+                <% } else { %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[10px] font-bold bg-brand-surface2 text-brand-muted border border-brand-border">Pagado</span>
+                <% } %>
+              </div>
+            </div>
+            
+            <!-- Card Core Stats -->
+            <div class="grid grid-cols-2 gap-3 bg-brand-surface border border-brand-border rounded-[16px] p-4 text-[13px]">
+              <div>
+                <span class="text-[10px] text-brand-muted font-semibold uppercase tracking-wider block">Financiado</span>
+                <span class="font-bold text-brand-navy">S/%= Number(p.monto).toLocaleString('es-MX') %></span>
+              </div>
+              <div>
+                <span class="text-[10px] text-brand-muted font-semibold uppercase tracking-wider block">Retorno Estimado</span>
+                <span class="font-bold text-brand-blue">S/%= Number(p.total_pagar).toLocaleString('es-MX') %></span>
+              </div>
+              <div>
+                <span class="text-[10px] text-brand-muted font-semibold uppercase tracking-wider block">Tasa / Pago</span>
+                <span class="font-semibold text-brand-text"><%= p.interes %>% / <%= p.tipo_pago %></span>
+              </div>
+              <div>
+                <span class="text-[10px] text-brand-muted font-semibold uppercase tracking-wider block">Recuperado</span>
+                <span class="font-bold text-brand-success">S/%= Number(p.total_recuperado).toLocaleString('es-MX') %></span>
+              </div>
+            </div>
+            
+            <!-- Timeline / Progress Bar -->
+            <div>
+              <div class="flex items-center justify-between text-[11px] font-bold mb-1.5">
+                <span class="text-brand-muted">Línea de Tiempo del Pago</span>
+                <span class="text-brand-navy"><%= pctPagado %>% Cobrado</span>
+              </div>
+              
+              <% if (total > 0) { %>
+                <!-- Progress Line Segment -->
+                <div class="h-2.5 w-full rounded-full overflow-hidden bg-gray-100 flex shadow-inner">
+                  <div class="bg-brand-success" style="width: <%= pctPagado %>%" title="Cobrado: <%= pagadas %> cuotas"></div>
+                  <div class="bg-brand-danger" style="width: <%= pctVencido %>%" title="Vencido: <%= vencidas %> cuotas"></div>
+                  <div class="bg-gray-200" style="width: <%= pctPendiente %>%" title="Pendiente: <%= pendientes %> cuotas"></div>
+                </div>
+                
+                <div class="flex items-center justify-between text-[10px] text-brand-muted font-semibold mt-2">
+                  <span class="flex items-center gap-1"><i class="ri-checkbox-circle-fill text-brand-success"></i> <%= pagadas %> cobradas</span>
+                  <% if (vencidas > 0) { %>
+                    <span class="flex items-center gap-1 text-brand-danger"><i class="ri-error-warning-fill text-brand-danger"></i> <%= vencidas %> vencidas</span>
+                  <% } %>
+                  <span class="flex items-center gap-1"><i class="ri-time-fill text-brand-muted"></i> <%= pendientes %> pendientes</span>
+                </div>
+              <% } else { %>
+                <div class="h-2.5 w-full rounded-full bg-brand-surface2 shadow-inner"></div>
+                <span class="text-[10px] text-brand-muted font-medium mt-2 block"><i class="ri-lock-line"></i> Esperando registro del cronograma</span>
+              <% } %>
+            </div>
+            
+            <!-- Footer details link -->
+            <div class="border-t border-brand-border pt-4 flex items-center justify-between">
+              <span class="text-[11px] text-brand-muted font-medium"><%= p.plazo_meses %> meses plazo</span>
+              <a href="/inversionista/prestamo?id=<%= p.id %>" class="px-3.5 py-1.5 rounded-xl bg-brand-surface border border-brand-border text-brand-navy hover:bg-brand-navy hover:text-white transition-all text-[12px] font-bold flex items-center gap-1 bg-brand-surface shadow-sm">
+                Detalles <i class="ri-arrow-right-line"></i>
+              </a>
+            </div>
+            
+          </div>
+          <% }) %>
+        <% } %>
+      </div>
+
+      <!-- Detailed Table View (Hidden by default) -->
+      <div id="view-table-container" class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border overflow-hidden hidden animate-in">
+        <div class="w-full overflow-x-auto">
+          <table class="w-full border-collapse text-left text-[13px] whitespace-nowrap">
+            <thead>
+              <tr class="bg-brand-surface border-b border-brand-border">
+                <th class="py-3.5 px-6 font-semibold text-brand-muted tracking-wide text-center">ID</th>
+                <th class="py-3.5 px-6 font-semibold text-brand-muted tracking-wide">Cliente</th>
+                <th class="py-3.5 px-6 font-semibold text-brand-muted tracking-wide text-right">Monto Financiado</th>
+                <th class="py-3.5 px-6 font-semibold text-brand-muted tracking-wide text-right">Tasa</th>
+                <th class="py-3.5 px-6 font-semibold text-brand-muted tracking-wide text-center">Plazo</th>
+                <th class="py-3.5 px-6 font-semibold text-brand-muted tracking-wide text-center">Tipo Pago</th>
+                <th class="py-3.5 px-6 font-semibold text-brand-muted tracking-wide text-center">Estado</th>
+                <th class="py-3.5 px-6 font-semibold text-brand-muted tracking-wide text-center">Cronograma</th>
+                <th class="py-3.5 px-6 font-semibold text-brand-muted tracking-wide">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (prestamos.length === 0) { %>
+                <tr>
+                  <td colspan="9" class="py-8 text-center text-brand-muted font-medium">No se han registrado préstamos financiados por ti.</td>
+                </tr>
+              <% } else { %>
+                <% prestamos.forEach(p => { %>
+                <tr class="border-b border-brand-border last:border-b-0 hover:bg-brand-surface transition-colors duration-150">
+                  <td class="py-3.5 px-6 text-center text-brand-muted font-semibold">#<%= p.id %></td>
+                  <td class="py-3.5 px-6">
+                    <div class="flex items-center gap-2.5">
+                      <div class="w-8 h-8 rounded-full bg-brand-surface2 text-brand-navy flex items-center justify-center font-bold text-[12px]">
+                        <%= p.cliente_nombre.charAt(0).toUpperCase() %>
+                      </div>
+                      <div>
+                        <p class="font-bold text-brand-navy"><%= p.cliente_nombre %></p>
+                        <p class="text-[11px] text-brand-muted mt-px"><%= p.cliente_telefono || 'Sin teléfono' %></p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="py-3.5 px-6 text-right font-bold text-brand-blue">S/%= Number(p.monto).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></td>
+                  <td class="py-3.5 px-6 text-right font-medium text-brand-text"><%= p.interes %>%</td>
+                  <td class="py-3.5 px-6 text-center text-brand-text font-medium"><%= p.plazo_meses %> meses</td>
+                  <td class="py-3.5 px-6 text-center capitalize text-brand-text"><%= p.tipo_pago %></td>
+                  <td class="py-3.5 px-6 text-center">
+                    <% if (p.estado === 'activo') { %>
+                      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-[11px] font-semibold bg-brand-success-light text-brand-success border border-brand-success/30"><i class="ri-flashlight-line"></i> Activo</span>
+                    <% } else if (p.estado === 'vencido') { %>
+                      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-[11px] font-semibold bg-brand-danger-light text-brand-danger border border-brand-danger/30"><i class="ri-alarm-warning-line"></i> Vencido</span>
+                    <% } else if (p.estado === 'pendiente') { %>
+                      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-[11px] font-semibold bg-amber-50 text-amber-600 border border-amber-200"><i class="ri-time-line"></i> Pendiente</span>
+                    <% } else { %>
+                      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-[11px] font-semibold bg-brand-surface2 text-brand-muted border border-brand-border"><i class="ri-check-double-line"></i> Pagado</span>
+                    <% } %>
+                  </td>
+                  <td class="py-3.5 px-6 text-center">
+                    <% if (p.tiene_cronograma > 0) { %>
+                      <span class="inline-flex items-center gap-1 text-[11px] font-bold text-brand-success"><i class="ri-checkbox-circle-fill"></i> Activo</span>
+                    <% } else { %>
+                      <span class="inline-flex items-center gap-1 text-[11px] font-medium text-brand-muted"><i class="ri-close-circle-line"></i> Inactivo</span>
+                    <% } %>
+                  </td>
+                  <td class="py-3.5 px-6">
+                    <a href="/inversionista/prestamo?id=<%= p.id %>" class="text-brand-blue hover:text-brand-blue-hover font-bold text-[12px] flex items-center gap-1">
+                      Ver Detalles <i class="ri-arrow-right-line"></i>
+                    </a>
+                  </td>
+                </tr>
+                <% }) %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    <% } %>
+
+  </div>
+</main>
+
+<script>
+  (function() {
+    const btnCards = document.getElementById('btn-view-cards');
+    const btnTable = document.getElementById('btn-view-table');
+    const containerCards = document.getElementById('view-cards-container');
+    const containerTable = document.getElementById('view-table-container');
+
+    if (btnCards && btnTable && containerCards && containerTable) {
+      btnCards.addEventListener('click', () => {
+        // Toggle Buttons
+        btnCards.classList.add('bg-white', 'text-brand-navy', 'shadow-sm');
+        btnCards.classList.remove('text-brand-muted', 'hover:text-brand-navy');
+        btnTable.classList.remove('bg-white', 'text-brand-navy', 'shadow-sm');
+        btnTable.classList.add('text-brand-muted', 'hover:text-brand-navy');
+
+        // Toggle containers
+        containerCards.classList.remove('hidden');
+        containerTable.classList.add('hidden');
+      });
+
+      btnTable.addEventListener('click', () => {
+        // Toggle Buttons
+        btnTable.classList.add('bg-white', 'text-brand-navy', 'shadow-sm');
+        btnTable.classList.remove('text-brand-muted', 'hover:text-brand-navy');
+        btnCards.classList.remove('bg-white', 'text-brand-navy', 'shadow-sm');
+        btnCards.classList.add('text-brand-muted', 'hover:text-brand-navy');
+
+        // Toggle containers
+        containerTable.classList.remove('hidden');
+        containerCards.classList.add('hidden');
+      });
+    }
+  })();
+</script>
