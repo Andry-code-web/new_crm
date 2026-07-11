@@ -184,7 +184,7 @@
               const venc = new Date(c.fecha_vencimiento);
               const estadoReal = c.estado === 'pagada' ? 'pagada' : (c.estado !== 'pagada' && venc < hoy ? 'vencida' : 'pendiente');
               const cuotaFmt = fmt(c.monto_cuota);
-              const msgWA = 'Hola ' + prestamo.cliente_nombre + ', le recordamos que su cuota N\u00b0 ' + c.numero_cuota + ' por $' + cuotaFmt + ' vence el ' + fmtDate(c.fecha_vencimiento) + '. Por favor realice su pago a tiempo. \u2014 Coinest Soluciones Financieras.';
+              const msgWA = 'Hola ' + prestamo.cliente_nombre + ', le recordamos que su cuota N\u00b0 ' + c.numero_cuota + ' por $' + cuotaFmt + ' vence el ' + fmtDate(c.fecha_vencimiento) + '. Por favor realice su pago a tiempo. \u2014 Financiera Guzmán.';
               const waUrl = telefonoLimpio ? 'https://wa.me/' + telefonoLimpio + '?text=' + encodeURIComponent(msgWA) : null;
             %>
             <tr class="border-b border-brand-border last:border-b-0 transition-colors duration-150 <%= estadoReal === 'pagada' ? 'bg-green-50/50' : estadoReal === 'vencida' ? 'bg-red-50/40' : 'hover:bg-brand-surface' %>">

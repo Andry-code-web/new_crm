@@ -1,334 +1,398 @@
 ﻿<%- include('../partials/sidebar_asesor') %>
 
-<main class="flex-1 h-screen overflow-y-auto bg-brand-bg relative flex flex-col min-w-0">
+  <main class="flex-1 h-screen overflow-y-auto bg-brand-bg relative flex flex-col min-w-0">
 
-  <!-- Header -->
-  <header class="flex items-center justify-between px-8 py-4 bg-white/92 backdrop-blur-md border-b border-brand-border sticky top-0 z-40">
-    <div>
-      <h1 class="text-[22px] font-bold tracking-tight text-brand-navy">Mi Panel</h1>
-      <p class="text-[13px] text-brand-muted mt-0.5">
-        Bienvenido, <strong class="text-brand-navy"><%= user.name %></strong>
-        <% if (asesor && asesor.especialidad) { %>
-          &mdash; <span class="text-brand-gold font-semibold"><%= asesor.especialidad %></span>
-        <% } %>
-      </p>
-    </div>
-    <div class="flex items-center gap-3">
-      <a href="/dashboard/simulacion" id="btn-nueva-simulacion"
-        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-bold text-white bg-gradient-to-br from-brand-blue to-brand-blue-hover shadow-[0_2px_8px_rgba(27,79,216,0.3)] hover:-translate-y-px hover:shadow-[0_4px_14px_rgba(27,79,216,0.4)] transition-all duration-200">
-        <i class="ri-add-line text-[15px]"></i>
-        Nueva Simulacion
-      </a>
-      <img src="<%= user.avatar %>" alt="Avatar" class="w-[38px] h-[38px] rounded-full border-2 border-brand-gold object-cover">
-    </div>
-  </header>
-
-  <div class="p-8 max-w-[1400px] mx-auto w-full flex-1 flex flex-col gap-6">
-
-    <!-- Hero Banner con cartera total -->
-    <div class="bg-gradient-to-br from-brand-navy via-[#0f1e38] to-[#122046] rounded-[24px] p-8 text-white relative overflow-hidden shadow-[0_8px_32px_rgba(10,22,40,0.18)] animate-in">
-      <div class="absolute -right-16 -top-16 w-72 h-72 bg-[radial-gradient(circle,rgba(212,168,67,0.18)_0%,transparent_65%)] rounded-full pointer-events-none"></div>
-      <div class="absolute -bottom-10 left-32 w-48 h-48 bg-[radial-gradient(circle,rgba(27,79,216,0.2)_0%,transparent_65%)] rounded-full pointer-events-none"></div>
-
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
-        <div>
-          <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-brand-gold mb-2 flex items-center gap-1.5">
-            <i class="ri-briefcase-4-line text-[13px]"></i>
-            Cartera Total Gestionada
-          </p>
-          <p class="text-[46px] font-extrabold tracking-tight leading-none">
-            S/%= kpi.montoTotal %>
-          </p>
-          <p class="text-white/50 text-[13px] mt-1">
-            Intereses generados: <span class="text-brand-gold font-semibold">S/%= kpi.interesTotal %></span>
-          </p>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-8 sm:gap-12">
-          <div class="flex flex-col items-center gap-1">
-            <p class="text-[11px] font-semibold text-white/50 uppercase tracking-wide">Prestamos</p>
-            <p class="text-[32px] font-extrabold text-white"><%= kpi.total %></p>
-          </div>
-          <div class="w-px h-10 bg-white/10 hidden sm:block"></div>
-          <div class="flex flex-col items-center gap-1">
-            <p class="text-[11px] font-semibold text-white/50 uppercase tracking-wide">Clientes</p>
-            <p class="text-[32px] font-extrabold text-white"><%= kpi.clientes %></p>
-          </div>
-          <div class="w-px h-10 bg-white/10 hidden sm:block"></div>
-          <div class="flex flex-col items-center gap-1">
-            <p class="text-[11px] font-semibold text-white/50 uppercase tracking-wide">Por Vencer</p>
-            <p class="text-[32px] font-extrabold <%= kpi.cuotasPorVencer > 0 ? 'text-amber-400' : 'text-white' %>"><%= kpi.cuotasPorVencer %></p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- KPIs de estados -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-in delay-75">
-      <!-- Activos -->
-      <div class="bg-white rounded-[18px] p-5 border-l-[3px] border-l-brand-blue border border-brand-border shadow-[0_2px_8px_rgba(10,22,40,0.07)] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.09)] transition-all duration-300 flex items-center gap-4">
-        <div class="w-11 h-11 rounded-[12px] bg-brand-blue-light text-brand-blue flex items-center justify-center flex-shrink-0">
-          <i class="ri-flashlight-line text-[20px]"></i>
-        </div>
-        <div>
-          <p class="text-[11px] font-semibold text-brand-muted uppercase tracking-wide">Activos</p>
-          <p class="text-[26px] font-extrabold text-brand-blue leading-tight"><%= kpi.activos %></p>
-        </div>
-      </div>
-      <!-- Pendientes -->
-      <div class="bg-white rounded-[18px] p-5 border-l-[3px] border-l-amber-400 border border-brand-border shadow-[0_2px_8px_rgba(10,22,40,0.07)] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.09)] transition-all duration-300 flex items-center gap-4">
-        <div class="w-11 h-11 rounded-[12px] bg-amber-50 text-amber-500 flex items-center justify-center flex-shrink-0">
-          <i class="ri-time-line text-[20px]"></i>
-        </div>
-        <div>
-          <p class="text-[11px] font-semibold text-brand-muted uppercase tracking-wide">Pendientes</p>
-          <p class="text-[26px] font-extrabold text-amber-500 leading-tight"><%= kpi.pendientes %></p>
-        </div>
-      </div>
-      <!-- Vencidos -->
-      <div class="bg-white rounded-[18px] p-5 border-l-[3px] border-l-brand-danger border border-brand-border shadow-[0_2px_8px_rgba(10,22,40,0.07)] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.09)] transition-all duration-300 flex items-center gap-4">
-        <div class="w-11 h-11 rounded-[12px] bg-brand-danger-light text-brand-danger flex items-center justify-center flex-shrink-0">
-          <i class="ri-alarm-warning-line text-[20px]"></i>
-        </div>
-        <div>
-          <p class="text-[11px] font-semibold text-brand-muted uppercase tracking-wide">Vencidos</p>
-          <p class="text-[26px] font-extrabold text-brand-danger leading-tight"><%= kpi.vencidos %></p>
-        </div>
-      </div>
-      <!-- Pagados -->
-      <div class="bg-white rounded-[18px] p-5 border-l-[3px] border-l-brand-success border border-brand-border shadow-[0_2px_8px_rgba(10,22,40,0.07)] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.09)] transition-all duration-300 flex items-center gap-4">
-        <div class="w-11 h-11 rounded-[12px] bg-brand-success-light text-brand-success flex items-center justify-center flex-shrink-0">
-          <i class="ri-checkbox-circle-line text-[20px]"></i>
-        </div>
-        <div>
-          <p class="text-[11px] font-semibold text-brand-muted uppercase tracking-wide">Pagados</p>
-          <p class="text-[26px] font-extrabold text-brand-success leading-tight"><%= kpi.pagados %></p>
-        </div>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-6 animate-in delay-100">
-
-      <!-- Prestamos recientes -->
-      <div class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col overflow-hidden">
-        <div class="px-6 py-5 border-b border-brand-border flex items-center justify-between">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-[10px] bg-brand-navy flex items-center justify-center">
-              <i class="ri-file-list-3-line text-brand-gold text-[16px]"></i>
-            </div>
-            <p class="text-[15px] font-bold text-brand-navy">Mis Prestamos Recientes</p>
-          </div>
-          <a href="/dashboard/prestamos" class="text-[12px] font-semibold text-brand-blue hover:underline flex items-center gap-1">
-            Ver todos <i class="ri-arrow-right-s-line text-[14px]"></i>
-          </a>
-        </div>
-
-        <% if (!recentPrestamos || recentPrestamos.length === 0) { %>
-        <div class="py-12 flex flex-col items-center text-center px-6">
-          <i class="ri-inbox-line text-[36px] text-brand-muted mb-3"></i>
-          <p class="text-[14px] font-semibold text-brand-text">Sin prestamos aun</p>
-          <p class="text-[12px] text-brand-muted mt-1">Registra tu primer prestamo desde el simulador.</p>
-          <a href="/dashboard/simulacion" class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-bold text-white bg-brand-blue hover:opacity-90 transition-all">
-            <i class="ri-add-line text-[14px]"></i> Nueva Simulacion
-          </a>
-        </div>
-        <% } else { %>
-        <div class="flex flex-col divide-y divide-brand-border">
-          <% recentPrestamos.forEach(p => {
-            const fmt = (n) => Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:2});
-            const fecha = p.fecha_registro ? new Date(p.fecha_registro).toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'}) : '—';
-          %>
-          <div class="flex items-center gap-4 px-6 py-3.5 hover:bg-brand-surface transition-colors">
-            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-brand-navy to-[#122046] text-white flex items-center justify-center text-[13px] font-bold flex-shrink-0">
-              <%= (p.cliente_nombre || '?').charAt(0).toUpperCase() %>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="font-semibold text-brand-navy text-[13px] truncate"><%= p.cliente_nombre || '—' %></p>
-              <p class="text-[11px] text-brand-muted truncate"><%= p.inversor_nombre || '—' %> &bull; <%= fecha %></p>
-            </div>
-            <div class="text-right flex-shrink-0">
-              <p class="font-bold text-brand-navy text-[13px]">S/%= fmt(p.monto) %></p>
-              <% if (p.estado === 'activo') { %>
-                <span class="text-[10px] font-bold text-brand-blue bg-brand-blue-light px-1.5 py-0.5 rounded-md">Activo</span>
-              <% } else if (p.estado === 'pendiente') { %>
-                <span class="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md">Pendiente</span>
-              <% } else if (p.estado === 'vencido') { %>
-                <span class="text-[10px] font-bold text-brand-danger bg-brand-danger-light px-1.5 py-0.5 rounded-md">Vencido</span>
-              <% } else { %>
-                <span class="text-[10px] font-bold text-brand-success bg-brand-success-light px-1.5 py-0.5 rounded-md">Pagado</span>
-              <% } %>
-            </div>
-          </div>
-          <% }) %>
-        </div>
-        <% } %>
-      </div>
-
-      <!-- Panel lateral: cuotas por vencer + accesos rapidos -->
-      <div class="flex flex-col gap-5">
-
-        <!-- Cuotas por vencer -->
-        <div class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col overflow-hidden">
-          <div class="px-6 py-4 border-b border-brand-border flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-[10px] bg-amber-50 border border-amber-200 flex items-center justify-center">
-                <i class="ri-alarm-warning-line text-amber-500 text-[16px]"></i>
-              </div>
-              <div>
-                <p class="text-[14px] font-bold text-brand-navy">Cuotas por Vencer</p>
-                <p class="text-[11px] text-brand-muted">Proximos 5 dias</p>
-              </div>
-            </div>
-            <% if (kpi.cuotasPorVencer > 0) { %>
-            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-400 text-white text-[11px] font-bold"><%= kpi.cuotasPorVencer %></span>
+    <!-- Header -->
+    <header
+      class="flex items-center justify-between px-8 py-4 bg-white/92 backdrop-blur-md border-b border-brand-border sticky top-0 z-40">
+      <div>
+        <h1 class="text-[22px] font-bold tracking-tight text-brand-navy">Mi Panel</h1>
+        <p class="text-[13px] text-brand-muted mt-0.5">
+          Bienvenido, <strong class="text-brand-navy">
+            <%= user.name %>
+          </strong>
+          <% if (asesor && asesor.especialidad) { %>
+            &mdash; <span class="text-brand-gold font-semibold">
+              <%= asesor.especialidad %>
+            </span>
             <% } %>
-          </div>
-
-          <% if (!cuotasPorVencer || cuotasPorVencer.length === 0) { %>
-          <div class="py-8 flex flex-col items-center text-center px-4">
-            <i class="ri-checkbox-circle-line text-[28px] text-brand-success mb-2"></i>
-            <p class="text-[13px] font-semibold text-brand-success">Sin vencimientos proximos</p>
-            <p class="text-[11px] text-brand-muted mt-0.5">No hay cuotas en los proximos 5 dias.</p>
-          </div>
-          <% } else { %>
-          <div class="flex flex-col divide-y divide-brand-border">
-            <% cuotasPorVencer.forEach(c => {
-              const dias = Number(c.dias_restantes);
-              const esHoy = dias === 0;
-              const esUrgente = dias <= 2;
-              const fechaFmt = new Date(c.fecha_vencimiento).toLocaleDateString('es-MX',{day:'2-digit',month:'short'});
-            %>
-            <div class="flex items-center gap-3 px-5 py-3 hover:bg-brand-surface transition-colors">
-              <div class="w-8 h-8 rounded-full <%= esUrgente ? 'bg-brand-danger text-white' : 'bg-amber-400 text-white' %> flex items-center justify-center text-[11px] font-bold flex-shrink-0">
-                <%= c.numero_cuota %>
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="font-semibold text-brand-navy text-[12px] truncate"><%= c.cliente_nombre %></p>
-                <p class="text-[11px] text-brand-muted">Cuota <%= c.numero_cuota %> &bull; S/%= Number(c.monto_cuota).toLocaleString('es-MX',{minimumFractionDigits:2}) %></p>
-              </div>
-              <div class="flex-shrink-0 text-right">
-                <% if (esHoy) { %>
-                  <span class="text-[10px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded-md animate-pulse">Hoy</span>
-                <% } else { %>
-                  <span class="text-[10px] font-bold <%= esUrgente ? 'text-brand-danger bg-brand-danger-light' : 'text-amber-600 bg-amber-50' %> px-1.5 py-0.5 rounded-md"><%= dias %>d</span>
-                <% } %>
-                <p class="text-[10px] text-brand-muted mt-0.5"><%= fechaFmt %></p>
-              </div>
-            </div>
-            <% }) %>
-          </div>
-          <% } %>
-        </div>
-
-        <!-- Accesos rapidos -->
-        <div class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border p-5">
-          <p class="text-[13px] font-bold text-brand-navy mb-4 flex items-center gap-2">
-            <i class="ri-apps-line text-brand-gold"></i>
-            Accesos Rapidos
-          </p>
-          <div class="grid grid-cols-2 gap-3">
-            <a href="/asesor/clientes" id="card-clientes"
-              class="flex flex-col items-center gap-2 p-4 rounded-[14px] border border-brand-border bg-brand-surface hover:bg-brand-blue-light hover:border-brand-blue hover:text-brand-blue group transition-all">
-              <i class="ri-user-3-line text-[22px] text-brand-blue"></i>
-              <span class="text-[12px] font-bold text-brand-navy group-hover:text-brand-blue">Mis Clientes</span>
-            </a>
-            <a href="/asesor/inversionistas" id="card-inversionistas"
-              class="flex flex-col items-center gap-2 p-4 rounded-[14px] border border-brand-border bg-brand-surface hover:bg-amber-50 hover:border-amber-300 group transition-all">
-              <i class="ri-funds-line text-[22px] text-brand-gold"></i>
-              <span class="text-[12px] font-bold text-brand-navy">Inversionistas</span>
-            </a>
-            <a href="/dashboard/prestamos" id="tool-prestamos"
-              class="flex flex-col items-center gap-2 p-4 rounded-[14px] border border-brand-border bg-brand-surface hover:bg-brand-surface hover:border-brand-navy group transition-all">
-              <i class="ri-bank-card-line text-[22px] text-brand-navy"></i>
-              <span class="text-[12px] font-bold text-brand-navy">Mi Cartera</span>
-            </a>
-            <a href="/dashboard/simulacion" id="tool-simulacion"
-              class="flex flex-col items-center gap-2 p-4 rounded-[14px] border border-brand-border bg-brand-surface hover:bg-green-50 hover:border-green-300 group transition-all">
-              <i class="ri-calculator-line text-[22px] text-brand-success"></i>
-              <span class="text-[12px] font-bold text-brand-navy">Simulador</span>
-            </a>
-          </div>
-        </div>
-
+        </p>
       </div>
-    </div>
+      <div class="flex items-center gap-3">
+        <a href="/dashboard/simulacion" id="btn-nueva-simulacion"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-bold text-white bg-gradient-to-br from-brand-blue to-brand-blue-hover shadow-[0_2px_8px_rgba(27,79,216,0.3)] hover:-translate-y-px hover:shadow-[0_4px_14px_rgba(27,79,216,0.4)] transition-all duration-200">
+          <i class="ri-add-line text-[15px]"></i>
+          Nueva Simulacion
+        </a>
+        <img src="<%= user.avatar %>" alt="Avatar"
+          class="w-[38px] h-[38px] rounded-full border-2 border-brand-gold object-cover">
+      </div>
+    </header>
 
-    <!-- Grafico de actividad -->
-    <% const chartParsed = JSON.parse(chartData || '[]'); %>
-    <% if (chartParsed.length > 0) { %>
-    <div class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border p-6 animate-in delay-150">
-      <div class="flex items-center justify-between mb-5">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-[10px] bg-brand-navy flex items-center justify-center">
-            <i class="ri-bar-chart-2-line text-brand-gold text-[16px]"></i>
+    <div class="p-8 max-w-[1400px] mx-auto w-full flex-1 flex flex-col gap-6">
+
+      <!-- Hero Banner con cartera total -->
+      <div
+        class="bg-gradient-to-br from-brand-navy via-[#0f1e38] to-[#122046] rounded-[24px] p-8 text-white relative overflow-hidden shadow-[0_8px_32px_rgba(10,22,40,0.18)] animate-in">
+        <div
+          class="absolute -right-16 -top-16 w-72 h-72 bg-[radial-gradient(circle,rgba(212,168,67,0.18)_0%,transparent_65%)] rounded-full pointer-events-none">
+        </div>
+        <div
+          class="absolute -bottom-10 left-32 w-48 h-48 bg-[radial-gradient(circle,rgba(27,79,216,0.2)_0%,transparent_65%)] rounded-full pointer-events-none">
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
+          <div>
+            <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-brand-gold mb-2 flex items-center gap-1.5">
+              <i class="ri-briefcase-4-line text-[13px]"></i>
+              Cartera Total Gestionada
+            </p>
+            <p class="text-[46px] font-extrabold tracking-tight leading-none">
+              S/<%= kpi.montoTotal %>
+            </p>
+            <p class="text-white/50 text-[13px] mt-1">
+              Intereses generados: <span class="text-brand-gold font-semibold">S/<%= kpi.interesTotal %></span>
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-8 sm:gap-12">
+            <div class="flex flex-col items-center gap-1">
+              <p class="text-[11px] font-semibold text-white/50 uppercase tracking-wide">Prestamos</p>
+              <p class="text-[32px] font-extrabold text-white">
+                <%= kpi.total %>
+              </p>
+            </div>
+            <div class="w-px h-10 bg-white/10 hidden sm:block"></div>
+            <div class="flex flex-col items-center gap-1">
+              <p class="text-[11px] font-semibold text-white/50 uppercase tracking-wide">Clientes</p>
+              <p class="text-[32px] font-extrabold text-white">
+                <%= kpi.clientes %>
+              </p>
+            </div>
+            <div class="w-px h-10 bg-white/10 hidden sm:block"></div>
+            <div class="flex flex-col items-center gap-1">
+              <p class="text-[11px] font-semibold text-white/50 uppercase tracking-wide">Por Vencer</p>
+              <p class="text-[32px] font-extrabold <%= kpi.cuotasPorVencer > 0 ? 'text-amber-400' : 'text-white' %>">
+                <%= kpi.cuotasPorVencer %>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPIs de estados -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-in delay-75">
+        <!-- Activos -->
+        <div
+          class="bg-white rounded-[18px] p-5 border-l-[3px] border-l-brand-blue border border-brand-border shadow-[0_2px_8px_rgba(10,22,40,0.07)] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.09)] transition-all duration-300 flex items-center gap-4">
+          <div
+            class="w-11 h-11 rounded-[12px] bg-brand-blue-light text-brand-blue flex items-center justify-center flex-shrink-0">
+            <i class="ri-flashlight-line text-[20px]"></i>
           </div>
           <div>
-            <p class="text-[15px] font-bold text-brand-navy">Actividad de Prestamos</p>
-            <p class="text-[12px] text-brand-muted">Ultimos 6 meses &mdash; mi cartera</p>
+            <p class="text-[11px] font-semibold text-brand-muted uppercase tracking-wide">Activos</p>
+            <p class="text-[26px] font-extrabold text-brand-blue leading-tight">
+              <%= kpi.activos %>
+            </p>
+          </div>
+        </div>
+        <!-- Pendientes -->
+        <div
+          class="bg-white rounded-[18px] p-5 border-l-[3px] border-l-amber-400 border border-brand-border shadow-[0_2px_8px_rgba(10,22,40,0.07)] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.09)] transition-all duration-300 flex items-center gap-4">
+          <div
+            class="w-11 h-11 rounded-[12px] bg-amber-50 text-amber-500 flex items-center justify-center flex-shrink-0">
+            <i class="ri-time-line text-[20px]"></i>
+          </div>
+          <div>
+            <p class="text-[11px] font-semibold text-brand-muted uppercase tracking-wide">Pendientes</p>
+            <p class="text-[26px] font-extrabold text-amber-500 leading-tight">
+              <%= kpi.pendientes %>
+            </p>
+          </div>
+        </div>
+        <!-- Vencidos -->
+        <div
+          class="bg-white rounded-[18px] p-5 border-l-[3px] border-l-brand-danger border border-brand-border shadow-[0_2px_8px_rgba(10,22,40,0.07)] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.09)] transition-all duration-300 flex items-center gap-4">
+          <div
+            class="w-11 h-11 rounded-[12px] bg-brand-danger-light text-brand-danger flex items-center justify-center flex-shrink-0">
+            <i class="ri-alarm-warning-line text-[20px]"></i>
+          </div>
+          <div>
+            <p class="text-[11px] font-semibold text-brand-muted uppercase tracking-wide">Vencidos</p>
+            <p class="text-[26px] font-extrabold text-brand-danger leading-tight">
+              <%= kpi.vencidos %>
+            </p>
+          </div>
+        </div>
+        <!-- Pagados -->
+        <div
+          class="bg-white rounded-[18px] p-5 border-l-[3px] border-l-brand-success border border-brand-border shadow-[0_2px_8px_rgba(10,22,40,0.07)] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(10,22,40,0.09)] transition-all duration-300 flex items-center gap-4">
+          <div
+            class="w-11 h-11 rounded-[12px] bg-brand-success-light text-brand-success flex items-center justify-center flex-shrink-0">
+            <i class="ri-checkbox-circle-line text-[20px]"></i>
+          </div>
+          <div>
+            <p class="text-[11px] font-semibold text-brand-muted uppercase tracking-wide">Pagados</p>
+            <p class="text-[26px] font-extrabold text-brand-success leading-tight">
+              <%= kpi.pagados %>
+            </p>
           </div>
         </div>
       </div>
-      <canvas id="chartAsesor" height="90"></canvas>
+
+      <div class="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-6 animate-in delay-100">
+
+        <!-- Prestamos recientes -->
+        <div
+          class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col overflow-hidden">
+          <div class="px-6 py-5 border-b border-brand-border flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-[10px] bg-brand-navy flex items-center justify-center">
+                <i class="ri-file-list-3-line text-brand-gold text-[16px]"></i>
+              </div>
+              <p class="text-[15px] font-bold text-brand-navy">Mis Prestamos Recientes</p>
+            </div>
+            <a href="/dashboard/prestamos"
+              class="text-[12px] font-semibold text-brand-blue hover:underline flex items-center gap-1">
+              Ver todos <i class="ri-arrow-right-s-line text-[14px]"></i>
+            </a>
+          </div>
+
+          <% if (!recentPrestamos || recentPrestamos.length===0) { %>
+            <div class="py-12 flex flex-col items-center text-center px-6">
+              <i class="ri-inbox-line text-[36px] text-brand-muted mb-3"></i>
+              <p class="text-[14px] font-semibold text-brand-text">Sin prestamos aun</p>
+              <p class="text-[12px] text-brand-muted mt-1">Registra tu primer prestamo desde el simulador.</p>
+              <a href="/dashboard/simulacion"
+                class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-bold text-white bg-brand-blue hover:opacity-90 transition-all">
+                <i class="ri-add-line text-[14px]"></i> Nueva Simulacion
+              </a>
+            </div>
+            <% } else { %>
+              <div class="flex flex-col divide-y divide-brand-border">
+                <% recentPrestamos.forEach(p=> {
+                  const fmt = (n) => Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:2});
+                  const fecha = p.fecha_registro ? new
+                  Date(p.fecha_registro).toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+                  %>
+                  <div class="flex items-center gap-4 px-6 py-3.5 hover:bg-brand-surface transition-colors">
+                    <div
+                      class="w-9 h-9 rounded-full bg-gradient-to-br from-brand-navy to-[#122046] text-white flex items-center justify-center text-[13px] font-bold flex-shrink-0">
+                      <%= (p.cliente_nombre || '?' ).charAt(0).toUpperCase() %>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="font-semibold text-brand-navy text-[13px] truncate">
+                        <%= p.cliente_nombre || '—' %>
+                      </p>
+                      <p class="text-[11px] text-brand-muted truncate">
+                        <%= p.inversor_nombre || '—' %> &bull; <%= fecha %>
+                      </p>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                      <p class="font-bold text-brand-navy text-[13px]">S/<%= fmt(p.monto) %>
+                      </p>
+                      <% if (p.estado==='activo' ) { %>
+                        <span
+                          class="text-[10px] font-bold text-brand-blue bg-brand-blue-light px-1.5 py-0.5 rounded-md">Activo</span>
+                        <% } else if (p.estado==='pendiente' ) { %>
+                          <span
+                            class="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md">Pendiente</span>
+                          <% } else if (p.estado==='vencido' ) { %>
+                            <span
+                              class="text-[10px] font-bold text-brand-danger bg-brand-danger-light px-1.5 py-0.5 rounded-md">Vencido</span>
+                            <% } else { %>
+                              <span
+                                class="text-[10px] font-bold text-brand-success bg-brand-success-light px-1.5 py-0.5 rounded-md">Pagado</span>
+                              <% } %>
+                    </div>
+                  </div>
+                  <% }) %>
+              </div>
+              <% } %>
+        </div>
+
+        <!-- Panel lateral: cuotas por vencer + accesos rapidos -->
+        <div class="flex flex-col gap-5">
+
+          <!-- Cuotas por vencer -->
+          <div
+            class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col overflow-hidden">
+            <div class="px-6 py-4 border-b border-brand-border flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <div
+                  class="w-8 h-8 rounded-[10px] bg-amber-50 border border-amber-200 flex items-center justify-center">
+                  <i class="ri-alarm-warning-line text-amber-500 text-[16px]"></i>
+                </div>
+                <div>
+                  <p class="text-[14px] font-bold text-brand-navy">Cuotas por Vencer</p>
+                  <p class="text-[11px] text-brand-muted">Proximos 5 dias</p>
+                </div>
+              </div>
+              <% if (kpi.cuotasPorVencer> 0) { %>
+                <span
+                  class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-400 text-white text-[11px] font-bold">
+                  <%= kpi.cuotasPorVencer %>
+                </span>
+                <% } %>
+            </div>
+
+            <% if (!cuotasPorVencer || cuotasPorVencer.length===0) { %>
+              <div class="py-8 flex flex-col items-center text-center px-4">
+                <i class="ri-checkbox-circle-line text-[28px] text-brand-success mb-2"></i>
+                <p class="text-[13px] font-semibold text-brand-success">Sin vencimientos proximos</p>
+                <p class="text-[11px] text-brand-muted mt-0.5">No hay cuotas en los proximos 5 dias.</p>
+              </div>
+              <% } else { %>
+                <div class="flex flex-col divide-y divide-brand-border">
+                  <% cuotasPorVencer.forEach(c=> {
+                    const dias = Number(c.dias_restantes);
+                    const esHoy = dias === 0;
+                    const esUrgente = dias <= 2; const fechaFmt=new
+                      Date(c.fecha_vencimiento).toLocaleDateString('es-MX',{day:'2-digit',month:'short'}); %>
+                      <div class="flex items-center gap-3 px-5 py-3 hover:bg-brand-surface transition-colors">
+                        <div
+                          class="w-8 h-8 rounded-full <%= esUrgente ? 'bg-brand-danger text-white' : 'bg-amber-400 text-white' %> flex items-center justify-center text-[11px] font-bold flex-shrink-0">
+                          <%= c.numero_cuota %>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <p class="font-semibold text-brand-navy text-[12px] truncate">
+                            <%= c.cliente_nombre %>
+                          </p>
+                          <p class="text-[11px] text-brand-muted">Cuota <%= c.numero_cuota %> &bull; S/%=
+                              Number(c.monto_cuota).toLocaleString('es-MX',{minimumFractionDigits:2}) %></p>
+                        </div>
+                        <div class="flex-shrink-0 text-right">
+                          <% if (esHoy) { %>
+                            <span
+                              class="text-[10px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded-md animate-pulse">Hoy</span>
+                            <% } else { %>
+                              <span
+                                class="text-[10px] font-bold <%= esUrgente ? 'text-brand-danger bg-brand-danger-light' : 'text-amber-600 bg-amber-50' %> px-1.5 py-0.5 rounded-md">
+                                <%= dias %>d
+                              </span>
+                              <% } %>
+                                <p class="text-[10px] text-brand-muted mt-0.5">
+                                  <%= fechaFmt %>
+                                </p>
+                        </div>
+                      </div>
+                      <% }) %>
+                </div>
+                <% } %>
+          </div>
+
+          <!-- Accesos rapidos -->
+          <div class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border p-5">
+            <p class="text-[13px] font-bold text-brand-navy mb-4 flex items-center gap-2">
+              <i class="ri-apps-line text-brand-gold"></i>
+              Accesos Rapidos
+            </p>
+            <div class="grid grid-cols-2 gap-3">
+              <a href="/asesor/clientes" id="card-clientes"
+                class="flex flex-col items-center gap-2 p-4 rounded-[14px] border border-brand-border bg-brand-surface hover:bg-brand-blue-light hover:border-brand-blue hover:text-brand-blue group transition-all">
+                <i class="ri-user-3-line text-[22px] text-brand-blue"></i>
+                <span class="text-[12px] font-bold text-brand-navy group-hover:text-brand-blue">Mis Clientes</span>
+              </a>
+              <a href="/asesor/inversionistas" id="card-inversionistas"
+                class="flex flex-col items-center gap-2 p-4 rounded-[14px] border border-brand-border bg-brand-surface hover:bg-amber-50 hover:border-amber-300 group transition-all">
+                <i class="ri-funds-line text-[22px] text-brand-gold"></i>
+                <span class="text-[12px] font-bold text-brand-navy">Inversionistas</span>
+              </a>
+              <a href="/dashboard/prestamos" id="tool-prestamos"
+                class="flex flex-col items-center gap-2 p-4 rounded-[14px] border border-brand-border bg-brand-surface hover:bg-brand-surface hover:border-brand-navy group transition-all">
+                <i class="ri-bank-card-line text-[22px] text-brand-navy"></i>
+                <span class="text-[12px] font-bold text-brand-navy">Mi Cartera</span>
+              </a>
+              <a href="/dashboard/simulacion" id="tool-simulacion"
+                class="flex flex-col items-center gap-2 p-4 rounded-[14px] border border-brand-border bg-brand-surface hover:bg-green-50 hover:border-green-300 group transition-all">
+                <i class="ri-calculator-line text-[22px] text-brand-success"></i>
+                <span class="text-[12px] font-bold text-brand-navy">Simulador</span>
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Grafico de actividad -->
+      <% const chartParsed=JSON.parse(chartData || '[]' ); %>
+        <% if (chartParsed.length> 0) { %>
+          <div
+            class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border p-6 animate-in delay-150">
+            <div class="flex items-center justify-between mb-5">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-[10px] bg-brand-navy flex items-center justify-center">
+                  <i class="ri-bar-chart-2-line text-brand-gold text-[16px]"></i>
+                </div>
+                <div>
+                  <p class="text-[15px] font-bold text-brand-navy">Actividad de Prestamos</p>
+                  <p class="text-[12px] text-brand-muted">Ultimos 6 meses &mdash; mi cartera</p>
+                </div>
+              </div>
+            </div>
+            <canvas id="chartAsesor" height="90"></canvas>
+          </div>
+          <% } %>
+
     </div>
-    <% } %>
+  </main>
 
-  </div>
-</main>
-
-<% const chartParsed2 = JSON.parse(chartData || '[]'); %>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-<script>
-(function() {
-  const data = <%- chartData %>;
-  if (!data || !data.length) return;
-  const ctx = document.getElementById('chartAsesor');
-  if (!ctx) return;
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: data.map(d => d.mes),
-      datasets: [
-        {
-          label: 'N\u00b0 Prestamos',
-          data: data.map(d => d.cantidad),
-          backgroundColor: 'rgba(27,79,216,0.15)',
-          borderColor: '#1B4FD8',
-          borderWidth: 2,
-          borderRadius: 6,
-          yAxisID: 'y'
-        },
-        {
-          label: 'Monto ($)',
-          data: data.map(d => Number(d.monto)),
-          type: 'line',
-          borderColor: '#D4A843',
-          backgroundColor: 'rgba(212,168,67,0.08)',
-          borderWidth: 2.5,
-          pointBackgroundColor: '#D4A843',
-          pointRadius: 4,
-          tension: 0.4,
-          fill: true,
-          yAxisID: 'y1'
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { labels: { font: { family: 'Inter', size: 12 }, color: '#64748B' } },
-        tooltip: { callbacks: {
-          label: (ctx) => ctx.dataset.yAxisID === 'y1'
-            ? ' $' + Number(ctx.raw).toLocaleString('es-MX',{minimumFractionDigits:2})
-            : ' ' + ctx.raw + ' prestamo(s)'
-        }}
-      },
-      scales: {
-        y:  { type: 'linear', position: 'left',  ticks: { color: '#94A3B8', font: { size: 11 } }, grid: { color: '#F1F5F9' } },
-        y1: { type: 'linear', position: 'right', ticks: { color: '#D4A843', font: { size: 11 }, callback: (v) => '$' + Number(v).toLocaleString('es-MX') }, grid: { display: false } },
-        x:  { ticks: { color: '#94A3B8', font: { size: 11 } }, grid: { display: false } }
-      }
-    }
-  });
-})();
-</script>
+  <% const chartParsed2=JSON.parse(chartData || '[]' ); %>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    <script>
+      (function () {
+        const data = <% - chartData %>;
+        if (!data || !data.length) return;
+        const ctx = document.getElementById('chartAsesor');
+        if (!ctx) return;
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: data.map(d => d.mes),
+            datasets: [
+              {
+                label: 'N\u00b0 Prestamos',
+                data: data.map(d => d.cantidad),
+                backgroundColor: 'rgba(27,79,216,0.15)',
+                borderColor: '#1B4FD8',
+                borderWidth: 2,
+                borderRadius: 6,
+                yAxisID: 'y'
+              },
+              {
+                label: 'Monto ($)',
+                data: data.map(d => Number(d.monto)),
+                type: 'line',
+                borderColor: '#D4A843',
+                backgroundColor: 'rgba(212,168,67,0.08)',
+                borderWidth: 2.5,
+                pointBackgroundColor: '#D4A843',
+                pointRadius: 4,
+                tension: 0.4,
+                fill: true,
+                yAxisID: 'y1'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { labels: { font: { family: 'Inter', size: 12 }, color: '#64748B' } },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => ctx.dataset.yAxisID === 'y1'
+                    ? ' $' + Number(ctx.raw).toLocaleString('es-MX', { minimumFractionDigits: 2 })
+                    : ' ' + ctx.raw + ' prestamo(s)'
+                }
+              }
+            },
+            scales: {
+              y: { type: 'linear', position: 'left', ticks: { color: '#94A3B8', font: { size: 11 } }, grid: { color: '#F1F5F9' } },
+              y1: { type: 'linear', position: 'right', ticks: { color: '#D4A843', font: { size: 11 }, callback: (v) => '$' + Number(v).toLocaleString('es-MX') }, grid: { display: false } },
+              x: { ticks: { color: '#94A3B8', font: { size: 11 } }, grid: { display: false } }
+            }
+          }
+        });
+      })();
+    </script>

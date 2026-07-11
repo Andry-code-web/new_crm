@@ -42,7 +42,7 @@
             <div>
               <p class="text-white/70 text-[12px] uppercase font-bold tracking-wider">Próximo Cobro Programado</p>
               <p class="text-[16px] font-bold mt-0.5">
-                S/%= Number(kpi.proximoCobro.monto_cuota).toLocaleString('es-MX', {minimumFractionDigits: 2}) %> MXN de <span class="text-brand-gold font-extrabold"><%= kpi.proximoCobro.cliente_nombre %></span> (Préstamo #<%= kpi.proximoCobro.prestamo_id %>)
+                S/<%= Number(kpi.proximoCobro.monto_cuota).toLocaleString('es-MX', {minimumFractionDigits: 2}) %> de <span class="text-brand-gold font-extrabold"><%= kpi.proximoCobro.cliente_nombre %></span> (Préstamo #<%= kpi.proximoCobro.prestamo_id %>)
               </p>
             </div>
           </div>
@@ -55,9 +55,15 @@
             </a>
           </div>
         </div>
-      <% } %>
+      <% } %>      <!-- TÍTULO CARTERA SOLES -->
+      <div class="mt-4 flex items-center justify-between border-b border-brand-border pb-2">
+        <h2 class="text-[16px] font-bold text-brand-navy flex items-center gap-2">
+          <i class="ri-wallet-3-line text-brand-blue"></i>
+          Resumen de Cartera en Soles (S/)
+        </h2>
+      </div>
 
-      <!-- KPI Strip -->
+      <!-- KPI Strip Soles -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 animate-in delay-75">
         <!-- Capital Activo -->
         <div class="bg-white rounded-[20px] border border-brand-border p-6 shadow-[0_2px_8px_rgba(10,22,40,0.04)] flex flex-col justify-between">
@@ -67,7 +73,7 @@
               <span class="w-7 h-7 rounded-lg bg-brand-blue-light text-brand-blue flex items-center justify-center"><i class="ri-money-dollar-box-line"></i></span>
             </div>
             <p class="text-[24px] font-extrabold text-brand-navy mt-4 leading-none">
-              S/%= kpi.totalInvertido.toLocaleString('es-MX', {minimumFractionDigits:2}) %>
+              S/&nbsp;<%= kpi.soles.totalInvertido.toLocaleString('es-MX', {minimumFractionDigits:2}) %>
             </p>
           </div>
           <p class="text-[12px] text-brand-muted mt-3">Suma de préstamos activos y vencidos</p>
@@ -77,14 +83,14 @@
         <div class="bg-white rounded-[20px] border border-brand-border p-6 shadow-[0_2px_8px_rgba(10,22,40,0.04)] flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold text-brand-muted uppercase tracking-wider">Intereses Recibidos (Ganancia)</span>
+              <span class="text-[11px] font-bold text-brand-muted uppercase tracking-wider">Intereses Recibidos</span>
               <span class="w-7 h-7 rounded-lg bg-brand-success-light text-brand-success flex items-center justify-center"><i class="ri-hand-heart-line"></i></span>
             </div>
             <p class="text-[24px] font-extrabold text-brand-success mt-4 leading-none">
-              S/%= kpi.interesesCobrados.toLocaleString('es-MX', {minimumFractionDigits:2}) %>
+              S/&nbsp;<%= kpi.soles.interesesCobrados.toLocaleString('es-MX', {minimumFractionDigits:2}) %>
             </p>
           </div>
-          <p class="text-[12px] text-brand-muted mt-3">Intereses totales cobrados de cuotas pagadas</p>
+          <p class="text-[12px] text-brand-muted mt-3">Intereses cobrados de cuotas pagadas</p>
         </div>
 
         <!-- Intereses Pendientes -->
@@ -95,40 +101,123 @@
               <span class="w-7 h-7 rounded-lg bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center"><i class="ri-line-chart-line"></i></span>
             </div>
             <p class="text-[24px] font-extrabold text-amber-600 mt-4 leading-none">
-              S/%= kpi.interesesPendientes.toLocaleString('es-MX', {minimumFractionDigits:2}) %>
+              S/&nbsp;<%= kpi.soles.interesesPendientes.toLocaleString('es-MX', {minimumFractionDigits:2}) %>
             </p>
           </div>
-          <p class="text-[12px] text-brand-muted mt-3">Proyección de intereses en cuotas pendientes</p>
+          <p class="text-[12px] text-brand-muted mt-3">Proyección en cuotas pendientes</p>
         </div>
 
         <!-- Moras Acumuladas -->
         <div class="bg-white rounded-[20px] border border-brand-border p-6 shadow-[0_2px_8px_rgba(10,22,40,0.04)] flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold text-brand-muted uppercase tracking-wider">Moras Cobradas / Pendientes</span>
+              <span class="text-[11px] font-bold text-brand-muted uppercase tracking-wider">Moras Cobradas / Pend.</span>
               <span class="w-7 h-7 rounded-lg bg-brand-danger-light text-brand-danger flex items-center justify-center"><i class="ri-error-warning-line"></i></span>
             </div>
             <p class="text-[24px] font-extrabold text-brand-danger mt-4 leading-none">
-              S/%= kpi.totalMoras.toLocaleString('es-MX', {minimumFractionDigits:2}) %>
+              S/&nbsp;<%= kpi.soles.totalMoras.toLocaleString('es-MX', {minimumFractionDigits:2}) %>
             </p>
           </div>
           <p class="text-[12px] text-brand-muted mt-3">Penalizaciones de cuotas vencidas</p>
         </div>
       </div>
 
-      <!-- Detalle por estado -->
+      <!-- Detalle por estado Soles -->
       <div class="grid grid-cols-3 gap-5 animate-in delay-100">
         <div class="bg-brand-surface border border-brand-border p-4 rounded-xl text-center">
           <span class="text-[11px] font-bold text-brand-muted uppercase tracking-wider">Préstamos Activos</span>
-          <p class="text-[20px] font-bold text-brand-navy mt-1"><%= kpi.prestamosActivos %></p>
+          <p class="text-[20px] font-bold text-brand-navy mt-1"><%= kpi.soles.prestamosActivos %></p>
         </div>
         <div class="bg-red-50 border border-red-100 p-4 rounded-xl text-center">
           <span class="text-[11px] font-bold text-red-400 uppercase tracking-wider">Préstamos Vencidos</span>
-          <p class="text-[20px] font-bold text-brand-danger mt-1"><%= kpi.prestamosVencidos %></p>
+          <p class="text-[20px] font-bold text-brand-danger mt-1"><%= kpi.soles.prestamosVencidos %></p>
         </div>
         <div class="bg-green-50 border border-green-100 p-4 rounded-xl text-center">
           <span class="text-[11px] font-bold text-brand-success uppercase tracking-wider">Préstamos Liquidados</span>
-          <p class="text-[20px] font-bold text-brand-success mt-1"><%= kpi.prestamosPagados %></p>
+          <p class="text-[20px] font-bold text-brand-success mt-1"><%= kpi.soles.prestamosPagados %></p>
+        </div>
+      </div>
+
+      <!-- TÍTULO CARTERA DÓLARES -->
+      <div class="mt-6 flex items-center justify-between border-b border-brand-border pb-2">
+        <h2 class="text-[16px] font-bold text-brand-navy flex items-center gap-2">
+          <i class="ri-exchange-dollar-line text-brand-gold"></i>
+          Resumen de Cartera en Dólares ($)
+        </h2>
+      </div>
+
+      <!-- KPI Strip Dólares -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 animate-in delay-75">
+        <!-- Capital Activo -->
+        <div class="bg-white rounded-[20px] border border-brand-border p-6 shadow-[0_2px_8px_rgba(10,22,40,0.04)] flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-brand-muted uppercase tracking-wider">Capital Activo en Juego</span>
+              <span class="w-7 h-7 rounded-lg bg-brand-blue-light text-brand-blue flex items-center justify-center"><i class="ri-money-dollar-box-line"></i></span>
+            </div>
+            <p class="text-[24px] font-extrabold text-brand-navy mt-4 leading-none">
+              $&nbsp;<%= kpi.dolares.totalInvertido.toLocaleString('es-MX', {minimumFractionDigits:2}) %>
+            </p>
+          </div>
+          <p class="text-[12px] text-brand-muted mt-3">Suma de préstamos activos y vencidos</p>
+        </div>
+
+        <!-- Intereses Cobrados -->
+        <div class="bg-white rounded-[20px] border border-brand-border p-6 shadow-[0_2px_8px_rgba(10,22,40,0.04)] flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-brand-muted uppercase tracking-wider">Intereses Recibidos</span>
+              <span class="w-7 h-7 rounded-lg bg-brand-success-light text-brand-success flex items-center justify-center"><i class="ri-hand-heart-line"></i></span>
+            </div>
+            <p class="text-[24px] font-extrabold text-brand-success mt-4 leading-none">
+              $&nbsp;<%= kpi.dolares.interesesCobrados.toLocaleString('es-MX', {minimumFractionDigits:2}) %>
+            </p>
+          </div>
+          <p class="text-[12px] text-brand-muted mt-3">Intereses cobrados de cuotas pagadas</p>
+        </div>
+
+        <!-- Intereses Pendientes -->
+        <div class="bg-white rounded-[20px] border border-brand-border p-6 shadow-[0_2px_8px_rgba(10,22,40,0.04)] flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-brand-muted uppercase tracking-wider">Intereses por Recibir</span>
+              <span class="w-7 h-7 rounded-lg bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center"><i class="ri-line-chart-line"></i></span>
+            </div>
+            <p class="text-[24px] font-extrabold text-amber-600 mt-4 leading-none">
+              $&nbsp;<%= kpi.dolares.interesesPendientes.toLocaleString('es-MX', {minimumFractionDigits:2}) %>
+            </p>
+          </div>
+          <p class="text-[12px] text-brand-muted mt-3">Proyección en cuotas pendientes</p>
+        </div>
+
+        <!-- Moras Acumuladas -->
+        <div class="bg-white rounded-[20px] border border-brand-border p-6 shadow-[0_2px_8px_rgba(10,22,40,0.04)] flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-brand-muted uppercase tracking-wider">Moras Cobradas / Pend.</span>
+              <span class="w-7 h-7 rounded-lg bg-brand-danger-light text-brand-danger flex items-center justify-center"><i class="ri-error-warning-line"></i></span>
+            </div>
+            <p class="text-[24px] font-extrabold text-brand-danger mt-4 leading-none">
+              $&nbsp;<%= kpi.dolares.totalMoras.toLocaleString('es-MX', {minimumFractionDigits:2}) %>
+            </p>
+          </div>
+          <p class="text-[12px] text-brand-muted mt-3">Penalizaciones de cuotas vencidas</p>
+        </div>
+      </div>
+
+      <!-- Detalle por estado Dólares -->
+      <div class="grid grid-cols-3 gap-5 animate-in delay-100">
+        <div class="bg-brand-surface border border-brand-border p-4 rounded-xl text-center">
+          <span class="text-[11px] font-bold text-brand-muted uppercase tracking-wider">Préstamos Activos</span>
+          <p class="text-[20px] font-bold text-brand-navy mt-1"><%= kpi.dolares.prestamosActivos %></p>
+        </div>
+        <div class="bg-red-50 border border-red-100 p-4 rounded-xl text-center">
+          <span class="text-[11px] font-bold text-red-400 uppercase tracking-wider">Préstamos Vencidos</span>
+          <p class="text-[20px] font-bold text-brand-danger mt-1"><%= kpi.dolares.prestamosVencidos %></p>
+        </div>
+        <div class="bg-green-50 border border-green-100 p-4 rounded-xl text-center">
+          <span class="text-[11px] font-bold text-brand-success uppercase tracking-wider">Préstamos Liquidados</span>
+          <p class="text-[20px] font-bold text-brand-success mt-1"><%= kpi.dolares.prestamosPagados %></p>
         </div>
       </div>
 
@@ -171,7 +260,7 @@
             <div class="flex items-start justify-between">
               <div>
                 <span class="text-[10px] font-bold text-brand-muted uppercase tracking-wider">Inversión #<%= p.id %></span>
-                <h4 class="text-[15px] font-bold text-brand-navy mt-1 group-hover:text-brand-blue transition-colors"><%= p.cliente_nombre %></h4>
+                <h4 class="text-[15px] font-bold text-brand-navy mt-1 group-hover:text-brand-blue transition-colors"><%= p.nombre_inversionista || p.cliente_nombre %></h4>
               </div>
               
               <!-- Badges -->
@@ -192,11 +281,11 @@
             <div class="grid grid-cols-2 gap-3 bg-brand-surface border border-brand-border rounded-[16px] p-4 text-[13px]">
               <div>
                 <span class="text-[10px] text-brand-muted font-semibold uppercase tracking-wider block">Financiado</span>
-                <span class="font-bold text-brand-navy">S/%= Number(p.monto).toLocaleString('es-MX') %></span>
+                <span class="font-bold text-brand-navy">S/<%= Number(p.monto).toLocaleString('es-MX') %></span>
               </div>
               <div>
                 <span class="text-[10px] text-brand-muted font-semibold uppercase tracking-wider block">Retorno Estimado</span>
-                <span class="font-bold text-brand-blue">S/%= Number(p.total_pagar).toLocaleString('es-MX') %></span>
+                <span class="font-bold text-brand-blue">S/<%= Number(p.total_pagar).toLocaleString('es-MX') %></span>
               </div>
               <div>
                 <span class="text-[10px] text-brand-muted font-semibold uppercase tracking-wider block">Tasa / Pago</span>
@@ -204,7 +293,7 @@
               </div>
               <div>
                 <span class="text-[10px] text-brand-muted font-semibold uppercase tracking-wider block">Recuperado</span>
-                <span class="font-bold text-brand-success">S/%= Number(p.total_recuperado).toLocaleString('es-MX') %></span>
+                <span class="font-bold text-brand-success">S/<%= Number(p.total_recuperado).toLocaleString('es-MX') %></span>
               </div>
             </div>
             
@@ -277,15 +366,16 @@
                   <td class="py-3.5 px-6 text-center text-brand-muted font-semibold">#<%= p.id %></td>
                   <td class="py-3.5 px-6">
                     <div class="flex items-center gap-2.5">
+                      <% const displayNombre = p.nombre_inversionista || p.cliente_nombre; %>
                       <div class="w-8 h-8 rounded-full bg-brand-surface2 text-brand-navy flex items-center justify-center font-bold text-[12px]">
-                        <%= p.cliente_nombre.charAt(0).toUpperCase() %>
+                        <%= displayNombre.charAt(0).toUpperCase() %>
                       </div>
                       <div>
-                        <p class="font-bold text-brand-navy"><%= p.cliente_nombre %></p>
+                        <p class="font-bold text-brand-navy"><%= displayNombre %></p>
                       </div>
                     </div>
                   </td>
-                  <td class="py-3.5 px-6 text-right font-bold text-brand-blue">S/%= Number(p.monto).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></td>
+                  <td class="py-3.5 px-6 text-right font-bold text-brand-blue">S/<%= Number(p.monto).toLocaleString('es-MX', {minimumFractionDigits: 2}) %></td>
                   <td class="py-3.5 px-6 text-right font-medium text-brand-text"><%= p.interes %>%</td>
                   <td class="py-3.5 px-6 text-center text-brand-text font-medium"><%= p.plazo_meses %> meses</td>
                   <td class="py-3.5 px-6 text-center capitalize text-brand-text"><%= p.tipo_pago %></td>

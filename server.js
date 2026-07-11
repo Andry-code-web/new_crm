@@ -54,7 +54,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // =============================
 app.use(session({
   key: 'session_id',
-  secret: process.env.SESSION_SECRET || 'coinest_super_secret_key_2026',
+  secret: process.env.SESSION_SECRET || 'financiera_guzman_secret_key_2026',
   store: sessionStore,
   resave: false,
   saveUninitialized: false,

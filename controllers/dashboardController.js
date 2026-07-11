@@ -29,7 +29,7 @@ exports.renderAdminDashboard = async (req, res) => {
       FROM prestamos p
       LEFT JOIN clientes       c ON p.cliente_id  = c.id
       LEFT JOIN inversionistas i ON p.inversor_id = i.id
-      ORDER BY p.fecha_registro DESC
+      ORDER BY p.id DESC
       LIMIT 8
     `);
 
@@ -141,7 +141,7 @@ exports.renderAsesorDashboard = async (req, res) => {
         LEFT JOIN clientes       c ON p.cliente_id  = c.id
         LEFT JOIN inversionistas i ON p.inversor_id = i.id
         WHERE p.asesor_id = ?
-        ORDER BY p.fecha_registro DESC
+        ORDER BY p.id DESC
         LIMIT 6
       `, [asesorId]);
 
@@ -223,7 +223,7 @@ exports.generarSimulacionPdf = (req, res) => {
   try {
     const {
       cliente_nombre, inversor_nombre, tasa_txt, plazo_txt,
-      monto, cuota, total_pagar, total_intereses, tipo_pago, cronograma_json
+      monto, cuota, total_pagar, total_intereses, tipo_pago, cronograma_json, moneda
     } = req.body;
 
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
@@ -316,9 +316,11 @@ exports.generarSimulacionPdf = (req, res) => {
       .text('DETALLES FINANCIEROS', { underline: false });
     doc.moveDown(0.8);
 
-    const fmt = (n) => 'S/. ' + Number(n).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const simboloMoneda = (moneda && moneda.trim()) ? moneda.trim() : '$';
+    const fmt = (n) => simboloMoneda + '\u00A0' + Number(n).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     drawRow('MONTO SOLICITADO:', fmt(monto), true);
+    drawRow('MONEDA:', simboloMoneda === '$' ? '$ Dólar' : 'S/ Sol Peruano');
     drawRow('TASA DE INTERÉS:', tasa_txt);
     drawRow('PLAZO:', plazo_txt);
     drawRow('TIPO DE PAGO:', (tipo_pago || '').toUpperCase());
@@ -427,7 +429,7 @@ exports.generarSimulacionPdf = (req, res) => {
     doc.fontSize(7.5)
       .fillColor(colorMuted)
       .font('Helvetica')
-      .text('AVISO LEGAL: El presente documento constituye una simulación meramente informativa y no representa una oferta vinculante ni un compromiso de otorgamiento de crédito por parte de Coinest. Las condiciones finales están sujetas a evaluación crediticia y aprobación final. Las tasas y montos pueden variar al momento de la formalización del contrato.',
+      .text('AVISO LEGAL: El presente documento constituye una simulación meramente informativa y no representa una oferta vinculante ni un compromiso de otorgamiento de crédito por parte de Financiera Guzmán. Las condiciones finales están sujetas a evaluación crediticia y aprobación final. Las tasas y montos pueden variar al momento de la formalización del contrato.',
         50,
         doc.y + 30, // Posicionamiento dinámico seguro relativo al final del contenido
         { align: 'justify', width: 495 }
@@ -444,7 +446,7 @@ exports.generarSimulacionPdf = (req, res) => {
 exports.registrarPrestamo = async (req, res) => {
   const {
     cliente_id, inversor_id, asesor_id: body_asesor_id, monto, interes,
-    plazo_meses, tipo_pago, cuota, total_pagar, total_intereses, fecha_registro
+    plazo_meses, tipo_pago, cuota, total_pagar, total_intereses, fecha_registro, moneda
   } = req.body;
 
   if (!cliente_id || !inversor_id || !monto || !interes || !plazo_meses || !tipo_pago) {
@@ -468,11 +470,11 @@ exports.registrarPrestamo = async (req, res) => {
 
     await pool.query(
       `INSERT INTO prestamos
-        (cliente_id, inversor_id, asesor_id, monto, interes, plazo_meses, tipo_pago, cuota, total_pagar, total_intereses, fecha_registro, estado)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente')`,
-      [cliente_id, inversor_id, finalAsesorId, monto, interes, plazo_meses, tipo_pago, cuota, total_pagar, total_intereses, fechaFinal]
+        (cliente_id, inversor_id, asesor_id, monto, interes, plazo_meses, tipo_pago, cuota, total_pagar, total_intereses, fecha_registro, estado, moneda)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', ?)`,
+      [cliente_id, inversor_id, finalAsesorId, monto, interes, plazo_meses, tipo_pago, cuota, total_pagar, total_intereses, fechaFinal, moneda || '$']
     );
-    res.redirect('/dashboard/prestamos?success=' + encodeURIComponent('\u00a1Préstamo registrado correctamente!'));
+    res.redirect('/dashboard/prestamos?success=' + encodeURIComponent('¡Préstamo registrado correctamente!'));
   } catch (err) {
     console.error('Error al registrar préstamo:', err);
     res.redirect('/dashboard/simulacion?error=' + encodeURIComponent('Error al guardar el préstamo: ' + err.message));
@@ -503,7 +505,7 @@ exports.renderPrestamos = async (req, res) => {
         LEFT JOIN clientes c ON p.cliente_id = c.id
         LEFT JOIN inversionistas i ON p.inversor_id = i.id
         ${whereClause}
-        ORDER BY p.fecha_registro DESC
+        ORDER BY p.id DESC
       `, params);
       prestamos = rows;
 

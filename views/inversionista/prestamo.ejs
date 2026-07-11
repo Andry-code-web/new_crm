@@ -34,7 +34,7 @@
         <div class="flex gap-2 flex-wrap mb-2 animate-in delay-75">
             <% prestamos.forEach(p => { %>
             <a href="/inversionista/prestamo?id=<%= p.id %>" class="px-4 py-2 rounded-[12px] text-[13px] font-semibold transition-colors shadow-sm <%= prestamo.id === p.id ? 'bg-brand-navy text-white shadow-md pointer-events-none' : 'bg-white border border-brand-border text-brand-text hover:bg-brand-surface hover:text-brand-navy' %>">
-                Préstamo #<%= p.id %> — <%= p.cliente_nombre %> (S/<%= Number(p.monto).toLocaleString('es-MX') %>)
+                Préstamo #<%= p.id %> — <%= p.nombre_inversionista || p.cliente_nombre %> (S/<%= Number(p.monto).toLocaleString('es-MX') %>)
             </a>
             <% }) %>
         </div>
@@ -93,10 +93,7 @@
                 <p class="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Información del Cliente</p>
                 <p class="text-[16px] font-bold text-brand-navy mt-1 flex items-center gap-1.5 truncate">
                     <i class="ri-user-follow-line text-brand-gold text-[18px]"></i>
-                    <%= prestamo.cliente_nombre %>
-                    <% if (prestamo.cliente_telefono) { %>
-                        <span class="text-[12px] text-brand-muted font-normal">({<%= prestamo.cliente_telefono %>})</span>
-                    <% } %>
+                    <%= prestamo.nombre_inversionista || prestamo.cliente_nombre %>
                 </p>
             </div>
         </div>

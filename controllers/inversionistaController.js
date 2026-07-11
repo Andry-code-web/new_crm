@@ -35,6 +35,7 @@ exports.renderDashboard = async (req, res) => {
       // 1. Get loans belonging to this investor
       const [rows] = await pool.query(`
         SELECT p.*, c.nombre AS cliente_nombre, c.telefono AS cliente_telefono,
+               c.nombre_inversionista,
                (SELECT COUNT(*) FROM cuotas WHERE prestamo_id = p.id) AS tiene_cronograma,
                (SELECT COUNT(*) FROM cuotas WHERE prestamo_id = p.id) AS total_cuotas,
                (SELECT COUNT(*) FROM cuotas WHERE prestamo_id = p.id AND estado = 'pagada') AS cuotas_pagadas,
@@ -44,32 +45,35 @@ exports.renderDashboard = async (req, res) => {
         FROM prestamos p
         JOIN clientes c ON p.cliente_id = c.id
         WHERE p.inversor_id = ?
-        ORDER BY p.fecha_registro DESC
+        ORDER BY p.id DESC
       `, [inversionista.id]);
       prestamos = rows;
 
-      // 2. Get stats from prestamos
-      const [[prestStats]] = await pool.query(`
+      // 2. Get stats from prestamos agrupado por moneda
+      const [prestStats] = await pool.query(`
         SELECT
+          moneda,
           COALESCE(SUM(CASE WHEN estado IN ('activo', 'vencido') THEN monto ELSE 0 END), 0) AS totalInvertido,
           SUM(CASE WHEN estado = 'activo' THEN 1 ELSE 0 END) AS prestamosActivos,
           SUM(CASE WHEN estado = 'vencido' THEN 1 ELSE 0 END) AS prestamosVencidos,
           SUM(CASE WHEN estado = 'pagado' THEN 1 ELSE 0 END) AS prestamosPagados
         FROM prestamos
         WHERE inversor_id = ?
+        GROUP BY moneda
       `, [inversionista.id]);
 
-      // 3. Get stats from cuotas
-      const [[cuotaStats]] = await pool.query(`
+      // 3. Get stats from cuotas agrupado por moneda
+      const [cuotaStats] = await pool.query(`
         SELECT
+          p.moneda,
           COALESCE(SUM(CASE WHEN c.estado = 'pagada' THEN c.interes ELSE 0 END), 0) AS interesesCobrados,
           COALESCE(SUM(CASE WHEN c.estado != 'pagada' THEN c.interes ELSE 0 END), 0) AS interesesPendientes,
           COALESCE(SUM(c.mora), 0) AS totalMoras
         FROM cuotas c
         JOIN prestamos p ON c.prestamo_id = p.id
         WHERE p.inversor_id = ?
+        GROUP BY p.moneda
       `, [inversionista.id]);
-
       // 4. Get next payment date and amount
       const [nextPayments] = await pool.query(`
         SELECT c.fecha_vencimiento, c.monto_cuota, cl.nombre AS cliente_nombre, p.id AS prestamo_id
@@ -80,15 +84,31 @@ exports.renderDashboard = async (req, res) => {
         ORDER BY c.fecha_vencimiento ASC
         LIMIT 1
       `, [inversionista.id]);
+      const solesPrest = prestStats.find(r => r.moneda === 'S/') || { totalInvertido: 0, prestamosActivos: 0, prestamosVencidos: 0, prestamosPagados: 0 };
+      const dolaresPrest = prestStats.find(r => r.moneda === '$') || { totalInvertido: 0, prestamosActivos: 0, prestamosVencidos: 0, prestamosPagados: 0 };
+
+      const solesCuota = cuotaStats.find(r => r.moneda === 'S/') || { interesesCobrados: 0, interesesPendientes: 0, totalMoras: 0 };
+      const dolaresCuota = cuotaStats.find(r => r.moneda === '$') || { interesesCobrados: 0, interesesPendientes: 0, totalMoras: 0 };
 
       kpi = {
-        totalInvertido: Number(prestStats.totalInvertido),
-        interesesCobrados: Number(cuotaStats.interesesCobrados),
-        interesesPendientes: Number(cuotaStats.interesesPendientes),
-        totalMoras: Number(cuotaStats.totalMoras),
-        prestamosActivos: Number(prestStats.prestamosActivos || 0),
-        prestamosVencidos: Number(prestStats.prestamosVencidos || 0),
-        prestamosPagados: Number(prestStats.prestamosPagados || 0),
+        soles: {
+          totalInvertido: Number(solesPrest.totalInvertido),
+          interesesCobrados: Number(solesCuota.interesesCobrados),
+          interesesPendientes: Number(solesCuota.interesesPendientes),
+          totalMoras: Number(solesCuota.totalMoras),
+          prestamosActivos: Number(solesPrest.prestamosActivos || 0),
+          prestamosVencidos: Number(solesPrest.prestamosVencidos || 0),
+          prestamosPagados: Number(solesPrest.prestamosPagados || 0)
+        },
+        dolares: {
+          totalInvertido: Number(dolaresPrest.totalInvertido),
+          interesesCobrados: Number(dolaresCuota.interesesCobrados),
+          interesesPendientes: Number(dolaresCuota.interesesPendientes),
+          totalMoras: Number(dolaresCuota.totalMoras),
+          prestamosActivos: Number(dolaresPrest.prestamosActivos || 0),
+          prestamosVencidos: Number(dolaresPrest.prestamosVencidos || 0),
+          prestamosPagados: Number(dolaresPrest.prestamosPagados || 0)
+        },
         proximoCobro: nextPayments.length > 0 ? nextPayments[0] : null
       };
     }
@@ -134,11 +154,12 @@ exports.renderPrestamo = async (req, res) => {
     }
 
     const [prestamos] = await pool.query(`
-      SELECT p.*, c.nombre AS cliente_nombre, c.telefono AS cliente_telefono
+      SELECT p.*, c.nombre AS cliente_nombre, c.telefono AS cliente_telefono,
+             c.nombre_inversionista
       FROM prestamos p
       JOIN clientes c ON p.cliente_id = c.id
       WHERE p.inversor_id = ?
-      ORDER BY p.fecha_registro DESC
+      ORDER BY p.id DESC
     `, [inversionista.id]);
 
     const prestamoId = req.query.id || (prestamos[0]?.id);

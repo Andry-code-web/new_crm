@@ -143,18 +143,18 @@
                   <span class="text-brand-muted"><%= p.inversor_nombre || '—' %></span>
                 </div>
               </td>
-              <td class="py-3.5 px-5 text-right font-medium text-brand-text">S/<%= montoFmt %></td>
+              <td class="py-3.5 px-5 text-right font-medium text-brand-text"><%= p.moneda || '$' %>&nbsp;<%= montoFmt %></td>
               <td class="py-3.5 px-5 text-right">
                 <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[12px] font-semibold bg-brand-gold-xlight text-brand-gold-hover border border-brand-gold-light"><%= p.interes %>%</span>
               </td>
-              <td class="py-3.5 px-5 text-right font-bold text-[14px] text-brand-blue">S/<%= cuotaFmt %></td>
+              <td class="py-3.5 px-5 text-right font-bold text-[14px] text-brand-blue"><%= p.moneda || '$' %>&nbsp;<%= cuotaFmt %></td>
               <td class="py-3.5 px-5 text-center">
                 <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[12px] font-semibold <%= p.tipo_pago === 'mensual' ? 'bg-brand-success-light text-brand-success border border-brand-success' : 'bg-brand-blue-light text-brand-blue border border-brand-blue' %>">
                   <%= p.tipo_pago ? p.tipo_pago.charAt(0).toUpperCase() + p.tipo_pago.slice(1) : '—' %>
                 </span>
               </td>
               <td class="py-3.5 px-5 text-center text-brand-muted"><%= p.plazo_meses %> meses</td>
-              <td class="py-3.5 px-5 text-right font-bold text-brand-navy">S/<%= totalFmt %></td>
+              <td class="py-3.5 px-5 text-right font-bold text-brand-navy"><%= p.moneda || '$' %>&nbsp;<%= totalFmt %></td>
               <td class="py-3.5 px-5 text-center">
                 <% if (p.estado === 'activo') { %>
                   <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[12px] font-semibold bg-brand-blue-light text-brand-blue border border-brand-blue">

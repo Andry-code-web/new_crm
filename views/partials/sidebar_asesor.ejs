@@ -1,10 +1,13 @@
-<aside class="w-[260px] h-screen bg-brand-navy text-white flex flex-col shrink-0 border-r border-[#1A2D4F] relative overflow-hidden z-10">
+<aside
+  class="w-[260px] h-screen bg-brand-navy text-white flex flex-col shrink-0 border-r border-[#1A2D4F] relative overflow-hidden z-10">
   <!-- Decoration -->
-  <div class="absolute -top-20 -left-20 w-60 h-60 bg-[radial-gradient(circle,rgba(212,168,67,0.12)_0%,transparent_70%)] pointer-events-none"></div>
+  <div
+    class="absolute -top-20 -left-20 w-60 h-60 bg-[radial-gradient(circle,rgba(212,168,67,0.12)_0%,transparent_70%)] pointer-events-none">
+  </div>
 
   <!-- Logo -->
   <div class="flex items-center justify-center pt-7 pb-5 px-6 relative z-10">
-    <div class="bg-white/95 px-4 py-2.5 rounded-xl w-full flex justify-center shadow-lg shadow-black/10">
+    <div class="px-4 py-2.5 rounded-xl w-full flex justify-center shadow-lg shadow-black/10">
       <img src="/img/logo_horizontal.png" alt="Financiera Guzmán" class="h-15 object-contain">
     </div>
   </div>
@@ -13,30 +16,55 @@
   <nav class="flex-1 px-4 overflow-y-auto relative z-10 sidebar-nav">
     <p class="text-[10px] font-semibold tracking-wider uppercase text-white/30 pt-3.5 px-3 pb-1.5">General</p>
 
-    <a href="/dashboard/asesor" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 border-l-[3px] border-transparent transition-colors hover:text-white/90 hover:bg-white/5" id="nav-dashboard">
-      <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10-3a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1v-7z"/></svg>
+    <a href="/dashboard/asesor"
+      class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 border-l-[3px] border-transparent transition-colors hover:text-white/90 hover:bg-white/5"
+      id="nav-dashboard">
+      <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10-3a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1v-7z" />
+      </svg>
       Dashboard
     </a>
 
-    <a href="/dashboard/simulacion" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 border-l-[3px] border-transparent transition-colors hover:text-white/90 hover:bg-white/5" id="nav-simulacion">
-      <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+    <a href="/dashboard/simulacion"
+      class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 border-l-[3px] border-transparent transition-colors hover:text-white/90 hover:bg-white/5"
+      id="nav-simulacion">
+      <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+      </svg>
       Simulación
     </a>
 
-    <a href="/dashboard/prestamos" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 border-l-[3px] border-transparent transition-colors hover:text-white/90 hover:bg-white/5" id="nav-prestamos">
-      <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+    <a href="/dashboard/prestamos"
+      class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 border-l-[3px] border-transparent transition-colors hover:text-white/90 hover:bg-white/5"
+      id="nav-prestamos">
+      <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+      </svg>
       Préstamos
     </a>
 
     <p class="text-[10px] font-semibold tracking-wider uppercase text-white/30 pt-6 px-3 pb-1.5">Consulta</p>
 
-    <a href="/asesor/clientes" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 border-l-[3px] border-transparent transition-colors hover:text-white/90 hover:bg-white/5" id="nav-clientes">
-      <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+    <a href="/asesor/clientes"
+      class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 border-l-[3px] border-transparent transition-colors hover:text-white/90 hover:bg-white/5"
+      id="nav-clientes">
+      <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
       Clientes
     </a>
 
-    <a href="/asesor/inversionistas" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 border-l-[3px] border-transparent transition-colors hover:text-white/90 hover:bg-white/5" id="nav-inversores">
-      <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <a href="/asesor/inversionistas"
+      class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 border-l-[3px] border-transparent transition-colors hover:text-white/90 hover:bg-white/5"
+      id="nav-inversores">
+      <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
       Inversionistas
     </a>
   </nav>
@@ -46,13 +74,21 @@
     <div class="flex items-center gap-3 mb-4">
       <img src="<%= user.avatar %>" alt="Avatar" class="w-9 h-9 rounded-full border-2 border-brand-gold object-cover">
       <div class="truncate">
-        <p class="text-sm font-semibold truncate"><%= user.name %></p>
-        <p class="text-[11px] text-white/40 capitalize mt-px"><%= user.role %></p>
+        <p class="text-sm font-semibold truncate">
+          <%= user.name %>
+        </p>
+        <p class="text-[11px] text-white/40 capitalize mt-px">
+          <%= user.role %>
+        </p>
       </div>
     </div>
     <form action="/logout" method="POST">
-      <button type="submit" class="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl bg-transparent text-white/40 text-[13px] font-medium transition-colors hover:bg-red-500/15 hover:text-red-300">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      <button type="submit"
+        class="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl bg-transparent text-white/40 text-[13px] font-medium transition-colors hover:bg-red-500/15 hover:text-red-300">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
         Cerrar Sesión
       </button>
     </form>
@@ -60,7 +96,7 @@
 </aside>
 
 <script>
-  (function() {
+  (function () {
     const path = window.location.pathname;
     document.querySelectorAll('.sidebar-nav .nav-link').forEach(a => {
       if (a.getAttribute('href') === path) {

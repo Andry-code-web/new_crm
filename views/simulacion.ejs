@@ -105,7 +105,7 @@
           <div>
             <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Monto del Préstamo</label>
             <div class="relative">
-              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-muted font-semibold text-[15px]">S/</span>
+              <span id="sim_moneda_prefix" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-muted font-semibold text-[15px]">$</span>
               <input type="number" id="sim_monto" placeholder="50,000" min="1000" step="100"
                 class="w-full bg-brand-surface border border-brand-border rounded-[10px] py-2.5 pr-3.5 pl-8 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 hover:border-brand-blue-light focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
             </div>
@@ -127,13 +127,39 @@
             <input type="number" id="sim_plazo" placeholder="24" min="1" max="360" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 hover:border-brand-blue-light focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
           </div>
 
+          <!-- Moneda -->
+          <div>
+            <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">
+              <span class="flex items-center gap-1.5">
+                <i class="ri-exchange-dollar-line text-[14px]" style="color:var(--c-gold)"></i>
+                Moneda
+              </span>
+            </label>
+            <div class="grid grid-cols-2 gap-2.5" id="moneda-group">
+              <label class="moneda-option cursor-pointer">
+                <input type="radio" name="moneda" value="$" class="sr-only" checked>
+                <div class="moneda-card selected flex items-center justify-center gap-2 p-3 border-2 border-brand-navy bg-brand-navy rounded-lg transition-all duration-200 text-white">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span class="text-[13px] font-semibold">$ Dólar</span>
+                </div>
+              </label>
+              <label class="moneda-option cursor-pointer">
+                <input type="radio" name="moneda" value="S/" class="sr-only">
+                <div class="moneda-card flex items-center justify-center gap-2 p-3 border-2 border-brand-border bg-brand-surface2 rounded-lg transition-all duration-200 text-brand-muted">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span class="text-[13px] font-semibold">S/ Sol</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
           <!-- Tipo de Pago -->
           <div>
             <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Tipo de Pago</label>
             <div class="grid grid-cols-2 gap-2.5" id="tipo-pago-group">
               <label class="tipo-pago-option cursor-pointer">
                 <input type="radio" name="tipo_pago" value="mensual" class="sr-only" checked>
-                <div class="tipo-pago-card selected flex items-center justify-center gap-2 p-3 border-2 border-brand-blue bg-brand-blue-xlight rounded-lg transition-all duration-200">
+                <div class="tipo-pago-card selected flex items-center justify-center gap-2 p-3 border-2 border-brand-navy bg-brand-navy rounded-lg transition-all duration-200 text-white">
                   <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                   <span class="text-[13px] font-semibold">Mensual</span>
                 </div>
@@ -247,6 +273,7 @@
             <input type="hidden" name="total_pagar" id="inp_total_pagar">
             <input type="hidden" name="total_intereses" id="inp_total_intereses">
             <input type="hidden" name="fecha_registro" id="inp_fecha_registro">
+            <input type="hidden" name="moneda" id="inp_moneda" value="$">
             <input type="hidden" id="inp_cronograma">
 
             <div class="flex flex-row gap-3">
@@ -296,9 +323,6 @@
     appearance: none;
   }
   .sr-only { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0; }
-  .tipo-pago-card.selected { border-color: var(--c-blue) !important; background: var(--c-blue-xlight) !important; }
-  .tipo-pago-card.selected span { color: var(--c-blue) !important; }
-  .tipo-pago-card.selected svg { stroke: var(--c-blue) !important; }
 </style>
 
 <script>
@@ -313,17 +337,39 @@
   document.querySelectorAll('.tipo-pago-option').forEach(label => {
     label.addEventListener('click', () => {
       document.querySelectorAll('.tipo-pago-card').forEach(card => {
-        card.classList.remove('selected');
-        card.style.borderColor = 'var(--c-border)';
-        card.style.background = 'var(--c-surface2)';
+        card.classList.remove('selected', 'border-brand-navy', 'bg-brand-navy', 'text-white');
+        card.classList.add('border-brand-border', 'bg-brand-surface2', 'text-brand-muted');
       });
       const card = label.querySelector('.tipo-pago-card');
-      card.classList.add('selected');
+      card.classList.add('selected', 'border-brand-navy', 'bg-brand-navy', 'text-white');
+      card.classList.remove('border-brand-border', 'bg-brand-surface2', 'text-brand-muted');
     });
   });
 
+  // Moneda toggle
+  document.querySelectorAll('.moneda-option').forEach(label => {
+    label.addEventListener('click', () => {
+      document.querySelectorAll('.moneda-card').forEach(card => {
+        card.classList.remove('selected', 'border-brand-navy', 'bg-brand-navy', 'text-white');
+        card.classList.add('border-brand-border', 'bg-brand-surface2', 'text-brand-muted');
+      });
+      const card = label.querySelector('.moneda-card');
+      card.classList.add('selected', 'border-brand-navy', 'bg-brand-navy', 'text-white');
+      card.classList.remove('border-brand-border', 'bg-brand-surface2', 'text-brand-muted');
+      // Actualizar prefijo del campo Monto
+      const monedaVal = label.querySelector('input[name="moneda"]').value;
+      document.getElementById('sim_moneda_prefix').textContent = monedaVal;
+    });
+  });
+
+  function getMoneda() {
+    const checked = document.querySelector('input[name="moneda"]:checked');
+    return checked ? checked.value : '$';
+  }
+
   function fmt(num) {
-    return '$' + num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const sym = getMoneda();
+    return sym + '\u00A0' + num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   function calcularSimulacion() {
@@ -414,6 +460,7 @@
     document.getElementById('inp_interes').value = interes;
     document.getElementById('inp_plazo').value = plazo;
     document.getElementById('inp_tipo_pago').value = tipoPago;
+    document.getElementById('inp_moneda').value = getMoneda();
     document.getElementById('inp_cuota').value = cuota.toFixed(2);
     document.getElementById('inp_total_pagar').value = totalPagar.toFixed(2);
     document.getElementById('inp_total_intereses').value = totalIntereses.toFixed(2);
@@ -430,46 +477,67 @@
     cronograma.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function descargarSimulacionPdf() {
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/dashboard/simulacion/pdf';
-    form.target = '_blank';
-    
-    // Transferir todos los inputs hidden del form-registrar al nuevo form
-    const inputs = document.getElementById('form-registrar').querySelectorAll('input[type="hidden"]');
-    inputs.forEach(inp => {
-      const newInp = document.createElement('input');
-      newInp.type = 'hidden';
-      newInp.name = inp.name;
-      newInp.value = inp.value;
-      form.appendChild(newInp);
-    });
+  async function descargarSimulacionPdf() {
+    const btn = document.getElementById('btn-pdf');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ri-loader-4-line animate-spin text-[17px]"></i> Generando PDF...';
 
-    // Agregar nombres de cliente e inversor en texto y tasa/plazo original
-    const clienteTxt = document.getElementById('res_cliente_txt').textContent;
-    const inversorTxt = document.getElementById('res_inversor_txt').textContent;
-    const tasaTxt = document.getElementById('res_tasa_txt').textContent;
-    const plazoTxt = document.getElementById('res_plazo_txt').textContent;
+    try {
+      // Recolectar datos
+      const data = {};
+      const inputs = document.getElementById('form-registrar').querySelectorAll('input[type="hidden"]');
+      inputs.forEach(inp => {
+        if (inp.name) data[inp.name] = inp.value;
+      });
 
-    [['cliente_nombre', clienteTxt], ['inversor_nombre', inversorTxt], ['tasa_txt', tasaTxt], ['plazo_txt', plazoTxt]].forEach(([k, v]) => {
-      const inp = document.createElement('input');
-      inp.type = 'hidden';
-      inp.name = k;
-      inp.value = v;
-      form.appendChild(inp);
-    });
+      const clienteTxt = document.getElementById('res_cliente_txt').textContent;
+      const inversorTxt = document.getElementById('res_inversor_txt').textContent;
+      const tasaTxt = document.getElementById('res_tasa_txt').textContent;
+      const plazoTxt = document.getElementById('res_plazo_txt').textContent;
+      const monedaTxt = getMoneda();
 
-    const cronogramaJSON = document.getElementById('inp_cronograma').value;
-    const inpCronograma = document.createElement('input');
-    inpCronograma.type = 'hidden';
-    inpCronograma.name = 'cronograma_json';
-    inpCronograma.value = cronogramaJSON;
-    form.appendChild(inpCronograma);
+      data['cliente_nombre'] = clienteTxt;
+      data['inversor_nombre'] = inversorTxt;
+      data['tasa_txt'] = tasaTxt;
+      data['plazo_txt'] = plazoTxt;
+      data['moneda'] = monedaTxt;
+      data['cronograma_json'] = document.getElementById('inp_cronograma').value;
 
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
+      // Convertir a url-encoded
+      const body = new URLSearchParams();
+      for (const [k, v] of Object.entries(data)) {
+        body.append(k, v);
+      }
+
+      const response = await fetch('/dashboard/simulacion/pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: body.toString()
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al generar el PDF del servidor.');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `simulacion_${data['monto'] || 'prestamo'}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert('Hubo un error al descargar el PDF: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
   }
 
   setTimeout(() => {

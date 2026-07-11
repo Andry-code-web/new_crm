@@ -45,19 +45,18 @@ exports.crearCliente = async (req, res) => {
     return res.redirect('/admin/clientes?error=' + encodeURIComponent('El nombre es obligatorio.'));
   }
   try {
+    const correoCliente = email?.trim() || (dni?.trim() ? `${dni.trim()}@cliente.com` : `cliente${Date.now()}@cliente.com`);
+
     await pool.execute(
       'INSERT INTO clientes (nombre, email, dni, telefono, direccion, partida_registral, contacto_emergencia, ciudad, observaciones, nombre_inversionista, fecha_registro) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
-      [nombre.trim(), email || null, dni || null, telefono || null, direccion || null, partida_registral || null, contacto_emergencia || null, ciudad || null, observaciones || null, nombre_inversionista || null]
+      [nombre.trim(), correoCliente, dni || null, telefono || null, direccion || null, partida_registral || null, contacto_emergencia || null, ciudad || null, observaciones || null, nombre_inversionista || null]
     );
 
-    // Auto-create user account if email is provided
-    if (email?.trim()) {
-      const defaultPassword = dni?.trim() || 'cliente123';
-      await pool.execute(
-        'INSERT IGNORE INTO users (email, password, role) VALUES (?, ?, ?)',
-        [email.trim(), defaultPassword, 'cliente']
-      );
-    }
+    const defaultPassword = dni?.trim() || 'cliente123';
+    await pool.execute(
+      'INSERT IGNORE INTO users (email, password, role) VALUES (?, ?, ?)',
+      [correoCliente, defaultPassword, 'cliente']
+    );
 
     res.redirect('/admin/clientes?success=' + encodeURIComponent('Cliente creado correctamente y usuario habilitado.'));
   } catch (err) {
@@ -144,19 +143,18 @@ exports.crearInversionista = async (req, res) => {
     return res.redirect('/admin/inversionistas?error=' + encodeURIComponent('El nombre es obligatorio.'));
   }
   try {
+    const correoInversor = email?.trim() || (dni?.trim() ? `${dni.trim()}@inversor.com` : `inversor${Date.now()}@inversor.com`);
+
     await pool.execute(
       'INSERT INTO inversionistas (nombre, email, dni, telefono, direccion, numero_cuenta, ciudad, observaciones, fecha_registro) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())',
-      [nombre.trim(), email || null, dni || null, telefono || null, direccion || null, numero_cuenta || null, ciudad || null, observaciones || null]
+      [nombre.trim(), correoInversor, dni || null, telefono || null, direccion || null, numero_cuenta || null, ciudad || null, observaciones || null]
     );
 
-    // Auto-create user account if email is provided
-    if (email?.trim()) {
-      const defaultPassword = dni?.trim() || 'inversor123';
-      await pool.execute(
-        'INSERT IGNORE INTO users (email, password, role) VALUES (?, ?, ?)',
-        [email.trim(), defaultPassword, 'inversionista']
-      );
-    }
+    const defaultPassword = dni?.trim() || 'inversor123';
+    await pool.execute(
+      'INSERT IGNORE INTO users (email, password, role) VALUES (?, ?, ?)',
+      [correoInversor, defaultPassword, 'inversionista']
+    );
 
     res.redirect('/admin/inversionistas?success=' + encodeURIComponent('Inversionista creado correctamente y usuario habilitado.'));
   } catch (err) {
@@ -241,7 +239,7 @@ exports.crearAsesor = async (req, res) => {
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
-    const cleanEmail = email || `asesor${Date.now()}@coinest.com`;
+    const cleanEmail = email || `asesor${Date.now()}@financieraguzman.com`;
     // Crear usuario
     const [userRes] = await conn.execute(
       'INSERT INTO users (email, password, role) VALUES (?, ?, "asesor")',

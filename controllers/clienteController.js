@@ -26,7 +26,7 @@ exports.renderDashboard = async (req, res) => {
         FROM prestamos p
         LEFT JOIN inversionistas i ON p.inversor_id = i.id
         WHERE p.cliente_id = ?
-        ORDER BY p.fecha_registro DESC
+        ORDER BY p.id DESC
       `, [cliente.id]);
       prestamos = rows;
     }
@@ -69,7 +69,7 @@ exports.renderPrestamo = async (req, res) => {
       FROM prestamos p
       LEFT JOIN inversionistas i ON p.inversor_id = i.id
       WHERE p.cliente_id = ?
-      ORDER BY p.fecha_registro DESC
+      ORDER BY p.id DESC
     `, [cliente.id]);
 
     const prestamoId = req.query.id || (prestamos[0]?.id);
