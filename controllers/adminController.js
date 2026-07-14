@@ -242,9 +242,9 @@ exports.crearAsesor = async (req, res) => {
     const cleanEmail = email || `asesor${Date.now()}@financieraguzman.com`;
     // Crear usuario
     const [userRes] = await conn.execute(
-      'INSERT INTO users (email, password, role) VALUES (?, ?, "asesor")',
-      [cleanEmail, 'asesor'] // Contraseña por defecto "asesor" para pruebas (debe hashearse en un sistema real)
-    );
+  'INSERT INTO users (email, password, role) VALUES (?, ?, ?)',
+  [cleanEmail, 'asesor', 'asesor']
+);
     const userId = userRes.insertId;
 
     const parts = nombre.trim().split(' ');
