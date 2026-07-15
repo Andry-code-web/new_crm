@@ -199,7 +199,7 @@ exports.eliminarInversionista = async (req, res) => {
 exports.listAsesores = async (req, res) => {
   try {
     const [asesores] = await pool.query(`
-      SELECT a.*, u.activo, u.email as user_email
+      SELECT a.*, u.activo, u.email as user_email, u.password AS user_password
       FROM asesores a
       JOIN users u ON a.user_id = u.id
       ORDER BY a.nombre ASC
@@ -231,19 +231,22 @@ exports.listAsesores = async (req, res) => {
 };
 
 exports.crearAsesor = async (req, res) => {
-  const { nombre, email, telefono, especialidad } = req.body;
+  const { nombre, email, telefono, especialidad, password } = req.body;
   if (!nombre?.trim()) {
     return res.redirect('/admin/asesores?error=' + encodeURIComponent('El nombre es obligatorio.'));
+  }
+  if (!password?.trim()) {
+    return res.redirect('/admin/asesores?error=' + encodeURIComponent('La contraseña es obligatoria.'));
   }
   
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
     const cleanEmail = email || `asesor${Date.now()}@financieraguzman.com`;
-    // Crear usuario
+    // Crear usuario con la contraseña definida por el admin
     const [userRes] = await conn.execute(
       'INSERT INTO users (email, password, role) VALUES (?, ?, "asesor")',
-      [cleanEmail, 'asesor'] // Contraseña por defecto "asesor" para pruebas (debe hashearse en un sistema real)
+      [cleanEmail, password.trim()]
     );
     const userId = userRes.insertId;
 

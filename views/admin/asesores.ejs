@@ -89,6 +89,7 @@
               <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Email</th>
               <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Teléfono</th>
               <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Especialidad</th>
+              <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide">Contraseña</th>
               <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-center">Estado</th>
               <th class="py-3.5 px-5 font-semibold text-brand-muted tracking-wide text-center">Acciones</th>
             </tr>
@@ -105,6 +106,20 @@
               <td class="py-3.5 px-5 text-brand-muted"><%= a.email || '—' %></td>
               <td class="py-3.5 px-5 text-brand-muted"><%= a.telefono || '—' %></td>
               <td class="py-3.5 px-5 text-brand-muted"><%= a.especialidad || '—' %></td>
+              <td class="py-3.5 px-5">
+                <% if (a.user_password) { %>
+                <div class="flex items-center gap-1.5">
+                  <span class="font-mono text-[13px] text-brand-text tracking-wider pwd-text-<%= a.id %>">••••••••</span>
+                  <span class="font-mono text-[13px] text-brand-text tracking-wider pwd-value-<%= a.id %> hidden"><%= a.user_password %></span>
+                  <button type="button" onclick="togglePwd(<%= a.id %>)" class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-brand-surface2 transition-colors text-brand-muted hover:text-brand-navy" title="Ver contraseña">
+                    <svg class="eye-off-<%= a.id %>" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                    <svg class="eye-on-<%= a.id %> hidden" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  </button>
+                </div>
+                <% } else { %>
+                <span class="text-brand-muted text-[12px]">Sin contraseña</span>
+                <% } %>
+              </td>
               <td class="py-3.5 px-5 text-center">
                 <% if (a.activo !== 0) { %>
                   <span class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[12px] font-semibold bg-brand-success-light text-brand-success border border-brand-success">Activo</span>
@@ -157,6 +172,16 @@
       <div>
         <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Email</label>
         <input type="email" name="email" class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]" placeholder="correo@financieraguzman.com">
+      </div>
+      <div>
+        <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Contraseña <span class="text-brand-danger">*</span></label>
+        <div class="relative">
+          <input type="password" name="password" id="nuevo-password" required class="w-full bg-brand-surface border border-brand-border rounded-[10px] px-3.5 py-2.5 pr-10 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]" placeholder="Contraseña del asesor">
+          <button type="button" onclick="toggleNewPwd()" class="absolute right-3 top-1/2 -translate-y-1/2 text-brand-muted hover:text-brand-navy transition-colors" tabindex="-1">
+            <svg id="nuevo-eye-off" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+            <svg id="nuevo-eye-on" class="hidden" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          </button>
+        </div>
       </div>
       <div>
         <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Teléfono</label>
@@ -222,6 +247,26 @@
 <script>
   function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
   function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+  function togglePwd(id) {
+    const dots = document.querySelector('.pwd-text-' + id);
+    const val  = document.querySelector('.pwd-value-' + id);
+    const eyeOff = document.querySelector('.eye-off-' + id);
+    const eyeOn  = document.querySelector('.eye-on-' + id);
+    const hidden = val.classList.contains('hidden');
+    dots.classList.toggle('hidden', hidden);
+    val.classList.toggle('hidden', !hidden);
+    eyeOff.classList.toggle('hidden', hidden);
+    eyeOn.classList.toggle('hidden', !hidden);
+  }
+  function toggleNewPwd() {
+    const input = document.getElementById('nuevo-password');
+    const eyeOff = document.getElementById('nuevo-eye-off');
+    const eyeOn  = document.getElementById('nuevo-eye-on');
+    const isPass = input.type === 'password';
+    input.type = isPass ? 'text' : 'password';
+    eyeOff.classList.toggle('hidden', isPass);
+    eyeOn.classList.toggle('hidden', !isPass);
+  }
   function openEdit(a) {
     document.getElementById('edit-nombre').value = a.nombre || '';
     document.getElementById('edit-email').value = a.email || '';
