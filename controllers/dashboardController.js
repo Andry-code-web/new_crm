@@ -223,7 +223,8 @@ exports.generarSimulacionPdf = (req, res) => {
   try {
     const {
       cliente_nombre, inversor_nombre, tasa_txt, plazo_txt,
-      monto, cuota, total_pagar, total_intereses, tipo_pago, cronograma_json, moneda
+      monto, cuota, total_pagar, total_intereses, tipo_pago, cronograma_json, moneda,
+      interes, tasa_mensual_txt, modalidad
     } = req.body;
 
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
@@ -277,14 +278,15 @@ exports.generarSimulacionPdf = (req, res) => {
 
       doc.fillColor(isHighlight ? colorNavy : colorMuted)
         .font('Helvetica-Bold')
-        .fontSize(10)
+        .fontSize(9.5)
         .text(label, 50, currentY, { width: 200 });
 
       doc.fillColor(isHighlight ? colorNavy : colorText)
         .font(isHighlight ? 'Helvetica-Bold' : 'Helvetica')
+        .fontSize(9.5)
         .text(value, 250, currentY, { align: 'right', width: 295 });
 
-      doc.moveDown(0.4);
+      doc.moveDown(0.35);
 
       // Línea separadora
       doc.strokeColor('#E2E8F0')
@@ -293,7 +295,7 @@ exports.generarSimulacionPdf = (req, res) => {
         .lineTo(545, doc.y)
         .stroke();
 
-      doc.moveDown(0.6);
+      doc.moveDown(0.45);
     };
 
     // Sección: Información General
@@ -319,11 +321,19 @@ exports.generarSimulacionPdf = (req, res) => {
     const simboloMoneda = (moneda && moneda.trim()) ? moneda.trim() : '$';
     const fmt = (n) => simboloMoneda + '\u00A0' + Number(n).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    drawRow('MONTO SOLICITADO:', fmt(monto), true);
+    const tasaAnualNum = parseFloat(interes) || parseFloat(tasa_txt) || 0;
+    const tasaMensualNum = tasaAnualNum > 0 ? (tasaAnualNum / 12) : 0;
+    const tasaMensualCalculada = (tasaMensualNum % 1 === 0 ? tasaMensualNum.toFixed(0) : tasaMensualNum.toFixed(2)) + '% mensual';
+    const tasaMensualFinal = tasa_mensual_txt || tasaMensualCalculada;
+
+    drawRow('CAPITAL (MONTO SOLICITADO):', fmt(monto), true);
     drawRow('MONEDA:', simboloMoneda === '$' ? '$ Dólar' : 'S/ Sol Peruano');
-    drawRow('TASA DE INTERÉS:', tasa_txt);
+    drawRow('MODALIDAD:', modalidad || 'Sistema Francés (Cuota Fija)');
+    drawRow('TASA DE INTERÉS ANUAL:', tasa_txt || (tasaAnualNum + '% anual'));
+    drawRow('TASA INTERÉS MENSUAL:', tasaMensualFinal);
     drawRow('PLAZO:', plazo_txt);
     drawRow('TIPO DE PAGO:', (tipo_pago || '').toUpperCase());
+    drawRow(tipo_pago === 'quincenal' ? 'CUOTA ESTIMADA (QUINCENAL):' : 'CUOTA MENSUAL:', fmt(cuota));
     drawRow('TOTAL INTERESES:', fmt(total_intereses));
     drawRow('TOTAL A PAGAR:', fmt(total_pagar), true);
 
@@ -359,20 +369,31 @@ exports.generarSimulacionPdf = (req, res) => {
 
           doc.moveDown(1.5);
 
-          const colX = [50, 85, 175, 265, 355, 455];
-          const colWidths = [30, 85, 85, 85, 90, 90];
+          const fmtPdfDate = (d) => {
+            if (!d) return '—';
+            const dt = typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d) ? new Date(d + 'T12:00:00') : new Date(d);
+            if (isNaN(dt.getTime())) return String(d);
+            const dd = String(dt.getDate()).padStart(2, '0');
+            const mm = String(dt.getMonth() + 1).padStart(2, '0');
+            const yyyy = dt.getFullYear();
+            return `${dd}/${mm}/${yyyy}`;
+          };
+
+          const colX = [50, 75, 145, 225, 305, 380, 460];
+          const colWidths = [25, 70, 80, 80, 75, 80, 85];
 
           // Función inline para pintar la cabecera de la tabla
           const drawTableHeader = () => {
             let headerY = doc.y;
-            doc.fillColor(colorNavy).fontSize(9).font('Helvetica-Bold');
+            doc.fillColor(colorNavy).fontSize(8.5).font('Helvetica-Bold');
 
             doc.text('N°', colX[0], headerY, { width: colWidths[0], align: 'center' });
-            doc.text('Saldo Inicial', colX[1], headerY, { width: colWidths[1], align: 'right' });
-            doc.text('Capital', colX[2], headerY, { width: colWidths[2], align: 'right' });
-            doc.text('Interés', colX[3], headerY, { width: colWidths[3], align: 'right' });
-            doc.text('Cuota', colX[4], headerY, { width: colWidths[4], align: 'right' });
-            doc.text('Saldo Final', colX[5], headerY, { width: colWidths[5], align: 'right' });
+            doc.text('Vencimiento', colX[1], headerY, { width: colWidths[1], align: 'center' });
+            doc.text('Saldo In.', colX[2], headerY, { width: colWidths[2], align: 'right' });
+            doc.text('Capital', colX[3], headerY, { width: colWidths[3], align: 'right' });
+            doc.text('Interés', colX[4], headerY, { width: colWidths[4], align: 'right' });
+            doc.text('Cuota', colX[5], headerY, { width: colWidths[5], align: 'right' });
+            doc.text('Saldo Fin.', colX[6], headerY, { width: colWidths[6], align: 'right' });
 
             doc.moveDown(0.4);
             doc.strokeColor(colorNavy).lineWidth(1.5).moveTo(50, doc.y).lineTo(545, doc.y).stroke();
@@ -398,18 +419,19 @@ exports.generarSimulacionPdf = (req, res) => {
             }
 
             // Fila de datos alineada por coordenadas exactas
-            doc.fillColor(colorText).font('Helvetica').fontSize(9);
+            doc.fillColor(colorText).font('Helvetica').fontSize(8.5);
             doc.text(row.num, colX[0], rowY, { width: colWidths[0], align: 'center' });
-            doc.text(fmt(row.saldoInicial), colX[1], rowY, { width: colWidths[1], align: 'right' });
-            doc.text(fmt(row.capital), colX[2], rowY, { width: colWidths[2], align: 'right' });
-            doc.text(fmt(row.interes), colX[3], rowY, { width: colWidths[3], align: 'right' });
+            doc.text(fmtPdfDate(row.fechaVencimiento), colX[1], rowY, { width: colWidths[1], align: 'center' });
+            doc.text(fmt(row.saldoInicial), colX[2], rowY, { width: colWidths[2], align: 'right' });
+            doc.text(fmt(row.capital), colX[3], rowY, { width: colWidths[3], align: 'right' });
+            doc.text(fmt(row.interes), colX[4], rowY, { width: colWidths[4], align: 'right' });
 
             // Resaltamos la cuota
             doc.fillColor(colorNavy).font('Helvetica-Bold');
-            doc.text(fmt(row.cuota), colX[4], rowY, { width: colWidths[4], align: 'right' });
+            doc.text(fmt(row.cuota), colX[5], rowY, { width: colWidths[5], align: 'right' });
 
             doc.fillColor(colorText).font('Helvetica');
-            doc.text(fmt(row.saldoFinal), colX[5], rowY, { width: colWidths[5], align: 'right' });
+            doc.text(fmt(row.saldoFinal), colX[6], rowY, { width: colWidths[6], align: 'right' });
 
             doc.moveDown(0.5);
             doc.strokeColor('#E2E8F0').lineWidth(0.5).moveTo(50, doc.y).lineTo(545, doc.y).stroke();
