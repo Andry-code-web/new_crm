@@ -15,6 +15,9 @@ router.get('/inversionista', ensureRole(['admin', 'inversionista']), inversionis
 router.get('/simulacion', ensureRole(['admin', 'asesor']), dashboardController.renderSimulacion);
 router.post('/simulacion/pdf', ensureRole(['admin', 'asesor']), dashboardController.generarSimulacionPdf);
 
+// Calendario de Pagos
+router.get('/calendario', ensureRole(['admin', 'asesor']), dashboardController.renderCalendario);
+
 // Préstamos
 router.get('/prestamos',          ensureRole(['admin', 'asesor']), dashboardController.renderPrestamos);
 router.post('/prestamos/registrar', ensureRole(['admin', 'asesor']), dashboardController.registrarPrestamo);
@@ -23,6 +26,9 @@ router.post('/prestamos/:id/cronograma', ensureRole(['admin', 'asesor']), dashbo
 router.get('/prestamos/:id/cronograma', ensureRole(['admin', 'asesor']), dashboardController.renderCronograma);
 router.post('/prestamos/:id/cuotas/:cuotaId/pagar', ensureRole(['admin', 'asesor']), dashboardController.registrarPago);
 router.post('/prestamos/:id/fecha-inicio', ensureRole(['admin', 'asesor']), dashboardController.cambiarFechaInicio);
+router.post('/prestamos/:id/amortizar', ensureRole(['admin', 'asesor']), dashboardController.registrarAmortizacion);
+router.post('/prestamos/:id/amortizacion/simulacion-pdf', ensureRole(['admin', 'asesor']), dashboardController.generarAmortizacionSimulacionPdf);
+router.get('/prestamos/:id/amortizaciones/:amortizacionId/pdf', ensureRole(['admin', 'asesor']), dashboardController.generarAmortizacionComprobantePdf);
 
 // Redirect /dashboard to the specific role
 router.get('/', function(req, res) {

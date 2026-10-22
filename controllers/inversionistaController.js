@@ -246,9 +246,24 @@ function generarAmortizacion(prestamo) {
   const tasaAnual = Number(prestamo.interes) / 100;
   const plazo = Number(prestamo.plazo_meses);
   const cuota = Number(prestamo.cuota);
-  const esQuincenal = prestamo.tipo_pago === 'quincenal';
-  const numPagos = esQuincenal ? plazo * 2 : plazo;
-  const tasaPeriodo = esQuincenal ? tasaAnual / 24 : tasaAnual / 12;
+  const tipoPago = prestamo.tipo_pago || 'mensual';
+
+  let numPagos = plazo;
+  let tasaPeriodo = tasaAnual / 12;
+
+  if (tipoPago === 'diario') {
+    numPagos = plazo * 30;
+    tasaPeriodo = tasaAnual / 360;
+  } else if (tipoPago === 'semanal') {
+    numPagos = plazo * 4;
+    tasaPeriodo = tasaAnual / 48;
+  } else if (tipoPago === 'quincenal') {
+    numPagos = plazo * 2;
+    tasaPeriodo = tasaAnual / 24;
+  } else {
+    numPagos = plazo;
+    tasaPeriodo = tasaAnual / 12;
+  }
 
   const filas = [];
   let saldo = monto;
@@ -260,7 +275,9 @@ function generarAmortizacion(prestamo) {
     saldo = Math.max(0, saldo - capital);
 
     const fecha = new Date(fechaBase);
-    if (esQuincenal) fecha.setDate(fecha.getDate() + i * 15);
+    if (tipoPago === 'diario') fecha.setDate(fecha.getDate() + i);
+    else if (tipoPago === 'semanal') fecha.setDate(fecha.getDate() + (i * 7));
+    else if (tipoPago === 'quincenal') fecha.setDate(fecha.getDate() + (i * 15));
     else fecha.setMonth(fecha.getMonth() + i);
 
     filas.push({

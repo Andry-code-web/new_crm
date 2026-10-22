@@ -139,16 +139,33 @@
                                   </div>
                                 </div>
 
-                                <!-- Interés -->
-                                <div>
-                                  <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Tasa de Interés
-                                    Anual</label>
-                                  <div class="relative">
-                                    <input type="number" id="sim_interes" placeholder="12.5" min="0.1" max="100"
-                                      step="0.1"
-                                      class="w-full bg-brand-surface border border-brand-border rounded-[10px] py-2.5 pl-3.5 pr-9 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 hover:border-brand-blue-light focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
-                                    <span
-                                      class="absolute right-3.5 top-1/2 -translate-y-1/2 text-brand-muted font-semibold">%</span>
+                                <!-- Tasas de Interés (Anual y Mensual) -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  <div>
+                                    <label class="block text-[13px] font-semibold text-brand-navy mb-1.5 flex items-center justify-between">
+                                      <span>Tasa Anual</span>
+                                      <span class="text-[10px] text-brand-muted font-normal">(TEA)</span>
+                                    </label>
+                                    <div class="relative">
+                                      <input type="number" id="sim_interes" placeholder="24.0" min="0.01" max="500"
+                                        step="0.01"
+                                        class="w-full bg-brand-surface border border-brand-border rounded-[10px] py-2.5 pl-3.5 pr-8 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 hover:border-brand-blue-light focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+                                      <span
+                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-brand-muted font-semibold text-[13px]">%</span>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <label class="block text-[13px] font-semibold text-brand-navy mb-1.5 flex items-center justify-between">
+                                      <span>Tasa Mensual</span>
+                                      <span class="text-[10px] text-brand-blue font-semibold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">TEM</span>
+                                    </label>
+                                    <div class="relative">
+                                      <input type="number" id="sim_interes_mensual" placeholder="2.0" min="0.01" max="100"
+                                        step="0.01"
+                                        class="w-full bg-brand-surface border border-brand-border rounded-[10px] py-2.5 pl-3.5 pr-8 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 hover:border-brand-blue-light focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+                                      <span
+                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-brand-muted font-semibold text-[13px]">%</span>
+                                    </div>
                                   </div>
                                 </div>
 
@@ -196,11 +213,100 @@
                                   </div>
                                 </div>
 
+                                <!-- Forma de Pago / Modalidad de Cálculo -->
+                                <div>
+                                  <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">
+                                    <span class="flex items-center gap-1.5">
+                                      <i class="ri-wallet-3-line text-[14px]" style="color:var(--c-blue)"></i>
+                                      Forma de Pago / Modalidad
+                                    </span>
+                                  </label>
+                                  <div class="grid grid-cols-1 gap-2" id="modalidad-group">
+                                    <!-- Sistema Francés -->
+                                    <label class="modalidad-option cursor-pointer block">
+                                      <input type="radio" name="modalidad" value="frances" class="sr-only" checked>
+                                      <div class="modalidad-card selected p-3 border-2 border-brand-navy bg-brand-surface rounded-xl transition-all duration-200">
+                                        <div class="flex items-center justify-between">
+                                          <div class="flex items-center gap-2">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-brand-blue"></span>
+                                            <span class="text-[13px] font-bold text-brand-navy">Sistema Francés (Cuota Fija)</span>
+                                          </div>
+                                          <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-navy text-white">Estándar</span>
+                                        </div>
+                                        <p class="text-[11px] text-brand-muted mt-1">Cuotas niveladas idénticas mes a mes. Amortización progresiva de capital e intereses sobre saldo.</p>
+                                      </div>
+                                    </label>
+
+                                    <!-- Interés sobre el Capital (Solo Interés) -->
+                                    <label class="modalidad-option cursor-pointer block">
+                                      <input type="radio" name="modalidad" value="interes_capital" class="sr-only">
+                                      <div class="modalidad-card p-3 border-2 border-brand-border bg-brand-surface2 rounded-xl transition-all duration-200 hover:border-brand-gold">
+                                        <div class="flex items-center justify-between">
+                                          <div class="flex items-center gap-2">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-brand-gold"></span>
+                                            <span class="text-[13px] font-bold text-brand-navy">Interés sobre el Capital</span>
+                                          </div>
+                                          <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-gold-light text-brand-gold-hover border border-brand-gold-light">Solo Interés</span>
+                                        </div>
+                                        <p class="text-[11px] text-brand-muted mt-1">Cuotas periódicas únicamente de interés sobre el capital; el capital se devuelve al vencimiento o abonos.</p>
+                                      </div>
+                                    </label>
+
+                                    <!-- Sistema Alemán -->
+                                    <label class="modalidad-option cursor-pointer block">
+                                      <input type="radio" name="modalidad" value="aleman" class="sr-only">
+                                      <div class="modalidad-card p-3 border-2 border-brand-border bg-brand-surface2 rounded-xl transition-all duration-200 hover:border-brand-success">
+                                        <div class="flex items-center justify-between">
+                                          <div class="flex items-center gap-2">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-brand-success"></span>
+                                            <span class="text-[13px] font-bold text-brand-navy">Amortización Constante (Alemán)</span>
+                                          </div>
+                                          <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-success-light text-brand-success border border-brand-success">Decreciente</span>
+                                        </div>
+                                        <p class="text-[11px] text-brand-muted mt-1">Abono fijo al capital en cada período e intereses sobre el saldo; cuotas decrecientes con el tiempo.</p>
+                                      </div>
+                                    </label>
+                                  </div>
+                                </div>
+
                                 <!-- Tipo de Pago -->
                                 <div>
-                                  <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Tipo de
-                                    Pago</label>
+                                  <label class="block text-[13px] font-semibold text-brand-navy mb-1.5">Frecuencia de Pago</label>
                                   <div class="grid grid-cols-2 gap-2.5" id="tipo-pago-group">
+                                    <label class="tipo-pago-option cursor-pointer">
+                                      <input type="radio" name="tipo_pago" value="diario" class="sr-only">
+                                      <div
+                                        class="tipo-pago-card flex items-center justify-center gap-2 p-3 border-2 border-brand-border bg-brand-surface2 rounded-lg transition-all duration-200 text-brand-muted hover:border-brand-blue-light">
+                                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span class="text-[13px] font-semibold">Diario</span>
+                                      </div>
+                                    </label>
+                                    <label class="tipo-pago-option cursor-pointer">
+                                      <input type="radio" name="tipo_pago" value="semanal" class="sr-only">
+                                      <div
+                                        class="tipo-pago-card flex items-center justify-center gap-2 p-3 border-2 border-brand-border bg-brand-surface2 rounded-lg transition-all duration-200 text-brand-muted hover:border-brand-blue-light">
+                                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 7V3m8 4V3m-9 8h10M3 11h18M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z" />
+                                        </svg>
+                                        <span class="text-[13px] font-semibold">Semanal</span>
+                                      </div>
+                                    </label>
+                                    <label class="tipo-pago-option cursor-pointer">
+                                      <input type="radio" name="tipo_pago" value="quincenal" class="sr-only">
+                                      <div
+                                        class="tipo-pago-card flex items-center justify-center gap-2 p-3 border-2 border-brand-border bg-brand-surface2 rounded-lg transition-all duration-200 text-brand-muted hover:border-brand-blue-light">
+                                        <svg width="15" height="15" fill="none" stroke="currentColor"
+                                          viewBox="0 0 24 24">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        </svg>
+                                        <span class="text-[13px] font-semibold">Quincenal</span>
+                                      </div>
+                                    </label>
                                     <label class="tipo-pago-option cursor-pointer">
                                       <input type="radio" name="tipo_pago" value="mensual" class="sr-only" checked>
                                       <div
@@ -211,18 +317,6 @@
                                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                         <span class="text-[13px] font-semibold">Mensual</span>
-                                      </div>
-                                    </label>
-                                    <label class="tipo-pago-option cursor-pointer">
-                                      <input type="radio" name="tipo_pago" value="quincenal" class="sr-only">
-                                      <div
-                                        class="tipo-pago-card flex items-center justify-center gap-2 p-3 border-2 border-brand-border bg-brand-surface2 rounded-lg transition-all duration-200 text-brand-muted">
-                                        <svg width="15" height="15" fill="none" stroke="currentColor"
-                                          viewBox="0 0 24 24">
-                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                        </svg>
-                                        <span class="text-[13px] font-semibold">Quincenal</span>
                                       </div>
                                     </label>
                                   </div>
@@ -337,7 +431,7 @@
                                         </tr>
                                         <tr class="border-b border-brand-border">
                                           <td class="py-3 text-[13px] text-brand-muted">Modalidad</td>
-                                          <td class="py-3 text-[13px] font-semibold text-brand-text text-right">Sistema Francés (Cuota Fija)</td>
+                                          <td id="res_modalidad_txt" class="py-3 text-[13px] font-semibold text-brand-text text-right">Sistema Francés (Cuota Fija)</td>
                                         </tr>
                                         <tr class="border-b border-brand-border">
                                           <td class="py-3 text-[13px] text-brand-muted">Tasa Anual</td>
@@ -391,6 +485,7 @@
                                   <input type="hidden" name="interes" id="inp_interes">
                                   <input type="hidden" name="plazo_meses" id="inp_plazo">
                                   <input type="hidden" name="tipo_pago" id="inp_tipo_pago">
+                                  <input type="hidden" name="modalidad" id="inp_modalidad" value="frances">
                                   <input type="hidden" name="cuota" id="inp_cuota">
                                   <input type="hidden" name="total_pagar" id="inp_total_pagar">
                                   <input type="hidden" name="total_intereses" id="inp_total_intereses">
@@ -482,6 +577,19 @@
                   if (fechaInput && !fechaInput.value) fechaInput.value = today;
                 })();
 
+                // Modalidad toggle
+                document.querySelectorAll('.modalidad-option').forEach(label => {
+                  label.addEventListener('click', () => {
+                    document.querySelectorAll('.modalidad-card').forEach(card => {
+                      card.classList.remove('selected', 'border-brand-navy', 'bg-brand-surface');
+                      card.classList.add('border-brand-border', 'bg-brand-surface2');
+                    });
+                    const card = label.querySelector('.modalidad-card');
+                    card.classList.add('selected', 'border-brand-navy', 'bg-brand-surface');
+                    card.classList.remove('border-brand-border', 'bg-brand-surface2');
+                  });
+                });
+
                 // Tipo de pago toggle
                 document.querySelectorAll('.tipo-pago-option').forEach(label => {
                   label.addEventListener('click', () => {
@@ -511,6 +619,32 @@
                   });
                 });
 
+                // Sincronización entre Tasa de Interés Anual y Tasa Interés Mensual
+                const inpInteresAnual = document.getElementById('sim_interes');
+                const inpInteresMensual = document.getElementById('sim_interes_mensual');
+
+                if (inpInteresAnual && inpInteresMensual) {
+                  inpInteresAnual.addEventListener('input', () => {
+                    const val = parseFloat(inpInteresAnual.value);
+                    if (!isNaN(val) && val >= 0) {
+                      const m = val / 12;
+                      inpInteresMensual.value = (Math.round(m * 10000) / 10000);
+                    } else {
+                      inpInteresMensual.value = '';
+                    }
+                  });
+
+                  inpInteresMensual.addEventListener('input', () => {
+                    const val = parseFloat(inpInteresMensual.value);
+                    if (!isNaN(val) && val >= 0) {
+                      const a = val * 12;
+                      inpInteresAnual.value = (Math.round(a * 10000) / 10000);
+                    } else {
+                      inpInteresAnual.value = '';
+                    }
+                  });
+                }
+
                 function getMoneda() {
                   const checked = document.querySelector('input[name="moneda"]:checked');
                   return checked ? checked.value : '$';
@@ -518,7 +652,7 @@
 
                 function fmt(num) {
                   const sym = getMoneda();
-                  return sym + '\u00A0' + num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                  return sym + '\u00A0' + Number(num || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 }
 
                 function fmtDate(d) {
@@ -531,107 +665,257 @@
                   return `${dd}/${mm}/${yyyy}`;
                 }
 
+                function calcularFechaVencimiento(baseDate, tipoPago, index) {
+                  const fv = new Date(baseDate.getTime());
+                  if (tipoPago === 'mensual') {
+                    const targetMonth = baseDate.getMonth() + index;
+                    fv.setMonth(targetMonth);
+                    if (fv.getMonth() !== ((targetMonth % 12) + 12) % 12) fv.setDate(0);
+                  } else if (tipoPago === 'quincenal') {
+                    fv.setDate(baseDate.getDate() + (15 * index));
+                  } else if (tipoPago === 'semanal') {
+                    fv.setDate(baseDate.getDate() + (7 * index));
+                  } else if (tipoPago === 'diario') {
+                    fv.setDate(baseDate.getDate() + (1 * index));
+                  }
+                  return fv;
+                }
+
                 function calcularSimulacion() {
                   const clienteSelect = document.getElementById('sim_cliente');
                   const inversorSelect = document.getElementById('sim_inversor');
                   const monto = parseFloat(document.getElementById('sim_monto').value);
-                  const interes = parseFloat(document.getElementById('sim_interes').value);
+                  let interes = parseFloat(document.getElementById('sim_interes').value);
+                  const interesMensual = parseFloat(document.getElementById('sim_interes_mensual').value);
+
+                  // Si se ingresó solo la tasa mensual, sincronizar la anual
+                  if ((isNaN(interes) || interes <= 0) && !isNaN(interesMensual) && interesMensual > 0) {
+                    interes = interesMensual * 12;
+                    document.getElementById('sim_interes').value = (Math.round(interes * 10000) / 10000);
+                  }
+
                   const plazo = parseInt(document.getElementById('sim_plazo').value);
                   const tipoPago = document.querySelector('input[name="tipo_pago"]:checked').value;
+                  const modalidad = document.querySelector('input[name="modalidad"]:checked')?.value || 'frances';
                   const fechaInput = document.getElementById('sim_fecha').value || new Date().toISOString().split('T')[0];
 
                   if (!clienteSelect.value) { alert('Por favor selecciona un cliente.'); return; }
                   if (!inversorSelect.value) { alert('Por favor selecciona un inversor.'); return; }
                   if (!monto || monto <= 0) { alert('Ingresa un monto válido.'); return; }
-                  if (!interes || interes <= 0) { alert('Ingresa una tasa de interés válida.'); return; }
+                  if (!interes || interes <= 0) { alert('Ingresa una tasa de interés válida (anual o mensual).'); return; }
                   if (!plazo || plazo <= 0) { alert('Ingresa un plazo válido.'); return; }
 
-                  const periodosPorAnio = tipoPago === 'mensual' ? 12 : 24;
-                  const tasaPeriodo = (interes / 100) / periodosPorAnio;
-                  const totalPeriodos = tipoPago === 'mensual' ? plazo : plazo * 2;
-
-                  let cuota;
-                  if (tasaPeriodo === 0) {
-                    cuota = monto / totalPeriodos;
+                  let periodosPorAnio = 12;
+                  let totalPeriodos = plazo;
+                  if (tipoPago === 'diario') {
+                    periodosPorAnio = 360;
+                    totalPeriodos = plazo * 30;
+                  } else if (tipoPago === 'semanal') {
+                    periodosPorAnio = 48;
+                    totalPeriodos = plazo * 4;
+                  } else if (tipoPago === 'quincenal') {
+                    periodosPorAnio = 24;
+                    totalPeriodos = plazo * 2;
                   } else {
-                    cuota = monto * (tasaPeriodo * Math.pow(1 + tasaPeriodo, totalPeriodos)) / (Math.pow(1 + tasaPeriodo, totalPeriodos) - 1);
+                    periodosPorAnio = 12;
+                    totalPeriodos = plazo;
                   }
 
-                  const totalPagar = cuota * totalPeriodos;
-                  const totalIntereses = totalPagar - monto;
+                  const tasaPeriodo = (interes / 100) / periodosPorAnio;
 
-                  document.getElementById('res_cuota').textContent = fmt(cuota);
-                  document.getElementById('res_tipo_label').textContent = '/ ' + (tipoPago === 'mensual' ? 'mensual' : 'quincenal');
+                  const labelFrecuencia = {
+                    diario: 'diario',
+                    semanal: 'semanal',
+                    quincenal: 'quincenal',
+                    mensual: 'mensual'
+                  }[tipoPago] || tipoPago;
+
+                  let cuotaParaMostrar = 0;
+                  let totalIntereses = 0;
+                  let totalPagar = 0;
+                  let modalidadNombre = 'Sistema Francés (Cuota Fija)';
+
+                  // Generar Cronograma según modalidad
+                  const baseDate = new Date(fechaInput + 'T12:00:00');
+                  let saldo = monto;
+                  let cronogramaHTML = '';
+                  const cronogramaDatos = [];
+                  const capFijoAleman = monto / totalPeriodos;
+
+                  if (modalidad === 'interes_capital') {
+                    modalidadNombre = 'Interés sobre el Capital (Solo Interés)';
+                    const cuotaRegular = monto * tasaPeriodo;
+                    cuotaParaMostrar = cuotaRegular;
+                    totalIntereses = cuotaRegular * totalPeriodos;
+                    totalPagar = monto + totalIntereses;
+
+                    document.getElementById('res_cuota').textContent = fmt(cuotaRegular);
+                    document.getElementById('res_tipo_label').textContent = '/ ' + labelFrecuencia + ' (Solo Interés)';
+
+                    for (let i = 1; i <= totalPeriodos; i++) {
+                      let intMes = saldo * tasaPeriodo;
+                      let isLast = (i === totalPeriodos);
+                      let capMes = isLast ? saldo : 0;
+                      let cuotaPeriodo = capMes + intMes;
+                      let saldoFin = isLast ? 0 : saldo;
+
+                      let fechaVencimiento = calcularFechaVencimiento(baseDate, tipoPago, i);
+
+                      const yyyy = fechaVencimiento.getFullYear();
+                      const mm = String(fechaVencimiento.getMonth() + 1).padStart(2, '0');
+                      const dd = String(fechaVencimiento.getDate()).padStart(2, '0');
+                      const fechaVencStr = `${yyyy}-${mm}-${dd}`;
+
+                      cronogramaDatos.push({
+                        num: i,
+                        fechaVencimiento: fechaVencStr,
+                        saldoInicial: saldo.toFixed(2),
+                        capital: capMes.toFixed(2),
+                        interes: intMes.toFixed(2),
+                        cuota: cuotaPeriodo.toFixed(2),
+                        saldoFinal: saldoFin.toFixed(2)
+                      });
+
+                      cronogramaHTML += `
+                        <tr class="border-b border-brand-border last:border-0 hover:bg-brand-surface2 ${isLast ? 'bg-brand-gold-xlight/30 font-semibold' : ''}">
+                          <td class="py-2.5 px-3 text-center text-brand-navy font-semibold">${i}${isLast ? ' <span class="text-[10px] text-brand-gold-hover font-bold tracking-wider">(Final)</span>' : ''}</td>
+                          <td class="py-2.5 px-3 text-center text-brand-navy font-semibold">${fmtDate(fechaVencimiento)}</td>
+                          <td class="py-2.5 px-3 font-medium">${fmt(saldo)}</td>
+                          <td class="py-2.5 px-3 font-medium text-brand-blue">${fmt(capMes)}</td>
+                          <td class="py-2.5 px-3 font-medium text-brand-warning">${fmt(intMes)}</td>
+                          <td class="py-2.5 px-3 font-bold text-brand-navy">${fmt(cuotaPeriodo)}</td>
+                          <td class="py-2.5 px-3 font-medium">${fmt(Math.abs(saldoFin))}</td>
+                        </tr>
+                      `;
+                      saldo = saldoFin;
+                    }
+
+                  } else if (modalidad === 'aleman') {
+                    modalidadNombre = 'Amortización Constante (Sistema Alemán)';
+                    let sumInt = 0;
+                    let primeraCuota = 0;
+                    let ultimaCuota = 0;
+
+                    for (let i = 1; i <= totalPeriodos; i++) {
+                      let intMes = saldo * tasaPeriodo;
+                      let isLast = (i === totalPeriodos);
+                      let capMes = isLast ? saldo : capFijoAleman;
+                      let cuotaPeriodo = capMes + intMes;
+                      let saldoFin = saldo - capMes;
+                      sumInt += intMes;
+
+                      if (i === 1) primeraCuota = cuotaPeriodo;
+                      if (isLast) ultimaCuota = cuotaPeriodo;
+
+                      let fechaVencimiento = calcularFechaVencimiento(baseDate, tipoPago, i);
+
+                      const yyyy = fechaVencimiento.getFullYear();
+                      const mm = String(fechaVencimiento.getMonth() + 1).padStart(2, '0');
+                      const dd = String(fechaVencimiento.getDate()).padStart(2, '0');
+                      const fechaVencStr = `${yyyy}-${mm}-${dd}`;
+
+                      cronogramaDatos.push({
+                        num: i,
+                        fechaVencimiento: fechaVencStr,
+                        saldoInicial: saldo.toFixed(2),
+                        capital: capMes.toFixed(2),
+                        interes: intMes.toFixed(2),
+                        cuota: cuotaPeriodo.toFixed(2),
+                        saldoFinal: Math.max(0, saldoFin).toFixed(2)
+                      });
+
+                      cronogramaHTML += `
+                        <tr class="border-b border-brand-border last:border-0 hover:bg-brand-surface2">
+                          <td class="py-2.5 px-3 text-center text-brand-navy font-semibold">${i}</td>
+                          <td class="py-2.5 px-3 text-center text-brand-navy font-semibold">${fmtDate(fechaVencimiento)}</td>
+                          <td class="py-2.5 px-3 font-medium">${fmt(saldo)}</td>
+                          <td class="py-2.5 px-3 font-medium text-brand-blue">${fmt(capMes)}</td>
+                          <td class="py-2.5 px-3 font-medium text-brand-warning">${fmt(intMes)}</td>
+                          <td class="py-2.5 px-3 font-bold text-brand-navy">${fmt(cuotaPeriodo)}</td>
+                          <td class="py-2.5 px-3 font-medium">${fmt(Math.max(0, saldoFin))}</td>
+                        </tr>
+                      `;
+                      saldo = saldoFin;
+                    }
+
+                    cuotaParaMostrar = primeraCuota;
+                    totalIntereses = sumInt;
+                    totalPagar = monto + sumInt;
+
+                    document.getElementById('res_cuota').textContent = fmt(primeraCuota);
+                    document.getElementById('res_tipo_label').textContent = '/ 1ra cuota (' + labelFrecuencia + ', decreciente hasta ' + fmt(ultimaCuota) + ')';
+
+                  } else {
+                    // Sistema Francés (Cuota Fija)
+                    modalidadNombre = 'Sistema Francés (Cuota Fija)';
+                    let cuota;
+                    if (tasaPeriodo === 0) {
+                      cuota = monto / totalPeriodos;
+                    } else {
+                      cuota = monto * (tasaPeriodo * Math.pow(1 + tasaPeriodo, totalPeriodos)) / (Math.pow(1 + tasaPeriodo, totalPeriodos) - 1);
+                    }
+                    cuotaParaMostrar = cuota;
+                    totalPagar = cuota * totalPeriodos;
+                    totalIntereses = totalPagar - monto;
+
+                    document.getElementById('res_cuota').textContent = fmt(cuota);
+                    document.getElementById('res_tipo_label').textContent = '/ ' + labelFrecuencia;
+
+                    for (let i = 1; i <= totalPeriodos; i++) {
+                      let intMes = saldo * tasaPeriodo;
+                      let capMes = cuota - intMes;
+                      let saldoFin = saldo - capMes;
+
+                      if (i === totalPeriodos) {
+                        capMes = saldo;
+                        cuota = capMes + intMes;
+                        saldoFin = 0;
+                      }
+
+                      let fechaVencimiento = calcularFechaVencimiento(baseDate, tipoPago, i);
+
+                      const yyyy = fechaVencimiento.getFullYear();
+                      const mm = String(fechaVencimiento.getMonth() + 1).padStart(2, '0');
+                      const dd = String(fechaVencimiento.getDate()).padStart(2, '0');
+                      const fechaVencStr = `${yyyy}-${mm}-${dd}`;
+
+                      cronogramaDatos.push({
+                        num: i,
+                        fechaVencimiento: fechaVencStr,
+                        saldoInicial: saldo.toFixed(2),
+                        capital: capMes.toFixed(2),
+                        interes: intMes.toFixed(2),
+                        cuota: cuota.toFixed(2),
+                        saldoFinal: saldoFin.toFixed(2)
+                      });
+
+                      cronogramaHTML += `
+                        <tr class="border-b border-brand-border last:border-0 hover:bg-brand-surface2">
+                          <td class="py-2.5 px-3 text-center text-brand-navy font-semibold">${i}</td>
+                          <td class="py-2.5 px-3 text-center text-brand-navy font-semibold">${fmtDate(fechaVencimiento)}</td>
+                          <td class="py-2.5 px-3 font-medium">${fmt(saldo)}</td>
+                          <td class="py-2.5 px-3 font-medium text-brand-blue">${fmt(capMes)}</td>
+                          <td class="py-2.5 px-3 font-medium text-brand-warning">${fmt(intMes)}</td>
+                          <td class="py-2.5 px-3 font-bold text-brand-navy">${fmt(cuota)}</td>
+                          <td class="py-2.5 px-3 font-medium">${fmt(Math.abs(saldoFin))}</td>
+                        </tr>
+                      `;
+                      saldo = saldoFin;
+                    }
+                  }
+
                   document.getElementById('res_capital').textContent = fmt(monto);
                   document.getElementById('res_intereses').textContent = fmt(totalIntereses);
                   document.getElementById('res_total').textContent = fmt(totalPagar);
                   document.getElementById('res_cuotas').textContent = totalPeriodos;
                   document.getElementById('res_cliente_txt').textContent = clienteSelect.options[clienteSelect.selectedIndex].text;
                   document.getElementById('res_inversor_txt').textContent = inversorSelect.options[inversorSelect.selectedIndex].text;
+                  document.getElementById('res_modalidad_txt').textContent = modalidadNombre;
                   document.getElementById('res_tasa_txt').textContent = interes + '% anual';
                   const tasaMensualVal = interes / 12;
                   document.getElementById('res_tasa_mensual_txt').textContent = (tasaMensualVal % 1 === 0 ? tasaMensualVal.toFixed(0) : tasaMensualVal.toFixed(2)) + '% mensual';
                   document.getElementById('res_plazo_txt').textContent = plazo + ' meses';
                   document.getElementById('res_tipopago_txt').textContent = tipoPago.charAt(0).toUpperCase() + tipoPago.slice(1);
-
-                  // Generar Cronograma (Sistema Francés)
-                  const baseDate = new Date(fechaInput + 'T12:00:00');
-                  let saldo = monto;
-                  let cronogramaHTML = '';
-                  const cronogramaDatos = [];
-
-                  for (let i = 1; i <= totalPeriodos; i++) {
-                    let intMes = saldo * tasaPeriodo;
-                    let capMes = cuota - intMes;
-                    let saldoFin = saldo - capMes;
-
-                    // Ajuste de redondeo última cuota
-                    if (i === totalPeriodos) {
-                      capMes = saldo;
-                      cuota = capMes + intMes;
-                      saldoFin = 0;
-                    }
-
-                    // Calcular fecha de vencimiento
-                    let fechaVencimiento = new Date(baseDate.getTime());
-                    if (tipoPago === 'mensual') {
-                      const targetMonth = baseDate.getMonth() + i;
-                      fechaVencimiento.setMonth(targetMonth);
-                      if (fechaVencimiento.getMonth() !== ((targetMonth % 12) + 12) % 12) {
-                        fechaVencimiento.setDate(0);
-                      }
-                    } else { // quincenal
-                      fechaVencimiento.setDate(baseDate.getDate() + (15 * i));
-                    }
-
-                    const yyyy = fechaVencimiento.getFullYear();
-                    const mm = String(fechaVencimiento.getMonth() + 1).padStart(2, '0');
-                    const dd = String(fechaVencimiento.getDate()).padStart(2, '0');
-                    const fechaVencStr = `${yyyy}-${mm}-${dd}`;
-
-                    cronogramaDatos.push({
-                      num: i,
-                      fechaVencimiento: fechaVencStr,
-                      saldoInicial: saldo.toFixed(2),
-                      capital: capMes.toFixed(2),
-                      interes: intMes.toFixed(2),
-                      cuota: cuota.toFixed(2),
-                      saldoFinal: saldoFin.toFixed(2)
-                    });
-
-                    cronogramaHTML += `
-                      <tr class="border-b border-brand-border last:border-0 hover:bg-brand-surface2">
-                        <td class="py-2.5 px-3 text-center text-brand-navy font-semibold">${i}</td>
-                        <td class="py-2.5 px-3 text-center text-brand-navy font-semibold">${fmtDate(fechaVencimiento)}</td>
-                        <td class="py-2.5 px-3 font-medium">${fmt(saldo)}</td>
-                        <td class="py-2.5 px-3 font-medium text-brand-blue">${fmt(capMes)}</td>
-                        <td class="py-2.5 px-3 font-medium text-brand-warning">${fmt(intMes)}</td>
-                        <td class="py-2.5 px-3 font-bold text-brand-navy">${fmt(cuota)}</td>
-                        <td class="py-2.5 px-3 font-medium">${fmt(Math.abs(saldoFin))}</td>
-                      </tr>
-                    `;
-                    saldo = saldoFin;
-                  }
 
                   document.getElementById('tabla-cronograma').innerHTML = cronogramaHTML;
                   document.getElementById('inp_cronograma').value = JSON.stringify(cronogramaDatos);
@@ -642,18 +926,18 @@
                   document.getElementById('inp_interes').value = interes;
                   document.getElementById('inp_plazo').value = plazo;
                   document.getElementById('inp_tipo_pago').value = tipoPago;
+                  document.getElementById('inp_modalidad').value = modalidad;
                   document.getElementById('inp_moneda').value = getMoneda();
-                  document.getElementById('inp_cuota').value = cuota.toFixed(2);
+                  document.getElementById('inp_cuota').value = cuotaParaMostrar.toFixed(2);
                   document.getElementById('inp_total_pagar').value = totalPagar.toFixed(2);
                   document.getElementById('inp_total_intereses').value = totalIntereses.toFixed(2);
-                  // Fecha de registro (la ingresada por el usuario o hoy)
                   document.getElementById('inp_fecha_registro').value = fechaInput;
 
                   document.getElementById('placeholder-panel').style.display = 'none';
                   const panel = document.getElementById('resultados-panel');
-                  const cronograma = document.getElementById('resultado-panel-cronograma')
+                  const cronograma = document.getElementById('resultado-panel-cronograma');
                   panel.style.display = 'flex';
-                  cronograma.style.display = 'flex'
+                  cronograma.style.display = 'flex';
                   panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   cronograma.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
@@ -676,13 +960,14 @@
                     const inversorTxt = document.getElementById('res_inversor_txt').textContent;
                     const tasaTxt = document.getElementById('res_tasa_txt').textContent;
                     const plazoTxt = document.getElementById('res_plazo_txt').textContent;
+                    const modalidadTxt = document.getElementById('res_modalidad_txt').textContent;
                     const monedaTxt = getMoneda();
 
                     data['cliente_nombre'] = clienteTxt;
                     data['inversor_nombre'] = inversorTxt;
                     data['tasa_txt'] = tasaTxt;
                     data['tasa_mensual_txt'] = document.getElementById('res_tasa_mensual_txt').textContent;
-                    data['modalidad'] = 'Sistema Francés (Cuota Fija)';
+                    data['modalidad'] = modalidadTxt;
                     data['plazo_txt'] = plazoTxt;
                     data['moneda'] = monedaTxt;
                     data['cronograma_json'] = document.getElementById('inp_cronograma').value;

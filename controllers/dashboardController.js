@@ -333,7 +333,7 @@ exports.generarSimulacionPdf = (req, res) => {
     drawRow('TASA INTERÉS MENSUAL:', tasaMensualFinal);
     drawRow('PLAZO:', plazo_txt);
     drawRow('TIPO DE PAGO:', (tipo_pago || '').toUpperCase());
-    drawRow(tipo_pago === 'quincenal' ? 'CUOTA ESTIMADA (QUINCENAL):' : 'CUOTA MENSUAL:', fmt(cuota));
+    drawRow('CUOTA ESTIMADA (' + (tipo_pago || 'MENSUAL').toUpperCase() + '):', fmt(cuota));
     drawRow('TOTAL INTERESES:', fmt(total_intereses));
     drawRow('TOTAL A PAGAR:', fmt(total_pagar), true);
 
@@ -468,7 +468,8 @@ exports.generarSimulacionPdf = (req, res) => {
 exports.registrarPrestamo = async (req, res) => {
   const {
     cliente_id, inversor_id, asesor_id: body_asesor_id, monto, interes,
-    plazo_meses, tipo_pago, cuota, total_pagar, total_intereses, fecha_registro, moneda
+    plazo_meses, tipo_pago, cuota, total_pagar, total_intereses, fecha_registro, moneda,
+    modalidad
   } = req.body;
 
   if (!cliente_id || !inversor_id || !monto || !interes || !plazo_meses || !tipo_pago) {
@@ -492,9 +493,9 @@ exports.registrarPrestamo = async (req, res) => {
 
     await pool.query(
       `INSERT INTO prestamos
-        (cliente_id, inversor_id, asesor_id, monto, interes, plazo_meses, tipo_pago, cuota, total_pagar, total_intereses, fecha_registro, estado, moneda)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', ?)`,
-      [cliente_id, inversor_id, finalAsesorId, monto, interes, plazo_meses, tipo_pago, cuota, total_pagar, total_intereses, fechaFinal, moneda || '$']
+        (cliente_id, inversor_id, asesor_id, monto, interes, plazo_meses, tipo_pago, cuota, total_pagar, total_intereses, fecha_registro, estado, moneda, modalidad)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', ?, ?)`,
+      [cliente_id, inversor_id, finalAsesorId, monto, interes, plazo_meses, tipo_pago, cuota, total_pagar, total_intereses, fechaFinal, moneda || '$', modalidad || 'frances']
     );
     res.redirect('/dashboard/prestamos?success=' + encodeURIComponent('¡Préstamo registrado correctamente!'));
   } catch (err) {
@@ -588,7 +589,7 @@ exports.registrarCronograma = async (req, res) => {
     }
 
     // Obtener los datos del préstamo
-    const [prestamos] = await pool.execute('SELECT monto, interes, plazo_meses, tipo_pago, cuota, fecha_registro, estado FROM prestamos WHERE id = ?', [id]);
+    const [prestamos] = await pool.execute('SELECT monto, interes, plazo_meses, tipo_pago, cuota, fecha_registro, estado, modalidad FROM prestamos WHERE id = ?', [id]);
     if (prestamos.length === 0) {
       return res.status(404).json({ success: false, message: 'Préstamo no encontrado.' });
     }
@@ -603,11 +604,26 @@ exports.registrarCronograma = async (req, res) => {
     const plazo = parseInt(p.plazo_meses, 10);
     const tipoPago = p.tipo_pago;
     const cuotaMensual = parseFloat(p.cuota);
+    const modalidad = p.modalidad || 'frances';
 
-    // Replicar logica (Sistema Francés)
-    const periodosPorAnio = tipoPago === 'mensual' ? 12 : 24;
+    let periodosPorAnio = 12;
+    let totalPeriodos = plazo;
+    if (tipoPago === 'diario') {
+      periodosPorAnio = 360;
+      totalPeriodos = plazo * 30;
+    } else if (tipoPago === 'semanal') {
+      periodosPorAnio = 48;
+      totalPeriodos = plazo * 4;
+    } else if (tipoPago === 'quincenal') {
+      periodosPorAnio = 24;
+      totalPeriodos = plazo * 2;
+    } else {
+      periodosPorAnio = 12;
+      totalPeriodos = plazo;
+    }
+
     const tasaPeriodo = (interes / 100) / periodosPorAnio;
-    const totalPeriodos = tipoPago === 'mensual' ? plazo : plazo * 2;
+    const capFijoAleman = monto / totalPeriodos;
 
     let saldo = monto;
     
@@ -621,29 +637,47 @@ exports.registrarCronograma = async (req, res) => {
 
     for (let i = 1; i <= totalPeriodos; i++) {
       let intMes = saldo * tasaPeriodo;
-      let cuotaCalc = cuotaMensual;
-      
-      // Manejar el caso de interes 0
-      if (tasaPeriodo === 0) {
-        cuotaCalc = monto / totalPeriodos;
-      }
-      
-      let capMes = cuotaCalc - intMes;
-      let saldoFin = saldo - capMes;
-      
-      // Ajuste de redondeo última cuota
-      if (i === totalPeriodos) {
-        capMes = saldo;
+      let capMes = 0;
+      let cuotaCalc = 0;
+      let saldoFin = 0;
+
+      if (modalidad === 'interes_capital') {
+        if (i === totalPeriodos) {
+          capMes = saldo;
+          cuotaCalc = capMes + intMes;
+          saldoFin = 0;
+        } else {
+          capMes = 0;
+          cuotaCalc = intMes;
+          saldoFin = saldo;
+        }
+      } else if (modalidad === 'aleman') {
+        capMes = (i === totalPeriodos) ? saldo : capFijoAleman;
         cuotaCalc = capMes + intMes;
-        saldoFin = 0;
+        saldoFin = saldo - capMes;
+      } else {
+        // frances
+        cuotaCalc = cuotaMensual;
+        if (tasaPeriodo === 0) cuotaCalc = monto / totalPeriodos;
+        capMes = cuotaCalc - intMes;
+        saldoFin = saldo - capMes;
+        if (i === totalPeriodos) {
+          capMes = saldo;
+          cuotaCalc = capMes + intMes;
+          saldoFin = 0;
+        }
       }
 
       // Calcular fecha de vencimiento
       let fechaVencimiento = new Date(baseDate.getTime());
       if (tipoPago === 'mensual') {
         fechaVencimiento.setMonth(fechaVencimiento.getMonth() + i);
-      } else { // quincenal
+      } else if (tipoPago === 'quincenal') {
         fechaVencimiento.setDate(fechaVencimiento.getDate() + (15 * i));
+      } else if (tipoPago === 'semanal') {
+        fechaVencimiento.setDate(fechaVencimiento.getDate() + (7 * i));
+      } else if (tipoPago === 'diario') {
+        fechaVencimiento.setDate(fechaVencimiento.getDate() + (1 * i));
       }
 
       cuotasParaInsertar.push([
@@ -653,7 +687,7 @@ exports.registrarCronograma = async (req, res) => {
         cuotaCalc.toFixed(2), 
         capMes.toFixed(2), 
         intMes.toFixed(2), 
-        saldoFin.toFixed(2), 
+        Math.max(0, saldoFin).toFixed(2), 
         'pendiente'
       ]);
 
@@ -702,6 +736,11 @@ exports.renderCronograma = async (req, res) => {
       return res.redirect('/dashboard/prestamos?error=' + encodeURIComponent('Este préstamo no tiene cronograma registrado.'));
     }
 
+    // Historial de amortizaciones
+    const [amortizaciones] = await pool.execute(`
+      SELECT * FROM amortizaciones WHERE prestamo_id = ? ORDER BY id DESC
+    `, [id]);
+
     // Estadísticas del cronograma
     const totalCuotas = cuotas.length;
     const cuotasPagadas = cuotas.filter(c => c.estado === 'pagada').length;
@@ -715,6 +754,7 @@ exports.renderCronograma = async (req, res) => {
       ...getCommonData(req),
       prestamo,
       cuotas,
+      amortizaciones: amortizaciones || [],
       stats: { totalCuotas, cuotasPagadas, cuotasPendientes, montoPagado, montoPendiente },
       success: req.query.success || null,
       error: req.query.error || null
@@ -808,8 +848,12 @@ exports.cambiarFechaInicio = async (req, res) => {
       let nuevaFechaVenc = new Date(nuevaFecha.getTime());
       if (tipoPago === 'mensual') {
         nuevaFechaVenc.setMonth(nuevaFechaVenc.getMonth() + c.numero_cuota);
-      } else {
+      } else if (tipoPago === 'quincenal') {
         nuevaFechaVenc.setDate(nuevaFechaVenc.getDate() + (15 * c.numero_cuota));
+      } else if (tipoPago === 'semanal') {
+        nuevaFechaVenc.setDate(nuevaFechaVenc.getDate() + (7 * c.numero_cuota));
+      } else if (tipoPago === 'diario') {
+        nuevaFechaVenc.setDate(nuevaFechaVenc.getDate() + (1 * c.numero_cuota));
       }
       await pool.execute(
         'UPDATE cuotas SET fecha_vencimiento = ? WHERE id = ?',
@@ -829,3 +873,1097 @@ exports.cambiarFechaInicio = async (req, res) => {
     res.status(500).json({ success: false, message: 'Error interno al cambiar la fecha.' });
   }
 };
+
+exports.registrarAmortizacion = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { monto, tipo_reduccion, fecha, observacion } = req.body;
+
+    const abono = parseFloat(monto);
+    if (isNaN(abono) || abono <= 0) {
+      return res.status(400).json({ success: false, message: 'Ingrese un monto de amortización válido mayor a 0.' });
+    }
+
+    if (!tipo_reduccion || (tipo_reduccion !== 'cuota' && tipo_reduccion !== 'plazo')) {
+      return res.status(400).json({ success: false, message: 'Seleccione un tipo de reducción válido (cuota o plazo).' });
+    }
+
+    // 1. Obtener préstamo
+    const [prestRows] = await pool.execute('SELECT * FROM prestamos WHERE id = ?', [id]);
+    if (prestRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Préstamo no encontrado.' });
+    }
+    const prestamo = prestRows[0];
+    if (prestamo.estado !== 'activo') {
+      return res.status(400).json({ success: false, message: 'Solo se pueden registrar amortizaciones en préstamos activos.' });
+    }
+
+    // 2. Obtener cuotas ordenadas
+    const [cuotas] = await pool.execute(
+      'SELECT * FROM cuotas WHERE prestamo_id = ? ORDER BY numero_cuota ASC',
+      [id]
+    );
+
+    if (cuotas.length === 0) {
+      return res.status(400).json({ success: false, message: 'El préstamo no tiene cronograma registrado.' });
+    }
+
+    const cuotasPagadas = cuotas.filter(c => c.estado === 'pagada');
+    const cuotasPendientes = cuotas.filter(c => c.estado !== 'pagada');
+
+    if (cuotasPendientes.length === 0) {
+      return res.status(400).json({ success: false, message: 'Todas las cuotas de este préstamo ya están pagadas.' });
+    }
+
+    // Saldo actual de capital pendiente
+    let saldoActual = 0;
+    if (cuotasPendientes.length > 0) {
+      const sumCap = cuotasPendientes.reduce((sum, c) => sum + parseFloat(c.capital || 0), 0);
+      const firstCuotaSaldoIn = parseFloat(cuotasPendientes[0].saldo || 0) + parseFloat(cuotasPendientes[0].capital || 0);
+      saldoActual = Math.abs(sumCap - firstCuotaSaldoIn) < 0.1 ? firstCuotaSaldoIn : sumCap;
+    }
+
+    if (abono > saldoActual + 0.05) {
+      return res.status(400).json({
+        success: false,
+        message: `El monto a amortizar (${abono.toFixed(2)}) no puede exceder el saldo pendiente (${saldoActual.toFixed(2)}).`
+      });
+    }
+
+    const fechaAmort = fecha ? new Date(fecha) : new Date();
+    const fechaAmortStr = !isNaN(fechaAmort.getTime()) ? fechaAmort.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+
+    let periodosPorAnio = 12;
+    if (prestamo.tipo_pago === 'diario') periodosPorAnio = 360;
+    else if (prestamo.tipo_pago === 'semanal') periodosPorAnio = 48;
+    else if (prestamo.tipo_pago === 'quincenal') periodosPorAnio = 24;
+    const tasaPeriodo = (parseFloat(prestamo.interes) / 100) / periodosPorAnio;
+    const modalidad = prestamo.modalidad || 'frances';
+    const cuotaAnterior = parseFloat(cuotasPendientes[0].monto_cuota);
+    const N_anterior = cuotasPendientes.length;
+
+    // 3. Caso: Liquidación Total
+    if (abono >= saldoActual - 0.05) {
+      const primeraPend = cuotasPendientes[0];
+      await pool.execute(
+        `UPDATE cuotas SET 
+          estado = 'pagada', 
+          fecha_pago = ?, 
+          monto_pagado = ?, 
+          capital = ?, 
+          interes = 0.00, 
+          monto_cuota = ?, 
+          saldo = 0.00, 
+          observacion = ?
+         WHERE id = ?`,
+        [
+          fechaAmortStr,
+          saldoActual.toFixed(2),
+          saldoActual.toFixed(2),
+          saldoActual.toFixed(2),
+          (observacion ? observacion + ' - ' : '') + 'Liquidación total anticipada de capital',
+          primeraPend.id
+        ]
+      );
+
+      // Eliminar cuotas pendientes adicionales
+      if (cuotasPendientes.length > 1) {
+        await pool.execute(
+          'DELETE FROM cuotas WHERE prestamo_id = ? AND id != ? AND estado != "pagada"',
+          [id, primeraPend.id]
+        );
+      }
+
+      // Marcar préstamo como pagado
+      await pool.execute("UPDATE prestamos SET estado = 'pagado' WHERE id = ?", [id]);
+
+      const [cuotasSnap] = await pool.query('SELECT * FROM cuotas WHERE prestamo_id = ? ORDER BY numero_cuota ASC', [id]);
+
+      // Registrar en amortizaciones
+      await pool.execute(
+        `INSERT INTO amortizaciones 
+          (prestamo_id, monto, fecha, tipo_reduccion, saldo_anterior, saldo_nuevo, cuota_anterior, cuota_nueva, cuotas_restantes_anterior, cuotas_restantes_nueva, observacion, cronograma_snapshot)
+         VALUES (?, ?, ?, ?, ?, 0.00, ?, 0.00, ?, 0, ?, ?)`,
+        [
+          id, abono.toFixed(2), fechaAmortStr, tipo_reduccion,
+          saldoActual.toFixed(2), cuotaAnterior.toFixed(2),
+          N_anterior, observacion || 'Liquidación total anticipada',
+          JSON.stringify(cuotasSnap)
+        ]
+      );
+
+      return res.json({
+        success: true,
+        message: '¡Préstamo liquidado totalmente! El capital restante ha sido cancelado con éxito.',
+        data: {
+          tipo: 'liquidacion_total',
+          saldoNuevo: 0,
+          cuotaNueva: 0,
+          cuotasRestantes: 0
+        }
+      });
+    }
+
+    // 4. Caso: Amortización Parcial
+    const saldoNuevo = saldoActual - abono;
+
+    if (tipo_reduccion === 'cuota') {
+      let cuotaNueva = 0;
+      let sTemp = saldoNuevo;
+
+      if (modalidad === 'interes_capital') {
+        cuotaNueva = saldoNuevo * tasaPeriodo;
+        for (let k = 0; k < N_anterior; k++) {
+          const c = cuotasPendientes[k];
+          const isLast = (k === N_anterior - 1);
+          const cap = isLast ? saldoNuevo : 0;
+          const int = cuotaNueva;
+          const cMonto = isLast ? (cap + int) : int;
+          const sFin = isLast ? 0 : saldoNuevo;
+          const obsExtra = k === 0 ? ((observacion ? observacion + ' - ' : '') + `Abono capital ${prestamo.moneda || '$'} ${abono.toFixed(2)}`) : null;
+          await pool.execute(
+            `UPDATE cuotas SET capital = ?, interes = ?, monto_cuota = ?, saldo = ?, observacion = COALESCE(?, observacion) WHERE id = ?`,
+            [cap.toFixed(2), int.toFixed(2), cMonto.toFixed(2), Math.max(0, sFin).toFixed(2), obsExtra, c.id]
+          );
+        }
+      } else if (modalidad === 'aleman') {
+        const capFijo = saldoNuevo / N_anterior;
+        for (let k = 0; k < N_anterior; k++) {
+          const c = cuotasPendientes[k];
+          const isLast = (k === N_anterior - 1);
+          const int = sTemp * tasaPeriodo;
+          const cap = isLast ? sTemp : capFijo;
+          const cMonto = cap + int;
+          const sFin = isLast ? 0 : (sTemp - cap);
+          if (k === 0) cuotaNueva = cMonto;
+          const obsExtra = k === 0 ? ((observacion ? observacion + ' - ' : '') + `Abono capital ${prestamo.moneda || '$'} ${abono.toFixed(2)}`) : null;
+          await pool.execute(
+            `UPDATE cuotas SET capital = ?, interes = ?, monto_cuota = ?, saldo = ?, observacion = COALESCE(?, observacion) WHERE id = ?`,
+            [cap.toFixed(2), int.toFixed(2), cMonto.toFixed(2), Math.max(0, sFin).toFixed(2), obsExtra, c.id]
+          );
+          sTemp = sFin;
+        }
+      } else {
+        // frances
+        if (tasaPeriodo === 0) {
+          cuotaNueva = saldoNuevo / N_anterior;
+        } else {
+          cuotaNueva = saldoNuevo * (tasaPeriodo * Math.pow(1 + tasaPeriodo, N_anterior)) / (Math.pow(1 + tasaPeriodo, N_anterior) - 1);
+        }
+        for (let k = 0; k < N_anterior; k++) {
+          const c = cuotasPendientes[k];
+          const isLast = (k === N_anterior - 1);
+          let int = sTemp * tasaPeriodo;
+          let cap = cuotaNueva - int;
+          let sFin = sTemp - cap;
+          let cMonto = cuotaNueva;
+          if (isLast) {
+            cap = sTemp;
+            cMonto = cap + int;
+            sFin = 0;
+          }
+          const obsExtra = k === 0 ? ((observacion ? observacion + ' - ' : '') + `Abono capital ${prestamo.moneda || '$'} ${abono.toFixed(2)}`) : null;
+          await pool.execute(
+            `UPDATE cuotas SET capital = ?, interes = ?, monto_cuota = ?, saldo = ?, observacion = COALESCE(?, observacion) WHERE id = ?`,
+            [cap.toFixed(2), int.toFixed(2), cMonto.toFixed(2), Math.max(0, sFin).toFixed(2), obsExtra, c.id]
+          );
+          sTemp = sFin;
+        }
+      }
+
+      await pool.execute('UPDATE prestamos SET cuota = ? WHERE id = ?', [cuotaNueva.toFixed(2), id]);
+
+      const [cuotasSnap] = await pool.query('SELECT * FROM cuotas WHERE prestamo_id = ? ORDER BY numero_cuota ASC', [id]);
+
+      await pool.execute(
+        `INSERT INTO amortizaciones 
+          (prestamo_id, monto, fecha, tipo_reduccion, saldo_anterior, saldo_nuevo, cuota_anterior, cuota_nueva, cuotas_restantes_anterior, cuotas_restantes_nueva, observacion, cronograma_snapshot)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id, abono.toFixed(2), fechaAmortStr, 'cuota',
+          saldoActual.toFixed(2), saldoNuevo.toFixed(2),
+          cuotaAnterior.toFixed(2), cuotaNueva.toFixed(2),
+          N_anterior, N_anterior,
+          observacion || 'Amortización con reducción de cuota',
+          JSON.stringify(cuotasSnap)
+        ]
+      );
+
+      return res.json({
+        success: true,
+        message: `Amortización registrada. La cuota se redujo a ${prestamo.moneda || '$'} ${cuotaNueva.toFixed(2)}.`,
+        data: {
+          tipo: 'reduccion_cuota',
+          saldoNuevo: saldoNuevo.toFixed(2),
+          cuotaAnterior: cuotaAnterior.toFixed(2),
+          cuotaNueva: cuotaNueva.toFixed(2),
+          cuotasRestantes: N_anterior
+        }
+      });
+
+    } else {
+      // Reducir plazo manteniendo la cuota mensual
+      let newRows = [];
+      let sTemp = saldoNuevo;
+
+      if (modalidad === 'interes_capital') {
+        const factorReduccion = abono / saldoActual;
+        const mesesAReducir = Math.max(1, Math.round(N_anterior * factorReduccion));
+        const newTotalCuotas = Math.max(1, N_anterior - mesesAReducir);
+        const intMes = saldoNuevo * tasaPeriodo;
+
+        for (let k = 0; k < newTotalCuotas; k++) {
+          const isLast = (k === newTotalCuotas - 1);
+          const cap = isLast ? saldoNuevo : 0;
+          const int = intMes;
+          const cMonto = isLast ? (cap + int) : int;
+          const sFin = isLast ? 0 : saldoNuevo;
+          newRows.push({ capital: cap, interes: int, cuota: cMonto, saldo: sFin });
+        }
+      } else if (modalidad === 'aleman') {
+        const capFijo = parseFloat(cuotasPendientes[0].capital) || (saldoActual / N_anterior);
+        while (sTemp > 0.01) {
+          const int = sTemp * tasaPeriodo;
+          const cap = Math.min(sTemp, capFijo);
+          const sFin = sTemp - cap;
+          newRows.push({ capital: cap, interes: int, cuota: cap + int, saldo: Math.max(0, sFin) });
+          sTemp = sFin;
+          if (newRows.length > 360) break;
+        }
+      } else {
+        // frances: mantener cuota cuotaAnterior
+        let cTarget = cuotaAnterior;
+        while (sTemp > 0.01) {
+          const int = sTemp * tasaPeriodo;
+          let cap = cTarget - int;
+          if (cap <= 0) cap = sTemp;
+          if (cap >= sTemp) {
+            cap = sTemp;
+            const cMonto = cap + int;
+            newRows.push({ capital: cap, interes: int, cuota: cMonto, saldo: 0 });
+            sTemp = 0;
+          } else {
+            sTemp -= cap;
+            newRows.push({ capital: cap, interes: int, cuota: cTarget, saldo: Math.max(0, sTemp) });
+          }
+          if (newRows.length > 360) break;
+        }
+      }
+
+      // Actualizar las cuotas necesarias
+      for (let k = 0; k < newRows.length; k++) {
+        const c = cuotasPendientes[k];
+        const row = newRows[k];
+        const obsExtra = k === 0 ? ((observacion ? observacion + ' - ' : '') + `Abono capital ${prestamo.moneda || '$'} ${abono.toFixed(2)} (Reducción de plazo)`) : null;
+        await pool.execute(
+          `UPDATE cuotas SET capital = ?, interes = ?, monto_cuota = ?, saldo = ?, observacion = COALESCE(?, observacion) WHERE id = ?`,
+          [row.capital.toFixed(2), row.interes.toFixed(2), row.cuota.toFixed(2), row.saldo.toFixed(2), obsExtra, c.id]
+        );
+      }
+
+      // Eliminar cuotas sobrantes
+      if (cuotasPendientes.length > newRows.length) {
+        const cuotasAEliminar = cuotasPendientes.slice(newRows.length).map(c => c.id);
+        if (cuotasAEliminar.length > 0) {
+          await pool.query('DELETE FROM cuotas WHERE id IN (?)', [cuotasAEliminar]);
+        }
+      }
+
+      // Actualizar plazo_meses del préstamo
+      const totalCuotasRestantes = newRows.length;
+      await pool.execute(
+        'UPDATE prestamos SET plazo_meses = (SELECT COUNT(*) FROM cuotas WHERE prestamo_id = ?) WHERE id = ?',
+        [id, id]
+      );
+
+      const [cuotasSnap] = await pool.query('SELECT * FROM cuotas WHERE prestamo_id = ? ORDER BY numero_cuota ASC', [id]);
+
+      // Registrar amortización
+      await pool.execute(
+        `INSERT INTO amortizaciones 
+          (prestamo_id, monto, fecha, tipo_reduccion, saldo_anterior, saldo_nuevo, cuota_anterior, cuota_nueva, cuotas_restantes_anterior, cuotas_restantes_nueva, observacion, cronograma_snapshot)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id, abono.toFixed(2), fechaAmortStr, 'plazo',
+          saldoActual.toFixed(2), saldoNuevo.toFixed(2),
+          cuotaAnterior.toFixed(2), cuotaAnterior.toFixed(2),
+          N_anterior, totalCuotasRestantes,
+          observacion || 'Amortización con reducción de plazo',
+          JSON.stringify(cuotasSnap)
+        ]
+      );
+
+      return res.json({
+        success: true,
+        message: `Amortización registrada. Se redujo el plazo en ${N_anterior - totalCuotasRestantes} cuota(s). Quedan ${totalCuotasRestantes} cuota(s) pendiente(s).`,
+        data: {
+          tipo: 'reduccion_plazo',
+          saldoNuevo: saldoNuevo.toFixed(2),
+          cuotasRestantesAnterior: N_anterior,
+          cuotasRestantesNueva: totalCuotasRestantes,
+          cuotasAhorradas: N_anterior - totalCuotasRestantes
+        }
+      });
+    }
+
+  } catch (error) {
+    console.error('Error al registrar amortización:', error);
+    res.status(500).json({ success: false, message: 'Error interno al registrar la amortización: ' + error.message });
+  }
+};
+
+exports.renderCalendario = async (req, res) => {
+  try {
+    let whereClause = '';
+    let params = [];
+
+    if (req.session.role === 'asesor') {
+      const [asesorRows] = await pool.query('SELECT id FROM asesores WHERE user_id = ?', [req.session.userId]);
+      if (asesorRows.length > 0) {
+        whereClause = 'WHERE p.asesor_id = ?';
+        params = [asesorRows[0].id];
+      }
+    }
+
+    const [cuotas] = await pool.query(`
+      SELECT 
+        cu.id,
+        cu.prestamo_id,
+        cu.numero_cuota,
+        DATE_FORMAT(cu.fecha_vencimiento, '%Y-%m-%d') AS fecha_vencimiento_str,
+        DATE_FORMAT(cu.fecha_pago, '%Y-%m-%d') AS fecha_pago_str,
+        cu.monto_cuota,
+        cu.capital,
+        cu.interes,
+        cu.saldo,
+        cu.mora,
+        cu.monto_pagado,
+        cu.estado,
+        cu.observacion,
+        c.id AS cliente_id,
+        c.nombre AS cliente_nombre,
+        c.telefono AS cliente_telefono,
+        c.dni AS cliente_dni,
+        i.id AS inversor_id,
+        COALESCE(i.nombre, 'Sin inversor asignado') AS inversor_nombre,
+        p.monto AS prestamo_monto,
+        p.interes AS prestamo_interes,
+        p.tipo_pago,
+        p.plazo_meses,
+        (SELECT COUNT(*) FROM cuotas c2 WHERE c2.prestamo_id = p.id) AS total_cuotas
+      FROM cuotas cu
+      JOIN prestamos p ON cu.prestamo_id = p.id
+      JOIN clientes c ON p.cliente_id = c.id
+      LEFT JOIN inversionistas i ON p.inversor_id = i.id
+      ${whereClause}
+      ORDER BY cu.fecha_vencimiento ASC, cu.numero_cuota ASC
+    `, params);
+
+    const now = new Date();
+    const hoyStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+    const cuotasFormateadas = cuotas.map(c => {
+      let estadoUnificado = 'proximo';
+      if (c.estado === 'pagada' || c.estado === 'pagado') {
+        estadoUnificado = 'pagado';
+      } else if (c.fecha_vencimiento_str < hoyStr) {
+        estadoUnificado = 'vencido';
+      } else {
+        estadoUnificado = 'proximo';
+      }
+
+      return {
+        id: c.id,
+        prestamo_id: c.prestamo_id,
+        numero_cuota: c.numero_cuota,
+        total_cuotas: c.total_cuotas || c.numero_cuota,
+        fecha_vencimiento: c.fecha_vencimiento_str,
+        fecha_pago: c.fecha_pago_str,
+        monto_cuota: Number(c.monto_cuota || 0),
+        capital: Number(c.capital || 0),
+        interes: Number(c.interes || 0),
+        saldo: Number(c.saldo || 0),
+        mora: Number(c.mora || 0),
+        monto_pagado: Number(c.monto_pagado || 0),
+        estado_original: c.estado,
+        estado: estadoUnificado,
+        observacion: c.observacion,
+        cliente_id: c.cliente_id,
+        cliente_nombre: c.cliente_nombre,
+        cliente_telefono: c.cliente_telefono,
+        cliente_dni: c.cliente_dni,
+        inversor_id: c.inversor_id,
+        inversor_nombre: c.inversor_nombre,
+        prestamo_monto: Number(c.prestamo_monto || 0),
+        tipo_pago: c.tipo_pago,
+        plazo_meses: c.plazo_meses
+      };
+    });
+
+    res.render('calendario', {
+      ...getCommonData(req),
+      cuotasJson: JSON.stringify(cuotasFormateadas),
+      success: req.query.success || null,
+      error: req.query.error || null
+    });
+  } catch (error) {
+    console.error('Error al renderizar calendario:', error);
+    res.render('calendario', {
+      ...getCommonData(req),
+      cuotasJson: '[]',
+      success: null,
+      error: 'Error al cargar los datos del calendario.'
+    });
+  }
+};
+
+// ==========================================
+// PDF: SIMULACIÓN DE AMORTIZACIÓN EXTRAORDINARIA
+// ==========================================
+exports.generarAmortizacionSimulacionPdf = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { monto, tipo_reduccion, fecha, observacion } = req.body;
+
+    const abono = parseFloat(monto);
+    if (isNaN(abono) || abono <= 0) {
+      return res.status(400).json({ success: false, message: 'Ingrese un monto de amortización válido.' });
+    }
+
+    const [prestRows] = await pool.query(`
+      SELECT p.*,
+             c.nombre AS cliente_nombre, c.dni AS cliente_dni, c.telefono AS cliente_telefono,
+             i.nombre AS inversor_nombre
+      FROM prestamos p
+      LEFT JOIN clientes c ON p.cliente_id = c.id
+      LEFT JOIN inversionistas i ON p.inversor_id = i.id
+      WHERE p.id = ?
+    `, [id]);
+
+    if (prestRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Préstamo no encontrado.' });
+    }
+    const prestamo = prestRows[0];
+
+    const [cuotas] = await pool.query('SELECT * FROM cuotas WHERE prestamo_id = ? ORDER BY numero_cuota ASC', [id]);
+    if (cuotas.length === 0) {
+      return res.status(400).json({ success: false, message: 'El préstamo no tiene cuotas registradas.' });
+    }
+
+    const cuotasPagadas = cuotas.filter(c => c.estado === 'pagada');
+    const cuotasPendientes = cuotas.filter(c => c.estado !== 'pagada');
+
+    if (cuotasPendientes.length === 0) {
+      return res.status(400).json({ success: false, message: 'Todas las cuotas de este préstamo ya están pagadas.' });
+    }
+
+    let saldoActual = 0;
+    if (cuotasPendientes.length > 0) {
+      const sumCap = cuotasPendientes.reduce((sum, c) => sum + parseFloat(c.capital || 0), 0);
+      const firstCuotaSaldoIn = parseFloat(cuotasPendientes[0].saldo || 0) + parseFloat(cuotasPendientes[0].capital || 0);
+      saldoActual = Math.abs(sumCap - firstCuotaSaldoIn) < 0.1 ? firstCuotaSaldoIn : sumCap;
+    }
+
+    if (abono > saldoActual + 0.05) {
+      return res.status(400).json({
+        success: false,
+        message: `El monto a amortizar no puede superar el saldo capital pendiente (${prestamo.moneda || '$'} ${saldoActual.toFixed(2)}).`
+      });
+    }
+
+    let periodosPorAnio = 12;
+    if (prestamo.tipo_pago === 'diario') periodosPorAnio = 360;
+    else if (prestamo.tipo_pago === 'semanal') periodosPorAnio = 48;
+    else if (prestamo.tipo_pago === 'quincenal') periodosPorAnio = 24;
+
+    const tasaPeriodo = (parseFloat(prestamo.interes) / 100) / periodosPorAnio;
+    const modalidad = prestamo.modalidad || 'frances';
+    const cuotaAnterior = parseFloat(cuotasPendientes[0].monto_cuota);
+    const N_anterior = cuotasPendientes.length;
+    const isLiquidacion = (abono >= saldoActual - 0.05);
+
+    let saldoNuevo = isLiquidacion ? 0 : (saldoActual - abono);
+    let cuotaNueva = cuotaAnterior;
+    let cuotasRestantesNueva = N_anterior;
+    let newRows = [];
+
+    if (isLiquidacion) {
+      cuotaNueva = 0;
+      cuotasRestantesNueva = 0;
+      newRows.push({
+        num: cuotasPendientes[0].numero_cuota,
+        fechaVencimiento: cuotasPendientes[0].fecha_vencimiento,
+        saldoInicial: saldoActual,
+        capital: saldoActual,
+        interes: 0,
+        cuota: saldoActual,
+        saldo: 0,
+        estado: 'Liquidación Total'
+      });
+    } else if (tipo_reduccion === 'cuota') {
+      if (modalidad === 'interes_capital') {
+        cuotaNueva = saldoNuevo * tasaPeriodo;
+      } else if (modalidad === 'aleman') {
+        cuotaNueva = (saldoNuevo / N_anterior) + (saldoNuevo * tasaPeriodo);
+      } else {
+        cuotaNueva = tasaPeriodo === 0 ? (saldoNuevo / N_anterior) : saldoNuevo * (tasaPeriodo * Math.pow(1 + tasaPeriodo, N_anterior)) / (Math.pow(1 + tasaPeriodo, N_anterior) - 1);
+      }
+
+      let sTemp = saldoNuevo;
+      for (let k = 0; k < N_anterior; k++) {
+        const c = cuotasPendientes[k];
+        const isLast = (k === N_anterior - 1);
+        let int = sTemp * tasaPeriodo;
+        let cap = 0;
+        let cMonto = 0;
+        let sFin = 0;
+
+        if (modalidad === 'interes_capital') {
+          cap = isLast ? saldoNuevo : 0;
+          int = cuotaNueva;
+          cMonto = isLast ? (cap + int) : int;
+          sFin = isLast ? 0 : saldoNuevo;
+        } else if (modalidad === 'aleman') {
+          const capFijo = saldoNuevo / N_anterior;
+          cap = isLast ? sTemp : capFijo;
+          cMonto = cap + int;
+          sFin = isLast ? 0 : (sTemp - cap);
+        } else {
+          cap = isLast ? sTemp : (cuotaNueva - int);
+          cMonto = isLast ? (cap + int) : cuotaNueva;
+          sFin = isLast ? 0 : Math.max(0, sTemp - cap);
+        }
+
+        newRows.push({
+          num: c.numero_cuota,
+          fechaVencimiento: c.fecha_vencimiento,
+          saldoInicial: sTemp,
+          capital: cap,
+          interes: int,
+          cuota: cMonto,
+          saldo: sFin,
+          estado: 'Proyectada'
+        });
+        sTemp = sFin;
+      }
+    } else {
+      // Reducir plazo
+      let sTemp = saldoNuevo;
+      if (modalidad === 'interes_capital') {
+        const factor = abono / saldoActual;
+        const mesesMenos = Math.max(1, Math.round(N_anterior * factor));
+        const newTotal = Math.max(1, N_anterior - mesesMenos);
+        cuotasRestantesNueva = newTotal;
+        const intMes = saldoNuevo * tasaPeriodo;
+        for (let k = 0; k < newTotal; k++) {
+          const isLast = (k === newTotal - 1);
+          const cap = isLast ? saldoNuevo : 0;
+          const int = intMes;
+          const cMonto = isLast ? (cap + int) : int;
+          const sFin = isLast ? 0 : saldoNuevo;
+          newRows.push({
+            num: (cuotasPagadas.length + k + 1),
+            fechaVencimiento: cuotasPendientes[k] ? cuotasPendientes[k].fecha_vencimiento : null,
+            saldoInicial: saldoNuevo,
+            capital: cap,
+            interes: int,
+            cuota: cMonto,
+            saldo: sFin,
+            estado: 'Proyectada'
+          });
+        }
+      } else if (modalidad === 'aleman') {
+        const capFijo = parseFloat(cuotasPendientes[0].capital) || (saldoActual / N_anterior);
+        let k = 0;
+        while (sTemp > 0.01 && k < 360) {
+          const int = sTemp * tasaPeriodo;
+          const cap = Math.min(sTemp, capFijo);
+          const sFin = Math.max(0, sTemp - cap);
+          newRows.push({
+            num: (cuotasPagadas.length + k + 1),
+            fechaVencimiento: cuotasPendientes[k] ? cuotasPendientes[k].fecha_vencimiento : null,
+            saldoInicial: sTemp,
+            capital: cap,
+            interes: int,
+            cuota: cap + int,
+            saldo: sFin,
+            estado: 'Proyectada'
+          });
+          sTemp = sFin;
+          k++;
+        }
+        cuotasRestantesNueva = newRows.length;
+      } else {
+        // Frances
+        let k = 0;
+        while (sTemp > 0.01 && k < 360) {
+          const int = sTemp * tasaPeriodo;
+          let cap = cuotaAnterior - int;
+          if (cap <= 0) cap = sTemp;
+          let sFin = 0;
+          let cMonto = cuotaAnterior;
+          if (cap >= sTemp) {
+            cap = sTemp;
+            cMonto = cap + int;
+            sFin = 0;
+          } else {
+            sFin = Math.max(0, sTemp - cap);
+          }
+          newRows.push({
+            num: (cuotasPagadas.length + k + 1),
+            fechaVencimiento: cuotasPendientes[k] ? cuotasPendientes[k].fecha_vencimiento : null,
+            saldoInicial: sTemp,
+            capital: cap,
+            interes: int,
+            cuota: cMonto,
+            saldo: sFin,
+            estado: 'Proyectada'
+          });
+          sTemp = sFin;
+          k++;
+        }
+        cuotasRestantesNueva = newRows.length;
+      }
+    }
+
+    // Unir cronograma completo: Pagadas + Nuevas Proyectadas
+    const cronogramaFinal = [
+      ...cuotasPagadas.map(c => ({
+        num: c.numero_cuota,
+        fechaVencimiento: c.fecha_vencimiento,
+        saldoInicial: (parseFloat(c.saldo) + parseFloat(c.capital)),
+        capital: parseFloat(c.capital),
+        interes: parseFloat(c.interes),
+        cuota: parseFloat(c.monto_cuota),
+        saldo: parseFloat(c.saldo),
+        estado: 'Pagada'
+      })),
+      ...newRows
+    ];
+
+    // GENERAR PDF
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+    res.setHeader('Content-disposition', `attachment; filename="simulacion_amortizacion_prestamo_${id}.pdf"`);
+    res.setHeader('Content-type', 'application/pdf');
+    doc.pipe(res);
+
+    const mon = prestamo.moneda || '$';
+    const fmt = (n) => mon + '\u00A0' + Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmtPdfDate = (d) => {
+      if (!d) return '—';
+      const dt = typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d) ? new Date(d + 'T12:00:00') : new Date(d);
+      if (isNaN(dt.getTime())) return String(d);
+      const dd = String(dt.getDate()).padStart(2, '0');
+      const mm = String(dt.getMonth() + 1).padStart(2, '0');
+      const yyyy = dt.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    };
+
+    const colorNavy = '#0B162C';
+    const colorGold = '#D4A843';
+    const colorText = '#334155';
+    const colorMuted = '#94A3B8';
+    const colorBgRow = '#F8FAFC';
+    const colorSuccess = '#16A34A';
+
+    const drawWatermark = () => {
+      doc.save();
+      doc.opacity(0.04);
+      const wmSize = 350;
+      doc.image(path.join(__dirname, '../public/img/logo_icon.png'), (doc.page.width - wmSize) / 2, (doc.page.height - wmSize) / 2, { width: wmSize });
+      doc.restore();
+    };
+
+    doc.on('pageAdded', drawWatermark);
+    drawWatermark();
+
+    // Header Logo
+    doc.image(path.join(__dirname, '../public/img/logo_horizontal.png'), 50, 40, { height: 38 });
+
+    // Fecha Header
+    doc.fillColor(colorMuted).fontSize(9).font('Helvetica')
+      .text('Fecha: ' + new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }), 50, 48, { align: 'right', width: 495 });
+    doc.fillColor(colorGold).fontSize(8.5).font('Helvetica-Bold')
+      .text('DOCUMENTO INFORMATIVO (SIMULACIÓN)', 50, 62, { align: 'right', width: 495 });
+
+    doc.text('', 50, 95);
+
+    // Titulo
+    doc.fillColor(colorNavy).fontSize(16).font('Helvetica-Bold')
+      .text('Simulación de Amortización Extraordinaria de Capital', { align: 'center' });
+    doc.fillColor(colorMuted).fontSize(10).font('Helvetica')
+      .text(`Préstamo #${prestamo.id} · Recálculo Proyectado del Cronograma`, { align: 'center' });
+
+    doc.moveDown(1.2);
+
+    const drawRow = (label, value, isHighlight = false) => {
+      const currentY = doc.y;
+      doc.fillColor(isHighlight ? colorNavy : colorMuted).font('Helvetica-Bold').fontSize(9).text(label, 50, currentY, { width: 190 });
+      doc.fillColor(isHighlight ? colorNavy : colorText).font(isHighlight ? 'Helvetica-Bold' : 'Helvetica').fontSize(9).text(value, 240, currentY, { align: 'right', width: 305 });
+      doc.moveDown(0.35);
+      doc.strokeColor('#E2E8F0').lineWidth(0.5).moveTo(50, doc.y).lineTo(545, doc.y).stroke();
+      doc.moveDown(0.4);
+    };
+
+    // Datos Préstamo & Cliente
+    doc.fillColor(colorNavy).fontSize(11).font('Helvetica-Bold').text('INFORMACIÓN GENERAL', { underline: false });
+    doc.moveDown(0.6);
+
+    drawRow('CLIENTE:', prestamo.cliente_nombre ? `${prestamo.cliente_nombre} (DNI: ${prestamo.cliente_dni || '—'})` : 'N/A');
+    drawRow('INVERSIONISTA:', prestamo.inversor_nombre || 'N/A');
+    drawRow('ASESOR:', (req.session && req.session.name) ? req.session.name : 'N/A');
+    drawRow('SISTEMA / MODALIDAD:', modalidad === 'frances' ? 'Sistema Francés (Cuota Fija)' : (modalidad === 'aleman' ? 'Sistema Alemán (Amortización Constante)' : 'Interés Simple Mensual y Capital al Vencimiento'));
+    drawRow('TASA DE INTERÉS:', `${prestamo.interes}% anual`);
+    drawRow('TIPO DE PAGO:', (prestamo.tipo_pago || 'mensual').toUpperCase());
+
+    doc.moveDown(0.8);
+
+    // Tarjeta Resumen Amortización
+    const boxY = doc.y;
+    doc.rect(50, boxY, 495, 80).fillAndStroke('#0B162C', '#0B162C');
+
+    doc.fillColor('#D4A843').fontSize(9.5).font('Helvetica-Bold')
+      .text('PROYECCIÓN DE LA AMORTIZACIÓN SIMULADA', 65, boxY + 10);
+
+    doc.fillColor('#94A3B8').fontSize(8).font('Helvetica')
+      .text('Monto a Amortizar:', 65, boxY + 28);
+    doc.fillColor('#10B981').fontSize(12).font('Helvetica-Bold')
+      .text(fmt(abono), 65, boxY + 40);
+
+    doc.fillColor('#94A3B8').fontSize(8).font('Helvetica')
+      .text('Modalidad de Reducción:', 225, boxY + 28);
+    doc.fillColor('#FFFFFF').fontSize(10.5).font('Helvetica-Bold')
+      .text(isLiquidacion ? 'Liquidación Total' : (tipo_reduccion === 'cuota' ? 'Reducción de Cuota' : 'Reducción de Plazo'), 225, boxY + 41);
+
+    doc.fillColor('#94A3B8').fontSize(8).font('Helvetica')
+      .text('Nuevo Saldo Capital:', 385, boxY + 28);
+    doc.fillColor('#D4A843').fontSize(12).font('Helvetica-Bold')
+      .text(fmt(saldoNuevo), 385, boxY + 40);
+
+    // Línea inferior de beneficio
+    let benefTxt = '';
+    if (isLiquidacion) {
+      benefTxt = '¡Liquidación total de la deuda! No se generarán cuotas posteriores.';
+    } else if (tipo_reduccion === 'cuota') {
+      benefTxt = `La cuota mensual se reduce de ${fmt(cuotaAnterior)} a ${fmt(cuotaNueva)} (Ahorro mensual: ${fmt(cuotaAnterior - cuotaNueva)}) manteniendo ${N_anterior} cuotas.`;
+    } else {
+      benefTxt = `El plazo se reduce en ${N_anterior - cuotasRestantesNueva} cuotas (de ${N_anterior} a ${cuotasRestantesNueva} cuotas) manteniendo cuota de ${fmt(cuotaAnterior)}.`;
+    }
+
+    doc.fillColor('#E2E8F0').fontSize(8.5).font('Helvetica-Bold')
+      .text(benefTxt, 65, boxY + 62, { width: 465 });
+
+    doc.y = boxY + 95;
+
+    // Tabla de Cronograma Proyectado
+    doc.fillColor(colorNavy).fontSize(11).font('Helvetica-Bold')
+      .text('CRONOGRAMA DE PAGOS PROYECTADO', { underline: false });
+    doc.moveDown(0.6);
+
+    const colX =      [50, 75, 140, 208, 273, 333, 400, 472];
+    const colWidths = [25, 65,  68,  65,  60,  67,  72,  73];
+
+    const drawTableHeader = () => {
+      let headerY = doc.y;
+      doc.rect(50, headerY - 2, 495, 18).fill('#0B162C');
+      doc.fillColor('#FFFFFF').fontSize(8).font('Helvetica-Bold');
+
+      doc.text('N°', colX[0], headerY + 3, { width: colWidths[0], align: 'center' });
+      doc.text('Vencimiento', colX[1], headerY + 3, { width: colWidths[1], align: 'center' });
+      doc.text('Saldo In.', colX[2], headerY + 3, { width: colWidths[2], align: 'right' });
+      doc.text('Capital', colX[3], headerY + 3, { width: colWidths[3], align: 'right' });
+      doc.text('Interés', colX[4], headerY + 3, { width: colWidths[4], align: 'right' });
+      doc.text('Cuota', colX[5], headerY + 3, { width: colWidths[5], align: 'right' });
+      doc.text('Saldo Fin.', colX[6], headerY + 3, { width: colWidths[6], align: 'right' });
+      doc.text('Estado', colX[7], headerY + 3, { width: colWidths[7], align: 'center' });
+
+      doc.y = headerY + 22;
+    };
+
+    drawTableHeader();
+
+    let count = 0;
+    cronogramaFinal.forEach(row => {
+      if (doc.y > 730) {
+        doc.addPage();
+        drawTableHeader();
+      }
+
+      let rowY = doc.y;
+      if (count % 2 !== 0) {
+        doc.rect(50, rowY - 2, 495, 16).fill(colorBgRow);
+      }
+
+      const isPagada = row.estado === 'Pagada';
+      const isLiq = row.estado === 'Liquidación Total';
+
+      doc.fillColor(isPagada ? colorMuted : colorNavy).font(isPagada ? 'Helvetica' : 'Helvetica-Bold').fontSize(7.8);
+      doc.text(String(row.num), colX[0], rowY, { width: colWidths[0], align: 'center' });
+      doc.text(fmtPdfDate(row.fechaVencimiento), colX[1], rowY, { width: colWidths[1], align: 'center' });
+      doc.text(fmt(row.saldoInicial), colX[2], rowY, { width: colWidths[2], align: 'right' });
+      doc.text(fmt(row.capital), colX[3], rowY, { width: colWidths[3], align: 'right' });
+      doc.text(fmt(row.interes), colX[4], rowY, { width: colWidths[4], align: 'right' });
+      doc.text(fmt(row.cuota), colX[5], rowY, { width: colWidths[5], align: 'right' });
+      doc.text(fmt(row.saldo), colX[6], rowY, { width: colWidths[6], align: 'right' });
+
+      if (isPagada) {
+        doc.fillColor(colorSuccess).font('Helvetica-Bold').text('PAGADA', colX[7], rowY, { width: colWidths[7], align: 'center' });
+      } else if (isLiq) {
+        doc.fillColor(colorGold).font('Helvetica-Bold').text('LIQUIDADA', colX[7], rowY, { width: colWidths[7], align: 'center' });
+      } else {
+        doc.fillColor('#2563EB').font('Helvetica').text('PROYECTADA', colX[7], rowY, { width: colWidths[7], align: 'center' });
+      }
+
+      doc.moveDown(0.7);
+      count++;
+    });
+
+    // Disclaimer
+    doc.moveDown(1.5);
+    if (doc.y > 730) doc.addPage();
+    doc.fillColor(colorMuted).fontSize(8).font('Helvetica-Oblique')
+      .text('* Nota: Esta simulación es un documento de cálculo informativo previo. La amortización y nuevo cronograma serán vinculantes una vez registrados y confirmados formalmente en el sistema.', { align: 'center', width: 495 });
+
+    doc.end();
+
+  } catch (error) {
+    console.error('Error generando PDF de simulación de amortización:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: 'Error interno al generar el PDF de simulación: ' + error.message });
+    }
+  }
+};
+
+// ==========================================
+// PDF: COMPROBANTE OFICIAL DE AMORTIZACIÓN Y CRONOGRAMA
+// ==========================================
+exports.generarAmortizacionComprobantePdf = async (req, res) => {
+  try {
+    const { id, amortizacionId } = req.params;
+
+    const [amortRows] = await pool.query('SELECT * FROM amortizaciones WHERE id = ? AND prestamo_id = ?', [amortizacionId, id]);
+    if (amortRows.length === 0) {
+      return res.status(404).send('Amortización no encontrada.');
+    }
+    const amort = amortRows[0];
+
+    const [prestRows] = await pool.query(`
+      SELECT p.*,
+             c.nombre AS cliente_nombre, c.dni AS cliente_dni, c.telefono AS cliente_telefono,
+             i.nombre AS inversor_nombre
+      FROM prestamos p
+      LEFT JOIN clientes c ON p.cliente_id = c.id
+      LEFT JOIN inversionistas i ON p.inversor_id = i.id
+      WHERE p.id = ?
+    `, [id]);
+
+    if (prestRows.length === 0) {
+      return res.status(404).send('Préstamo no encontrado.');
+    }
+    const prestamo = prestRows[0];
+
+    let cronograma = [];
+    if (amort.cronograma_snapshot) {
+      try {
+        cronograma = JSON.parse(amort.cronograma_snapshot);
+      } catch (e) {
+        cronograma = [];
+      }
+    }
+    if (!cronograma || cronograma.length === 0) {
+      const [cuotasDb] = await pool.query('SELECT * FROM cuotas WHERE prestamo_id = ? ORDER BY numero_cuota ASC', [id]);
+      cronograma = cuotasDb;
+    }
+
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+    res.setHeader('Content-disposition', `attachment; filename="amortizacion_${amort.id}_prestamo_${id}.pdf"`);
+    res.setHeader('Content-type', 'application/pdf');
+    doc.pipe(res);
+
+    const mon = prestamo.moneda || '$';
+    const fmt = (n) => mon + '\u00A0' + Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmtPdfDate = (d) => {
+      if (!d) return '—';
+      const dt = typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d) ? new Date(d + 'T12:00:00') : new Date(d);
+      if (isNaN(dt.getTime())) return String(d);
+      const dd = String(dt.getDate()).padStart(2, '0');
+      const mm = String(dt.getMonth() + 1).padStart(2, '0');
+      const yyyy = dt.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    };
+
+    const colorNavy = '#0B162C';
+    const colorGold = '#D4A843';
+    const colorText = '#334155';
+    const colorMuted = '#94A3B8';
+    const colorBgRow = '#F8FAFC';
+    const colorSuccess = '#16A34A';
+
+    const drawWatermark = () => {
+      doc.save();
+      doc.opacity(0.04);
+      const wmSize = 350;
+      doc.image(path.join(__dirname, '../public/img/logo_icon.png'), (doc.page.width - wmSize) / 2, (doc.page.height - wmSize) / 2, { width: wmSize });
+      doc.restore();
+    };
+
+    doc.on('pageAdded', drawWatermark);
+    drawWatermark();
+
+    // Header Logo
+    doc.image(path.join(__dirname, '../public/img/logo_horizontal.png'), 50, 40, { height: 38 });
+
+    // Folio & Fecha Header
+    doc.fillColor(colorNavy).fontSize(9).font('Helvetica-Bold')
+      .text(`CONSTANCIA OFICIAL: #AMORT-${String(amort.id).padStart(5, '0')}`, 50, 44, { align: 'right', width: 495 });
+    doc.fillColor(colorMuted).fontSize(8.5).font('Helvetica')
+      .text('Fecha Emisión: ' + fmtPdfDate(amort.fecha || amort.created_at), 50, 58, { align: 'right', width: 495 });
+
+    doc.text('', 50, 95);
+
+    // Titulo Principal
+    doc.fillColor(colorNavy).fontSize(16).font('Helvetica-Bold')
+      .text('Constancia de Amortización Extraordinaria de Capital', { align: 'center' });
+    doc.fillColor(colorGold).fontSize(10).font('Helvetica-Bold')
+      .text('NUEVO CRONOGRAMA OFICIAL DE PAGOS', { align: 'center' });
+
+    doc.moveDown(1.2);
+
+    const drawRow = (label, value, isHighlight = false) => {
+      const currentY = doc.y;
+      doc.fillColor(isHighlight ? colorNavy : colorMuted).font('Helvetica-Bold').fontSize(9).text(label, 50, currentY, { width: 190 });
+      doc.fillColor(isHighlight ? colorNavy : colorText).font(isHighlight ? 'Helvetica-Bold' : 'Helvetica').fontSize(9).text(value, 240, currentY, { align: 'right', width: 305 });
+      doc.moveDown(0.35);
+      doc.strokeColor('#E2E8F0').lineWidth(0.5).moveTo(50, doc.y).lineTo(545, doc.y).stroke();
+      doc.moveDown(0.4);
+    };
+
+    // Sección Información General
+    doc.fillColor(colorNavy).fontSize(11).font('Helvetica-Bold').text('INFORMACIÓN DE LA OPERACIÓN', { underline: false });
+    doc.moveDown(0.6);
+
+    drawRow('PRÉSTAMO N°:', `#${prestamo.id}`, true);
+    drawRow('CLIENTE:', prestamo.cliente_nombre ? `${prestamo.cliente_nombre} (DNI: ${prestamo.cliente_dni || '—'})` : 'N/A');
+    drawRow('INVERSIONISTA:', prestamo.inversor_nombre || 'N/A');
+    drawRow('ASESOR:', (req.session && req.session.name) ? req.session.name : 'N/A');
+    drawRow('TASA DE INTERÉS:', `${prestamo.interes}% anual`);
+    drawRow('FRECUENCIA DE PAGO:', (prestamo.tipo_pago || 'mensual').toUpperCase());
+
+    doc.moveDown(0.8);
+
+    // Tarjeta Detalle de Amortización
+    const boxY = doc.y;
+    doc.rect(50, boxY, 495, 82).fillAndStroke('#0B162C', '#0B162C');
+
+    doc.fillColor('#D4A843').fontSize(9.5).font('Helvetica-Bold')
+      .text('DETALLE DEL ABONO EXTRAORDINARIO A CAPITAL APLICADO', 65, boxY + 10);
+
+    doc.fillColor('#94A3B8').fontSize(8).font('Helvetica')
+      .text('Monto Amortizado:', 65, boxY + 28);
+    doc.fillColor('#10B981').fontSize(13).font('Helvetica-Bold')
+      .text(fmt(amort.monto), 65, boxY + 40);
+
+    doc.fillColor('#94A3B8').fontSize(8).font('Helvetica')
+      .text('Modalidad Aplicada:', 225, boxY + 28);
+    doc.fillColor('#FFFFFF').fontSize(10.5).font('Helvetica-Bold')
+      .text(amort.tipo_reduccion === 'cuota' ? 'Reducción de Cuota' : 'Reducción de Plazo', 225, boxY + 42);
+
+    doc.fillColor('#94A3B8').fontSize(8).font('Helvetica')
+      .text('Saldo Capital Posterior:', 385, boxY + 28);
+    doc.fillColor('#D4A843').fontSize(13).font('Helvetica-Bold')
+      .text(fmt(amort.saldo_nuevo), 385, boxY + 40);
+
+    let impactText = '';
+    if (amort.tipo_reduccion === 'cuota') {
+      impactText = `Impacto: Cuota reducida de ${fmt(amort.cuota_anterior)} a ${fmt(amort.cuota_nueva)} mensuales · Manteniendo ${amort.cuotas_restantes_nueva} cuotas`;
+    } else {
+      const cuotasMenos = Number(amort.cuotas_restantes_anterior || 0) - Number(amort.cuotas_restantes_nueva || 0);
+      impactText = `Impacto: Plazo reducido en ${cuotasMenos} cuota(s) · Restan ${amort.cuotas_restantes_nueva} cuotas pendientes · Cuota: ${fmt(amort.cuota_anterior)}`;
+    }
+    if (amort.observacion) {
+      impactText += ` · Obs: ${amort.observacion}`;
+    }
+
+    doc.fillColor('#E2E8F0').fontSize(8.5).font('Helvetica-Bold')
+      .text(impactText, 65, boxY + 63, { width: 465 });
+
+    doc.y = boxY + 98;
+
+    // Tabla del Cronograma
+    doc.fillColor(colorNavy).fontSize(11).font('Helvetica-Bold')
+      .text('CRONOGRAMA DE PAGOS RESULTANTE', { underline: false });
+    doc.moveDown(0.6);
+
+    const colX =      [50, 75, 140, 208, 273, 333, 400, 472];
+    const colWidths = [25, 65,  68,  65,  60,  67,  72,  73];
+
+    const drawTableHeader = () => {
+      let headerY = doc.y;
+      doc.rect(50, headerY - 2, 495, 18).fill('#0B162C');
+      doc.fillColor('#FFFFFF').fontSize(8).font('Helvetica-Bold');
+
+      doc.text('N°', colX[0], headerY + 3, { width: colWidths[0], align: 'center' });
+      doc.text('Vencimiento', colX[1], headerY + 3, { width: colWidths[1], align: 'center' });
+      doc.text('Saldo In.', colX[2], headerY + 3, { width: colWidths[2], align: 'right' });
+      doc.text('Capital', colX[3], headerY + 3, { width: colWidths[3], align: 'right' });
+      doc.text('Interés', colX[4], headerY + 3, { width: colWidths[4], align: 'right' });
+      doc.text('Cuota', colX[5], headerY + 3, { width: colWidths[5], align: 'right' });
+      doc.text('Saldo Fin.', colX[6], headerY + 3, { width: colWidths[6], align: 'right' });
+      doc.text('Estado', colX[7], headerY + 3, { width: colWidths[7], align: 'center' });
+
+      doc.y = headerY + 22;
+    };
+
+    drawTableHeader();
+
+    let count = 0;
+    cronograma.forEach(row => {
+      if (doc.y > 730) {
+        doc.addPage();
+        drawTableHeader();
+      }
+
+      let rowY = doc.y;
+      if (count % 2 !== 0) {
+        doc.rect(50, rowY - 2, 495, 16).fill(colorBgRow);
+      }
+
+      const saldoIn = row.saldoInicial !== undefined ? Number(row.saldoInicial) : (Number(row.saldo || 0) + Number(row.capital || 0));
+      const isPagada = row.estado === 'pagada' || row.estado === 'Pagada';
+
+      doc.fillColor(isPagada ? colorMuted : colorNavy).font(isPagada ? 'Helvetica' : 'Helvetica-Bold').fontSize(7.8);
+      doc.text(String(row.numero_cuota || row.num), colX[0], rowY, { width: colWidths[0], align: 'center' });
+      doc.text(fmtPdfDate(row.fecha_vencimiento || row.fechaVencimiento), colX[1], rowY, { width: colWidths[1], align: 'center' });
+      doc.text(fmt(saldoIn), colX[2], rowY, { width: colWidths[2], align: 'right' });
+      doc.text(fmt(row.capital), colX[3], rowY, { width: colWidths[3], align: 'right' });
+      doc.text(fmt(row.interes), colX[4], rowY, { width: colWidths[4], align: 'right' });
+      doc.text(fmt(row.monto_cuota || row.cuota), colX[5], rowY, { width: colWidths[5], align: 'right' });
+      doc.text(fmt(row.saldo), colX[6], rowY, { width: colWidths[6], align: 'right' });
+
+      if (isPagada) {
+        doc.fillColor(colorSuccess).font('Helvetica-Bold').text('PAGADA', colX[7], rowY, { width: colWidths[7], align: 'center' });
+      } else {
+        doc.fillColor('#F59E0B').font('Helvetica').text('PENDIENTE', colX[7], rowY, { width: colWidths[7], align: 'center' });
+      }
+
+      doc.moveDown(0.7);
+      count++;
+    });
+
+    // Disclaimer
+    doc.moveDown(1.5);
+    if (doc.y > 730) doc.addPage();
+    doc.fillColor(colorMuted).fontSize(8).font('Helvetica-Oblique')
+      .text('Este documento certifica la correcta aplicación del abono a capital y el recálculo oficial de las cuotas del cronograma de pagos.', { align: 'center', width: 495 });
+
+    doc.end();
+
+  } catch (error) {
+    console.error('Error generando comprobante PDF de amortización:', error);
+    if (!res.headersSent) {
+      res.status(500).send('Error al generar el comprobante PDF: ' + error.message);
+    }
+  }
+};
+
+

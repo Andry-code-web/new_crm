@@ -155,8 +155,14 @@
                           Number(p.cuota).toLocaleString('es-MX', {minimumFractionDigits: 2}) %>
                       </td>
                       <td class="py-3.5 px-6 text-center">
+                        <% 
+                          let badgeTipoPagoCli = 'bg-brand-success-light text-brand-success border border-brand-success';
+                          if (p.tipo_pago === 'quincenal') badgeTipoPagoCli = 'bg-brand-blue-light text-brand-blue border border-brand-blue';
+                          else if (p.tipo_pago === 'semanal') badgeTipoPagoCli = 'bg-purple-50 text-purple-700 border border-purple-200';
+                          else if (p.tipo_pago === 'diario') badgeTipoPagoCli = 'bg-amber-50 text-amber-700 border border-amber-200';
+                        %>
                         <span
-                          class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[11px] font-semibold <%= p.tipo_pago === 'mensual' ? 'bg-brand-success-light text-brand-success border border-brand-success' : 'bg-brand-blue-light text-brand-blue border border-brand-blue' %> capitalize">
+                          class="inline-flex items-center px-2 py-0.5 rounded-[6px] text-[11px] font-semibold <%= badgeTipoPagoCli %> capitalize">
                           <%= p.tipo_pago %>
                         </span>
                       </td>

@@ -1,475 +1,1335 @@
-<% if (user.role === 'admin') { %>
-    <%- include('partials/sidebar_admin') %>
-<% } else if (user.role === 'asesor') { %>
-    <%- include('partials/sidebar_asesor') %>
-<% } else { %>
-    <%- include('partials/sidebar_cliente') %>
-<% } %>
-
-<%
-  const fmt = (n) => Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const fmtDate = (d) => {
-    if (!d) return '\u2014';
-    const date = new Date(d);
-    return date.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
-  };
-  const progreso = stats.totalCuotas > 0 ? Math.round((stats.cuotasPagadas / stats.totalCuotas) * 100) : 0;
-  const telefonoLimpio = (prestamo.cliente_telefono || '').replace(/[^0-9]/g, '');
-%>
-
-<main class="flex-1 h-screen overflow-y-auto bg-brand-bg relative flex flex-col min-w-0">
-
-  <!-- Header -->
-  <header class="flex items-center justify-between px-8 py-4 bg-white/92 backdrop-blur-md border-b border-brand-border sticky top-0 z-40">
-    <div class="flex items-center gap-3">
-      <a href="/dashboard/prestamos" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-brand-surface hover:bg-brand-blue-light hover:text-brand-blue transition-colors text-brand-muted">
-        <i class="ri-arrow-left-s-line text-[18px]"></i>
-      </a>
-      <div>
-        <h1 class="text-[22px] font-bold tracking-tight text-brand-navy">Cronograma de Pagos</h1>
-        <p class="text-[13px] text-brand-muted mt-0.5">Pr&eacute;stamo #<%= prestamo.id %> &mdash; <strong class="font-bold text-brand-text"><%= prestamo.cliente_nombre %></strong></p>
-      </div>
-    </div>
-    <img src="<%= user.avatar %>" alt="Avatar" class="w-[38px] h-[38px] rounded-full border-2 border-brand-gold object-cover">
-  </header>
-
-  <div class="p-4 max-w-[1400px] mx-auto w-full flex-1 flex flex-col gap-6">
-
-    <!-- Flash -->
-    <% if (typeof success !== 'undefined' && success) { %>
-    <div id="flash-success" class="bg-brand-success-light border border-brand-success text-brand-success px-5 py-4 rounded-[12px] flex flex-col gap-1 transition-opacity duration-300 animate-in">
-      <p class="font-bold text-[14px]">&#161;&#201;xito!</p><p class="text-[13px] opacity-90"><%= success %></p>
-    </div>
-    <% } %>
-    <% if (typeof error !== 'undefined' && error) { %>
-    <div id="flash-error" class="bg-brand-danger-light border border-brand-danger text-brand-danger px-5 py-4 rounded-[12px] flex flex-col gap-1 transition-opacity duration-300 animate-in">
-      <p class="font-bold text-[14px]">Error</p><p class="text-[13px] opacity-90"><%= error %></p>
-    </div>
-    <% } %>
-
-    <!-- KPI Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-in">
-      <div class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4">
-        <div class="w-11 h-11 rounded-[12px] flex items-center justify-center bg-brand-blue-light text-brand-blue flex-shrink-0">
-          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        </div>
-        <div>
-          <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Monto Pr&eacute;stamo</p>
-          <p class="text-[18px] font-extrabold text-brand-navy mt-0.5">S/<%= fmt(prestamo.monto) %></p>
-        </div>
-      </div>
-      <div class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4">
-        <div class="w-11 h-11 rounded-[12px] flex items-center justify-center bg-brand-gold-light text-brand-gold flex-shrink-0">
-          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
-        </div>
-        <div>
-          <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Tasa Inter&eacute;s</p>
-          <p class="text-[18px] font-extrabold text-brand-navy mt-0.5"><%= prestamo.interes %>%</p>
-        </div>
-      </div>
-      <div class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4">
-        <div class="w-11 h-11 rounded-[12px] flex items-center justify-center bg-brand-success-light text-brand-success flex-shrink-0">
-          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        </div>
-        <div>
-          <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Cuotas Pagadas</p>
-          <p class="text-[18px] font-extrabold text-brand-navy mt-0.5"><%= stats.cuotasPagadas %> / <%= stats.totalCuotas %></p>
-        </div>
-      </div>
-      <div class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4">
-        <div class="w-11 h-11 rounded-[12px] flex items-center justify-center bg-brand-navy-light text-brand-navy flex-shrink-0">
-          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        </div>
-        <div>
-          <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Saldo Pendiente</p>
-          <p class="text-[18px] font-extrabold text-brand-navy mt-0.5">S/<%= fmt(stats.montoPendiente) %></p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Barra de Progreso -->
-    <div class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border animate-in delay-50">
-      <div class="flex items-center justify-between mb-3">
-        <div>
-          <p class="text-[14px] font-bold text-brand-navy">Progreso del Pago</p>
-          <p class="text-[12px] text-brand-muted mt-0.5"><%= stats.cuotasPagadas %> de <%= stats.totalCuotas %> cuotas completadas</p>
-        </div>
-        <span class="text-[20px] font-extrabold text-brand-blue"><%= progreso %>%</span>
-      </div>
-      <div class="w-full bg-brand-surface2 rounded-full h-3 overflow-hidden">
-        <div class="h-3 rounded-full bg-gradient-to-r from-brand-blue to-brand-success transition-all duration-700" style="width: <%= progreso %>%"></div>
-      </div>
-      <div class="flex items-center justify-between mt-3 text-[12px] text-brand-muted">
-        <span>Pagado: <strong class="text-brand-success">S/<%= fmt(stats.montoPagado) %></strong></span>
-        <span>Pendiente: <strong class="text-brand-navy">S/<%= fmt(stats.montoPendiente) %></strong></span>
-      </div>
-    </div>
-    <!-- Panel Cambiar Fecha de Inicio -->
-    <div class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border animate-in delay-75">
-      <div class="flex items-center gap-3 mb-4">
-        <div class="w-9 h-9 rounded-[10px] flex items-center justify-center bg-brand-gold-light text-brand-gold flex-shrink-0">
-          <i class="ri-calendar-2-line text-[18px]"></i>
-        </div>
-        <div>
-          <p class="text-[14px] font-bold text-brand-navy">Cambiar Fecha de Inicio del Cronograma</p>
-          <p class="text-[12px] text-brand-muted mt-0.5">Al cambiar la fecha, todas las fechas de vencimiento ser&aacute;n recalculadas autom&aacute;ticamente.</p>
-        </div>
-      </div>
-      <div class="flex items-end gap-3">
-        <div class="flex-1">
-          <label class="block text-[12px] font-semibold text-brand-muted uppercase tracking-wide mb-1.5">Nueva fecha de inicio</label>
-          <div class="relative">
-            <i class="ri-calendar-line absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted text-[15px] pointer-events-none"></i>
-            <input type="date" id="inp-fecha-inicio"
-              value="<%= prestamo.fecha_registro ? new Date(prestamo.fecha_registro).toISOString().split('T')[0] : '' %>"
-              class="w-full bg-brand-surface border border-brand-border rounded-[10px] py-2.5 pr-3.5 pl-9 text-[14px] font-medium text-brand-text outline-none transition-all duration-200 hover:border-brand-blue-light focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
-          </div>
-        </div>
-        <button type="button" id="btn-cambiar-fecha" disabled
-          title="Selecciona una fecha para habilitar"
-          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-[10px] text-[13px] font-bold text-white bg-brand-navy/40 shadow-md transition-all flex-shrink-0 cursor-not-allowed opacity-50"
-          style="pointer-events:none">
-          <i class="ri-refresh-line text-[15px]"></i>
-          Actualizar Fechas
-        </button>
-
-      </div>
-      <div id="fecha-result" class="hidden mt-3 px-4 py-2.5 rounded-[10px] text-[12px] font-medium"></div>
-    </div>
-
-    <!-- Tabla de Cuotas -->
-    <div class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col overflow-hidden animate-in delay-100">
-      <div class="px-7 py-5 border-b border-brand-border flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <p class="text-[16px] font-bold tracking-tight text-brand-navy">Cuotas del Pr&eacute;stamo</p>
-          <p class="text-[13px] text-brand-muted mt-0.5">
-            Cliente: <strong class="text-brand-text"><%= prestamo.cliente_nombre %></strong>
-            <% if (prestamo.cliente_telefono) { %>
-              &middot; Tel: <strong class="text-brand-text"><%= prestamo.cliente_telefono %></strong>
+<% if (user.role==='admin' ) { %>
+  <%- include('partials/sidebar_admin') %>
+    <% } else if (user.role==='asesor' ) { %>
+      <%- include('partials/sidebar_asesor') %>
+        <% } else { %>
+          <%- include('partials/sidebar_cliente') %>
             <% } %>
-          </p>
-        </div>
-        <div class="flex items-center gap-2 flex-wrap">
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-brand-success-light text-brand-success border border-brand-success">
-            <span class="w-1.5 h-1.5 rounded-full bg-brand-success"></span> Pagada
-          </span>
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-amber-50 text-amber-600 border border-amber-300">
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Pendiente
-          </span>
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-brand-danger-light text-brand-danger border border-brand-danger">
-            <span class="w-1.5 h-1.5 rounded-full bg-brand-danger"></span> Vencida
-          </span>
-        </div>
-      </div>
 
-      <div class="w-full overflow-x-auto">
-        <table class="w-full border-collapse text-left text-[13px]">
-          <thead>
-            <tr class="bg-brand-surface border-b border-brand-border">
-              <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-center">#</th>
-              <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide">Vencimiento</th>
-              <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-right">Capital</th>
-              <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-right">Inter&eacute;s</th>
-              <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-right">Cuota</th>
-              <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-right">Saldo Final</th>
-              <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide">Fecha Pago</th>
-              <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-center">Estado</th>
-              <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% cuotas.forEach((c) => {
-              const hoy = new Date();
-              hoy.setHours(0,0,0,0);
-              const venc = new Date(c.fecha_vencimiento);
-              const estadoReal = c.estado === 'pagada' ? 'pagada' : (c.estado !== 'pagada' && venc < hoy ? 'vencida' : 'pendiente');
-              const cuotaFmt = fmt(c.monto_cuota);
-              const msgWA = 'Hola ' + prestamo.cliente_nombre + ', le recordamos que su cuota N\u00b0 ' + c.numero_cuota + ' por $' + cuotaFmt + ' vence el ' + fmtDate(c.fecha_vencimiento) + '. Por favor realice su pago a tiempo. \u2014 Financiera Guzmán.';
-              const waUrl = telefonoLimpio ? 'https://wa.me/' + telefonoLimpio + '?text=' + encodeURIComponent(msgWA) : null;
-            %>
-            <tr class="border-b border-brand-border last:border-b-0 transition-colors duration-150 <%= estadoReal === 'pagada' ? 'bg-green-50/50' : estadoReal === 'vencida' ? 'bg-red-50/40' : 'hover:bg-brand-surface' %>">
-              <td class="py-3 px-4 text-center">
-                <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-[12px] font-bold <%= estadoReal === 'pagada' ? 'bg-brand-success text-white' : estadoReal === 'vencida' ? 'bg-brand-danger text-white' : 'bg-brand-surface2 text-brand-navy' %>">
-                  <%= c.numero_cuota %>
-                </span>
-              </td>
-              <td class="py-3 px-4 text-brand-text font-medium"><%= fmtDate(c.fecha_vencimiento) %></td>
-              <td class="py-3 px-4 text-right text-brand-muted">S/<%= fmt(c.capital) %></td>
-              <td class="py-3 px-4 text-right text-brand-muted">S/<%= fmt(c.interes) %></td>
-              <td class="py-3 px-4 text-right font-bold text-brand-blue">S/<%= cuotaFmt %></td>
-              <td class="py-3 px-4 text-right text-brand-text">S/<%= fmt(c.saldo) %></td>
-              <td class="py-3 px-4 text-brand-muted text-[12px]"><%= c.fecha_pago ? fmtDate(c.fecha_pago) : '\u2014' %></td>
-              <td class="py-3 px-4 text-center">
-                <% if (estadoReal === 'pagada') { %>
-                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[11px] font-semibold bg-brand-success-light text-brand-success border border-brand-success">
-                    <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline stroke-linecap="round" stroke-linejoin="round" stroke-width="3" points="20 6 9 17 4 12"/></svg>
-                    Pagada
-                  </span>
-                <% } else if (estadoReal === 'vencida') { %>
-                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[11px] font-semibold bg-brand-danger-light text-brand-danger border border-brand-danger">
-                    <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                    Vencida
-                  </span>
-                <% } else { %>
-                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[11px] font-semibold bg-amber-50 text-amber-600 border border-amber-300">
-                    <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="12 6 12 12 16 14"/></svg>
-                    Pendiente
-                  </span>
-                <% } %>
-              </td>
-              <td class="py-3 px-4 text-center">
-                <div class="flex items-center justify-center gap-2">
-                  <% if (estadoReal !== 'pagada') { %>
-                  <button type="button"
-                    class="btn-registrar-pago inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-brand-blue text-white hover:bg-brand-blue-hover transition-all shadow-sm hover:shadow-md"
-                    data-cuota-id="<%= c.id %>"
-                    data-prestamo-id="<%= prestamo.id %>"
-                    data-num="<%= c.numero_cuota %>"
-                    data-monto="<%= cuotaFmt %>">
-                    <i class="ri-check-line text-[13px]"></i>
-                  </button>
-                  <% } else { %>
-                  <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold text-brand-muted bg-brand-surface2 cursor-default text-green-600">
-                    <i class="ri-check-double-line text-[13px]"></i>
-                  </span>
-                  <% } %>
-                  <% if (waUrl) { %>
-                  <a href="<%= waUrl %>" target="_blank" rel="noopener noreferrer"
-                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#25D366] hover:bg-[#20ba58] text-green-600 transition-all shadow-sm hover:shadow-md"
-                    title="Enviar recordatorio por WhatsApp">
-                    <i class="ri-whatsapp-line"></i>
-                  </a>
-                  <% } else { %>
-                  <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-brand-surface2 text-brand-muted cursor-not-allowed opacity-50" title="Sin tel&eacute;fono registrado">
-                    <i class="ri-whatsapp-line"></i>
-                  </span>
-                  <% } %>
+              <% const fmt=(n)=> Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2,
+                maximumFractionDigits: 2 });
+                const fmtDate = (d) => {
+                if (!d) return '\u2014';
+                const date = new Date(d);
+                return date.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+                };
+                const progreso = stats.totalCuotas > 0 ? Math.round((stats.cuotasPagadas / stats.totalCuotas) * 100) :
+                0;
+                const telefonoLimpio = (prestamo.cliente_telefono || '').replace(/[^0-9]/g, '');
+                const mon = prestamo.moneda || '$';
+
+                let modLabel = 'Sistema Francés (Cuota Fija)';
+                let modBadgeColor = 'bg-brand-blue-light text-brand-blue border-brand-blue/30';
+                if (prestamo.modalidad === 'interes_capital') {
+                modLabel = 'Interés sobre el Capital (Solo Interés)';
+                modBadgeColor = 'bg-brand-gold-light text-brand-gold-hover border-brand-gold/30';
+                } else if (prestamo.modalidad === 'aleman') {
+                modLabel = 'Amortización Constante (Alemán)';
+                modBadgeColor = 'bg-brand-success-light text-brand-success border-brand-success/30';
+                }
+
+                const cuotasPagadasList = cuotas.filter(c => c.estado === 'pagada');
+                const cuotasPendientesList = cuotas.filter(c => c.estado !== 'pagada');
+                let saldoActualCapital = 0;
+                if (cuotasPendientesList.length > 0) {
+                  const sumCap = cuotasPendientesList.reduce((sum, c) => sum + Number(c.capital || 0), 0);
+                  const firstCuotaSaldoIn = Number(cuotasPendientesList[0].saldo || 0) + Number(cuotasPendientesList[0].capital || 0);
+                  saldoActualCapital = Math.abs(sumCap - firstCuotaSaldoIn) < 0.1 ? firstCuotaSaldoIn : sumCap;
+                }
+                const cuotaActualMonto = cuotasPendientesList.length > 0 ? Number(cuotasPendientesList[0].monto_cuota) :
+                Number(prestamo.cuota);
+                const cuotasRestantesCount = cuotasPendientesList.length;
+                %>
+
+                <main class="flex-1 h-screen overflow-y-auto bg-brand-bg relative flex flex-col min-w-0">
+
+                  <!-- Header -->
+                  <header
+                    class="flex items-center justify-between px-8 py-4 bg-white/92 backdrop-blur-md border-b border-brand-border sticky top-0 z-40">
+                    <div class="flex items-center gap-3">
+                      <a href="/dashboard/prestamos"
+                        class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-brand-surface hover:bg-brand-blue-light hover:text-brand-blue transition-colors text-brand-muted">
+                        <i class="ri-arrow-left-s-line text-[18px]"></i>
+                      </a>
+                      <div>
+                        <h1 class="text-[22px] font-bold tracking-tight text-brand-navy">Cronograma de Pagos</h1>
+                        <p class="text-[13px] text-brand-muted mt-0.5 flex items-center flex-wrap gap-2">
+                          <span>Pr&eacute;stamo #<%= prestamo.id %> &mdash; <strong class="font-bold text-brand-text">
+                                <%= prestamo.cliente_nombre %>
+                              </strong></span>
+                          <span
+                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border <%= modBadgeColor %>">
+                            <%= modLabel %>
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                    <img src="<%= user.avatar %>" alt="Avatar"
+                      class="w-[38px] h-[38px] rounded-full border-2 border-brand-gold object-cover">
+                  </header>
+
+                  <div class="p-4 max-w-[1400px] mx-auto w-full flex-1 flex flex-col gap-6">
+
+                    <!-- Flash -->
+                    <% if (typeof success !=='undefined' && success) { %>
+                      <div id="flash-success"
+                        class="bg-brand-success-light border border-brand-success text-brand-success px-5 py-4 rounded-[12px] flex flex-col gap-1 transition-opacity duration-300 animate-in">
+                        <p class="font-bold text-[14px]">&#161;&#201;xito!</p>
+                        <p class="text-[13px] opacity-90">
+                          <%= success %>
+                        </p>
+                      </div>
+                      <% } %>
+                        <% if (typeof error !=='undefined' && error) { %>
+                          <div id="flash-error"
+                            class="bg-brand-danger-light border border-brand-danger text-brand-danger px-5 py-4 rounded-[12px] flex flex-col gap-1 transition-opacity duration-300 animate-in">
+                            <p class="font-bold text-[14px]">Error</p>
+                            <p class="text-[13px] opacity-90">
+                              <%= error %>
+                            </p>
+                          </div>
+                          <% } %>
+
+                            <!-- KPI Cards -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-in">
+                              <div
+                                class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4">
+                                <div
+                                  class="w-11 h-11 rounded-[12px] flex items-center justify-center bg-brand-blue-light text-brand-blue flex-shrink-0">
+                                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Monto
+                                    Pr&eacute;stamo</p>
+                                  <p class="text-[18px] font-extrabold text-brand-navy mt-0.5">
+                                    <%= mon %>&nbsp;<%= fmt(prestamo.monto) %>
+                                  </p>
+                                </div>
+                              </div>
+                              <div
+                                class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4">
+                                <div
+                                  class="w-11 h-11 rounded-[12px] flex items-center justify-center bg-brand-gold-light text-brand-gold flex-shrink-0">
+                                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Tasa
+                                    Inter&eacute;s</p>
+                                  <p class="text-[18px] font-extrabold text-brand-navy mt-0.5">
+                                    <%= prestamo.interes %>% <span class="text-[12px] text-brand-muted font-normal">(<%=
+                                          prestamo.tipo_pago || 'mensual' %>)</span>
+                                  </p>
+                                </div>
+                              </div>
+                              <div
+                                class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4">
+                                <div
+                                  class="w-11 h-11 rounded-[12px] flex items-center justify-center bg-brand-success-light text-brand-success flex-shrink-0">
+                                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Cuotas
+                                    Pagadas</p>
+                                  <p class="text-[18px] font-extrabold text-brand-navy mt-0.5">
+                                    <%= stats.cuotasPagadas %> / <%= stats.totalCuotas %>
+                                  </p>
+                                </div>
+                              </div>
+                              <div
+                                class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex items-center gap-4">
+                                <div
+                                  class="w-11 h-11 rounded-[12px] flex items-center justify-center bg-brand-navy-light text-brand-navy flex-shrink-0">
+                                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p class="text-[11px] font-semibold text-brand-muted tracking-wide uppercase">Saldo
+                                    Capital Pendiente</p>
+                                  <p class="text-[18px] font-extrabold text-brand-navy mt-0.5">
+                                    <%= mon %>&nbsp;<%= fmt(saldoActualCapital) %>
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- Barra de Progreso -->
+                            <div
+                              class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border animate-in delay-50">
+                              <div class="flex items-center justify-between mb-3">
+                                <div>
+                                  <p class="text-[14px] font-bold text-brand-navy">Progreso del Pago</p>
+                                  <p class="text-[12px] text-brand-muted mt-0.5">
+                                    <%= stats.cuotasPagadas %> de <%= stats.totalCuotas %> cuotas completadas
+                                  </p>
+                                </div>
+                                <span class="text-[20px] font-extrabold text-brand-blue">
+                                  <%= progreso %>%
+                                </span>
+                              </div>
+                              <div class="w-full bg-brand-surface2 rounded-full h-3 overflow-hidden">
+                                <div
+                                  class="h-3 rounded-full bg-gradient-to-r from-brand-blue to-brand-success transition-all duration-700"
+                                  style="width: <%= progreso %>%"></div>
+                              </div>
+                              <div class="flex items-center justify-between mt-3 text-[12px] text-brand-muted">
+                                <span>Pagado: <strong class="text-brand-success">
+                                    <%= mon %>&nbsp;<%= fmt(stats.montoPagado) %>
+                                  </strong></span>
+                                <span>Total Cuotas Pendientes: <strong class="text-brand-navy">
+                                    <%= mon %>&nbsp;<%= fmt(stats.montoPendiente) %>
+                                  </strong></span>
+                              </div>
+                            </div>
+
+                            <!-- Acciones Grid: Amortización y Fechas -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in delay-75">
+                              <!-- Panel Amortización y Prorrateo -->
+                              <div
+                                class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col justify-between">
+                                <div>
+                                  <div class="flex items-center gap-3 mb-2.5">
+                                    <div
+                                      class="w-9 h-9 rounded-[10px] flex items-center justify-center bg-brand-gold-light text-brand-gold-hover flex-shrink-0">
+                                      <i class="ri-funds-box-line text-[19px]"></i>
+                                    </div>
+                                    <div>
+                                      <p class="text-[14px] font-bold text-brand-navy">Amortización Extraordinaria y
+                                        Prorrateo</p>
+                                      <p class="text-[12px] text-brand-muted">Abona al capital para reducir la cuota
+                                        mensual o acortar el plazo.</p>
+                                    </div>
+                                  </div>
+                                  <div
+                                    class="grid grid-cols-3 gap-2 my-3 p-3 bg-brand-surface rounded-xl border border-brand-border text-center">
+                                    <div>
+                                      <p class="text-[10px] uppercase font-bold text-brand-muted">Saldo Capital</p>
+                                      <p class="text-[13px] font-extrabold text-brand-navy">
+                                        <%= mon %>&nbsp;<%= fmt(saldoActualCapital) %>
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p class="text-[10px] uppercase font-bold text-brand-muted">Cuota Actual</p>
+                                      <p class="text-[13px] font-extrabold text-brand-blue">
+                                        <%= mon %>&nbsp;<%= fmt(cuotaActualMonto) %>
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p class="text-[10px] uppercase font-bold text-brand-muted">Restantes</p>
+                                      <p class="text-[13px] font-extrabold text-brand-warning">
+                                        <%= cuotasRestantesCount %> cuotas
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div>
+                                  <% if (cuotasRestantesCount> 0 && prestamo.estado === 'activo') { %>
+                                    <button type="button" id="btn-abrir-amortizacion"
+                                      class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-[10px] text-[13px] font-bold text-brand-navy bg-gradient-to-r from-brand-gold to-brand-gold-hover hover:from-brand-gold-hover hover:to-brand-gold shadow-[0_2px_8px_rgba(212,168,67,0.35)] transition-all cursor-pointer">
+                                      <i class="ri-calculator-line text-[16px]"></i>
+                                      Registrar Amortización a Capital
+                                    </button>
+                                    <% } else { %>
+                                      <button type="button" disabled
+                                        class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-[10px] text-[13px] font-bold text-brand-muted bg-brand-surface2 border border-brand-border opacity-60 cursor-not-allowed">
+                                        <i class="ri-check-double-line text-[16px]"></i>
+                                        <%= prestamo.estado==='pagado' ? 'Préstamo ya liquidado' : 'Préstamo no activo'
+                                          %>
+                                      </button>
+                                      <% } %>
+                                </div>
+                              </div>
+
+                              <!-- Panel Cambiar Fecha de Inicio -->
+                              <div
+                                class="bg-white rounded-[20px] p-5 shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col justify-between">
+                                <div>
+                                  <div class="flex items-center gap-3 mb-2.5">
+                                    <div
+                                      class="w-9 h-9 rounded-[10px] flex items-center justify-center bg-brand-blue-light text-brand-blue flex-shrink-0">
+                                      <i class="ri-calendar-2-line text-[18px]"></i>
+                                    </div>
+                                    <div>
+                                      <p class="text-[14px] font-bold text-brand-navy">Cambiar Fecha de Inicio</p>
+                                      <p class="text-[12px] text-brand-muted">Recalcula autom&aacute;ticamente las
+                                        fechas de vencimiento.</p>
+                                    </div>
+                                  </div>
+                                  <div class="my-3">
+                                    <label
+                                      class="block text-[11px] font-semibold text-brand-muted uppercase tracking-wide mb-1.5">Nueva
+                                      fecha base</label>
+                                    <div class="relative">
+                                      <i
+                                        class="ri-calendar-line absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted text-[15px] pointer-events-none"></i>
+                                      <input type="date" id="inp-fecha-inicio"
+                                        value="<%= prestamo.fecha_registro ? new Date(prestamo.fecha_registro).toISOString().split('T')[0] : '' %>"
+                                        class="w-full bg-brand-surface border border-brand-border rounded-[10px] py-2.5 pr-3.5 pl-9 text-[13px] font-medium text-brand-text outline-none transition-all duration-200 hover:border-brand-blue-light focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+                                    </div>
+                                  </div>
+                                </div>
+                                <div>
+                                  <button type="button" id="btn-cambiar-fecha" disabled
+                                    title="Selecciona una fecha para habilitar"
+                                    class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-[10px] text-[13px] font-bold text-white bg-brand-navy/40 shadow-md transition-all flex-shrink-0 cursor-not-allowed opacity-50"
+                                    style="pointer-events:none">
+                                    <i class="ri-refresh-line text-[15px]"></i>
+                                    Actualizar Fechas
+                                  </button>
+                                  <div id="fecha-result"
+                                    class="hidden mt-2 px-3 py-1.5 rounded-[8px] text-[12px] font-medium text-center">
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- Tabla de Cuotas -->
+                            <div
+                              class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col overflow-hidden animate-in delay-100">
+                              <div
+                                class="px-7 py-5 border-b border-brand-border flex items-center justify-between gap-4 flex-wrap">
+                                <div>
+                                  <p class="text-[16px] font-bold tracking-tight text-brand-navy">Cuotas del
+                                    Pr&eacute;stamo</p>
+                                  <p class="text-[13px] text-brand-muted mt-0.5">
+                                    Cliente: <strong class="text-brand-text">
+                                      <%= prestamo.cliente_nombre %>
+                                    </strong>
+                                    <% if (prestamo.cliente_telefono) { %>
+                                      &middot; Tel: <strong class="text-brand-text">
+                                        <%= prestamo.cliente_telefono %>
+                                      </strong>
+                                      <% } %>
+                                  </p>
+                                </div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                  <span
+                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-brand-success-light text-brand-success border border-brand-success">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-brand-success"></span> Pagada
+                                  </span>
+                                  <span
+                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-amber-50 text-amber-600 border border-amber-300">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Pendiente
+                                  </span>
+                                  <span
+                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-brand-danger-light text-brand-danger border border-brand-danger">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-brand-danger"></span> Vencida
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div class="w-full overflow-x-auto">
+                                <table class="w-full border-collapse text-left text-[13px]">
+                                  <thead>
+                                    <tr class="bg-brand-surface border-b border-brand-border">
+                                      <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-center">#
+                                      </th>
+                                      <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide">Vencimiento
+                                      </th>
+                                      <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-right">
+                                        Capital</th>
+                                      <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-right">
+                                        Inter&eacute;s</th>
+                                      <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-right">
+                                        Cuota</th>
+                                      <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-right">
+                                        Saldo Final</th>
+                                      <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide">Fecha Pago
+                                      </th>
+                                      <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-center">
+                                        Estado</th>
+                                      <th class="py-3.5 px-4 font-semibold text-brand-muted tracking-wide text-center">
+                                        Acciones</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <% cuotas.forEach((c)=> {
+                                      const hoy = new Date();
+                                      hoy.setHours(0,0,0,0);
+                                      const venc = new Date(c.fecha_vencimiento);
+                                      const estadoReal = c.estado === 'pagada' ? 'pagada' : (c.estado !== 'pagada' &&
+                                      venc < hoy ? 'vencida' : 'pendiente' ); const cuotaFmt=fmt(c.monto_cuota); const
+                                        msgWA='Hola ' + prestamo.cliente_nombre
+                                        + ', le recordamos que su cuota N\u00b0 ' + c.numero_cuota + ' por $' + cuotaFmt
+                                        + ' vence el ' + fmtDate(c.fecha_vencimiento)
+                                        + '. Por favor realice su pago a tiempo. \u2014 Financiera Guzmán.' ; const
+                                        waUrl=telefonoLimpio ? 'https://wa.me/' + telefonoLimpio + '?text=' +
+                                        encodeURIComponent(msgWA) : null; %>
+                                        <tr
+                                          class="border-b border-brand-border last:border-b-0 transition-colors duration-150 <%= estadoReal === 'pagada' ? 'bg-green-50/50' : estadoReal === 'vencida' ? 'bg-red-50/40' : 'hover:bg-brand-surface' %>">
+                                          <td class="py-3 px-4 text-center">
+                                            <span
+                                              class="inline-flex items-center justify-center w-7 h-7 rounded-full text-[12px] font-bold <%= estadoReal === 'pagada' ? 'bg-brand-success text-white' : estadoReal === 'vencida' ? 'bg-brand-danger text-white' : 'bg-brand-surface2 text-brand-navy' %>">
+                                              <%= c.numero_cuota %>
+                                            </span>
+                                          </td>
+                                          <td class="py-3 px-4 text-brand-text font-medium">
+                                            <div>
+                                              <%= fmtDate(c.fecha_vencimiento) %>
+                                            </div>
+                                            <% if (c.observacion) { %>
+                                              <div
+                                                class="text-[10px] text-brand-muted italic mt-0.5 max-w-[160px] truncate"
+                                                title="<%= c.observacion %>">
+                                                <i class="ri-information-line"></i>
+                                                <%= c.observacion %>
+                                              </div>
+                                              <% } %>
+                                          </td>
+                                          <td class="py-3 px-4 text-right text-brand-muted">
+                                            <%= mon %>&nbsp;<%= fmt(c.capital) %>
+                                          </td>
+                                          <td class="py-3 px-4 text-right text-brand-muted">
+                                            <%= mon %>&nbsp;<%= fmt(c.interes) %>
+                                          </td>
+                                          <td class="py-3 px-4 text-right font-bold text-brand-blue">
+                                            <%= mon %>&nbsp;<%= cuotaFmt %>
+                                          </td>
+                                          <td class="py-3 px-4 text-right text-brand-text">
+                                            <%= mon %>&nbsp;<%= fmt(c.saldo) %>
+                                          </td>
+                                          <td class="py-3 px-4 text-brand-muted text-[12px]">
+                                            <%= c.fecha_pago ? fmtDate(c.fecha_pago) : '\u2014' %>
+                                          </td>
+                                          <td class="py-3 px-4 text-center">
+                                            <% if (estadoReal==='pagada' ) { %>
+                                              <span
+                                                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[11px] font-semibold bg-brand-success-light text-brand-success border border-brand-success">
+                                                <svg width="10" height="10" fill="none" stroke="currentColor"
+                                                  viewBox="0 0 24 24">
+                                                  <polyline stroke-linecap="round" stroke-linejoin="round"
+                                                    stroke-width="3" points="20 6 9 17 4 12" />
+                                                </svg>
+                                                Pagada
+                                              </span>
+                                              <% } else if (estadoReal==='vencida' ) { %>
+                                                <span
+                                                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[11px] font-semibold bg-brand-danger-light text-brand-danger border border-brand-danger">
+                                                  <svg width="10" height="10" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <circle cx="12" cy="12" r="10" />
+                                                    <line x1="12" y1="8" x2="12" y2="12" />
+                                                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                                                  </svg>
+                                                  Vencida
+                                                </span>
+                                                <% } else { %>
+                                                  <span
+                                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[11px] font-semibold bg-amber-50 text-amber-600 border border-amber-300">
+                                                    <svg width="10" height="10" fill="none" stroke="currentColor"
+                                                      viewBox="0 0 24 24">
+                                                      <circle cx="12" cy="12" r="10" />
+                                                      <polyline stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" points="12 6 12 12 16 14" />
+                                                    </svg>
+                                                    Pendiente
+                                                  </span>
+                                                  <% } %>
+                                          </td>
+                                          <td class="py-3 px-4 text-center">
+                                            <div class="flex items-center justify-center gap-2">
+                                              <% if (estadoReal !=='pagada' ) { %>
+                                                <button type="button"
+                                                  class="btn-registrar-pago inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-brand-blue text-white hover:bg-brand-blue-hover transition-all shadow-sm hover:shadow-md cursor-pointer"
+                                                  data-cuota-id="<%= c.id %>" data-prestamo-id="<%= prestamo.id %>"
+                                                  data-num="<%= c.numero_cuota %>" data-monto="<%= cuotaFmt %>">
+                                                  <i class="ri-check-line text-[13px]"></i> Pagar
+                                                </button>
+                                                <% } else { %>
+                                                  <span
+                                                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold text-brand-muted bg-brand-surface2 cursor-default text-green-600">
+                                                    <i class="ri-check-double-line text-[13px]"></i>
+                                                  </span>
+                                                  <% } %>
+                                                    <% if (waUrl) { %>
+                                                      <a href="<%= waUrl %>" target="_blank" rel="noopener noreferrer"
+                                                        class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#25D366] hover:bg-[#20ba58] text-white transition-all shadow-sm hover:shadow-md"
+                                                        title="Enviar recordatorio por WhatsApp">
+                                                        <i class="ri-whatsapp-line"></i>
+                                                      </a>
+                                                      <% } else { %>
+                                                        <span
+                                                          class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-brand-surface2 text-brand-muted cursor-not-allowed opacity-50"
+                                                          title="Sin tel&eacute;fono registrado">
+                                                          <i class="ri-whatsapp-line"></i>
+                                                        </span>
+                                                        <% } %>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                        <% }) %>
+                                  </tbody>
+                                </table>
+                              </div>
+
+                              <div
+                                class="px-5 py-3.5 border-t border-brand-border flex items-center justify-between bg-white">
+                                <p class="text-[12px] text-brand-muted">Total: <span
+                                    class="font-semibold text-brand-text">
+                                    <%= stats.totalCuotas %> cuotas
+                                  </span></p>
+                                <div class="flex items-center gap-4 text-[12px]">
+                                  <span class="text-brand-muted">Pagadas: <strong class="text-brand-success">
+                                      <%= stats.cuotasPagadas %>
+                                    </strong></span>
+                                  <span class="text-brand-muted">Pendientes: <strong class="text-amber-600">
+                                      <%= stats.cuotasPendientes %>
+                                    </strong></span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- Historial de Amortizaciones -->
+                            <% if (typeof amortizaciones !=='undefined' && amortizaciones && amortizaciones.length> 0) {
+                              %>
+                              <div
+                                class="bg-white rounded-[20px] shadow-[0_2px_8px_rgba(10,22,40,0.07)] border border-brand-border flex flex-col overflow-hidden animate-in">
+                                <div
+                                  class="px-7 py-4.5 border-b border-brand-border flex items-center justify-between bg-white flex-wrap gap-2">
+                                  <div class="flex items-center gap-2.5">
+                                    <div
+                                      class="w-8 h-8 rounded-lg bg-brand-gold-light text-brand-gold-hover flex items-center justify-center">
+                                      <i class="ri-history-line text-[17px]"></i>
+                                    </div>
+                                    <div>
+                                      <p class="text-[15px] font-bold text-brand-navy">Historial de Amortizaciones
+                                        Extraordinarias</p>
+                                      <p class="text-[12px] text-brand-muted">Abonos directos aplicados a capital con
+                                        recálculo del cronograma</p>
+                                    </div>
+                                  </div>
+                                  <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-brand-navy text-white">
+                                    <%= amortizaciones.length %>
+                                      <%= amortizaciones.length===1 ? 'amortización' : 'amortizaciones' %>
+                                  </span>
+                                </div>
+                                <div class="w-full overflow-x-auto">
+                                  <table class="w-full border-collapse text-left text-[12px]">
+                                    <thead>
+                                      <tr class="bg-brand-surface border-b border-brand-border">
+                                        <th class="py-3 px-4 font-semibold text-brand-muted">Fecha</th>
+                                        <th class="py-3 px-4 font-semibold text-brand-muted text-right">Monto Amortizado
+                                        </th>
+                                        <th class="py-3 px-4 font-semibold text-brand-muted text-center">Tipo Reducción
+                                        </th>
+                                        <th class="py-3 px-4 font-semibold text-brand-muted text-right">Saldo Capital
+                                        </th>
+                                        <th class="py-3 px-4 font-semibold text-brand-muted text-right">Impacto en Cuota
+                                          / Plazo</th>
+                                        <th class="py-3 px-4 font-semibold text-brand-muted">Observación</th>
+                                        <th class="py-3 px-4 font-semibold text-brand-muted text-center">Cronograma PDF
+                                        </th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      <% amortizaciones.forEach(a=> { %>
+                                        <tr class="border-b border-brand-border last:border-0 hover:bg-brand-surface2">
+                                          <td class="py-3 px-4 font-semibold text-brand-navy">
+                                            <%= fmtDate(a.fecha) %>
+                                          </td>
+                                          <td class="py-3 px-4 text-right font-extrabold text-brand-success">
+                                            <%= mon %>&nbsp;<%= fmt(a.monto) %>
+                                          </td>
+                                          <td class="py-3 px-4 text-center">
+                                            <% if (a.tipo_reduccion==='cuota' ) { %>
+                                              <span
+                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-blue-light text-brand-blue border border-brand-blue/30">
+                                                Reducción Cuota
+                                              </span>
+                                              <% } else { %>
+                                                <span
+                                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-gold-light text-brand-gold-hover border border-brand-gold/30">
+                                                  Reducción Plazo
+                                                </span>
+                                                <% } %>
+                                          </td>
+                                          <td class="py-3 px-4 text-right text-brand-muted">
+                                            <%= mon %>&nbsp;<%= fmt(a.saldo_anterior) %> &rarr; <strong
+                                                  class="text-brand-navy">
+                                                  <%= mon %>&nbsp;<%= fmt(a.saldo_nuevo) %>
+                                                </strong>
+                                          </td>
+                                          <td class="py-3 px-4 text-right">
+                                            <% if (a.tipo_reduccion==='cuota' ) { %>
+                                              <span class="text-brand-muted">
+                                                <%= mon %>&nbsp;<%= fmt(a.cuota_anterior) %> &rarr;
+                                              </span><strong class="text-brand-blue">
+                                                <%= mon %>&nbsp;<%= fmt(a.cuota_nueva) %>/mes
+                                              </strong>
+                                              <% } else { %>
+                                                <span class="text-brand-muted">
+                                                  <%= a.cuotas_restantes_anterior %> cuotas &rarr;
+                                                </span><strong class="text-brand-gold-hover">
+                                                  <%= a.cuotas_restantes_nueva %> cuotas
+                                                </strong>
+                                                <% } %>
+                                          </td>
+                                          <td class="py-3 px-4 text-brand-muted">
+                                            <%= a.observacion || '—' %>
+                                          </td>
+                                          <td class="py-3 px-4 text-center">
+                                            <a href="/dashboard/prestamos/<%= prestamo.id %>/amortizaciones/<%= a.id %>/pdf"
+                                              target="_blank" title="Descargar cronograma de amortización en PDF"
+                                              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-brand-navy bg-brand-surface border border-brand-border hover:bg-brand-gold-light hover:border-brand-gold hover:text-brand-gold-hover shadow-xs transition-all cursor-pointer">
+                                              <i class="ri-file-pdf-2-line text-red-500 text-[14px]"></i>
+                                              <span>Descargar PDF</span>
+                                            </a>
+                                          </td>
+                                        </tr>
+                                        <% }) %>
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                              <% } %>
+
+                  </div>
+                </main>
+
+                <!-- Modal Confirmar Pago Normal -->
+                <div id="modal-pago"
+                  class="fixed inset-0 z-50 hidden bg-brand-navy/50 backdrop-blur-sm flex items-center justify-center opacity-0 transition-opacity duration-300">
+                  <div
+                    class="bg-white rounded-[24px] shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 relative">
+                    <div
+                      class="px-6 py-5 border-b border-brand-border flex items-center justify-between bg-brand-surface">
+                      <h3 class="text-[16px] font-bold text-brand-navy flex items-center gap-2">
+                        <i class="ri-checkbox-circle-line text-[18px] text-brand-success"></i>
+                        Registrar Pago
+                      </h3>
+                      <button type="button" id="btn-cerrar-modal-pago"
+                        class="text-brand-muted hover:text-brand-danger transition-colors cursor-pointer">
+                        <i class="ri-close-line text-[20px]"></i>
+                      </button>
+                    </div>
+                    <div class="p-6 flex flex-col gap-4">
+                      <div class="p-4 rounded-xl bg-brand-surface border border-brand-border">
+                        <p class="text-[12px] text-brand-muted font-semibold uppercase tracking-wide">Cuota N&deg; <span
+                            id="modal-pago-num" class="text-brand-blue"></span></p>
+                        <p class="text-[22px] font-extrabold text-brand-navy mt-1">
+                          <%= mon %>&nbsp;<span id="modal-pago-monto"></span>
+                        </p>
+                        <p class="text-[12px] text-brand-muted mt-1">Este monto se marcar&aacute; como pagado en el
+                          sistema.</p>
+                      </div>
+                      <div class="flex flex-col gap-1.5">
+                        <label
+                          class="text-[12px] font-semibold text-brand-muted uppercase tracking-wide">Observaci&oacute;n
+                          (opcional)</label>
+                        <textarea id="modal-pago-obs" rows="2" placeholder="Ej: Pago en efectivo, transferencia #123..."
+                          class="w-full px-3 py-2.5 border-[1.5px] border-brand-border rounded-xl text-[13px] bg-brand-surface2 outline-none resize-none transition-all duration-200 text-brand-text focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]"></textarea>
+                      </div>
+                    </div>
+                    <div class="px-6 py-5 border-t border-brand-border bg-brand-surface flex gap-3">
+                      <button type="button" id="btn-cancelar-pago"
+                        class="flex-1 px-4 py-2.5 rounded-xl text-[13px] font-bold text-brand-muted bg-white border border-brand-border hover:bg-brand-surface transition-all cursor-pointer">
+                        Cancelar
+                      </button>
+                      <button type="button" id="btn-confirmar-pago"
+                        class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-bold text-white bg-brand-success hover:opacity-90 shadow-md transition-all cursor-pointer">
+                        <i class="ri-check-double-line text-[16px]"></i>
+                        Confirmar Pago
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </td>
-            </tr>
-            <% }) %>
-          </tbody>
-        </table>
-      </div>
 
-      <div class="px-5 py-3.5 border-t border-brand-border flex items-center justify-between bg-white">
-        <p class="text-[12px] text-brand-muted">Total: <span class="font-semibold text-brand-text"><%= stats.totalCuotas %> cuotas</span></p>
-        <div class="flex items-center gap-4 text-[12px]">
-          <span class="text-brand-muted">Pagadas: <strong class="text-brand-success"><%= stats.cuotasPagadas %></strong></span>
-          <span class="text-brand-muted">Pendientes: <strong class="text-amber-600"><%= stats.cuotasPendientes %></strong></span>
-        </div>
-      </div>
-    </div>
+                <!-- Modal Amortización a Capital y Prorrateo -->
+                <div id="modal-amortizacion"
+                  class="fixed inset-0 z-50 hidden bg-brand-navy/60 backdrop-blur-sm flex items-center justify-center opacity-0 transition-opacity duration-300 p-4">
+                  <div
+                    class="bg-white rounded-[24px] shadow-2xl w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-300 relative max-h-[92vh] flex flex-col">
+                    <!-- Header -->
+                    <div
+                      class="px-6 py-4.5 border-b border-brand-border flex items-center justify-between bg-gradient-to-r from-brand-surface to-white">
+                      <div class="flex items-center gap-2.5">
+                        <div
+                          class="w-9 h-9 rounded-lg bg-brand-gold-light text-brand-gold-hover flex items-center justify-center">
+                          <i class="ri-funds-box-line text-[19px]"></i>
+                        </div>
+                        <div>
+                          <h3 class="text-[16px] font-bold text-brand-navy">Amortización Extraordinaria de Capital</h3>
+                          <p class="text-[11px] text-brand-muted">Abono directo al capital con prorrateo de cuotas</p>
+                        </div>
+                      </div>
+                      <button type="button" id="btn-cerrar-modal-amort"
+                        class="text-brand-muted hover:text-brand-danger transition-colors p-1 cursor-pointer">
+                        <i class="ri-close-line text-[22px]"></i>
+                      </button>
+                    </div>
 
-  </div>
-</main>
+                    <!-- Body (scrollable) -->
+                    <div class="p-6 overflow-y-auto flex flex-col gap-4 custom-scrollbar">
+                      <!-- Resumen Préstamo Info -->
+                      <div
+                        class="grid grid-cols-3 gap-2.5 p-3 rounded-xl bg-brand-surface border border-brand-border text-center">
+                        <div>
+                          <p class="text-[10px] font-bold uppercase tracking-wider text-brand-muted">Saldo Capital
+                            Actual</p>
+                          <p class="text-[14px] font-extrabold text-brand-navy mt-0.5">
+                            <%= mon %>&nbsp;<%= fmt(saldoActualCapital) %>
+                          </p>
+                        </div>
+                        <div>
+                          <p class="text-[10px] font-bold uppercase tracking-wider text-brand-muted">Cuota Actual</p>
+                          <p class="text-[14px] font-extrabold text-brand-blue mt-0.5">
+                            <%= mon %>&nbsp;<%= fmt(cuotaActualMonto) %>
+                          </p>
+                        </div>
+                        <div>
+                          <p class="text-[10px] font-bold uppercase tracking-wider text-brand-muted">Cuotas Pendientes
+                          </p>
+                          <p class="text-[14px] font-extrabold text-brand-warning mt-0.5">
+                            <%= cuotasRestantesCount %>
+                          </p>
+                        </div>
+                      </div>
 
-<!-- Modal Confirmar Pago -->
-<div id="modal-pago" class="fixed inset-0 z-50 hidden bg-brand-navy/50 backdrop-blur-sm flex items-center justify-center opacity-0 transition-opacity duration-300">
-  <div class="bg-white rounded-[24px] shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300 relative">
-    <div class="px-6 py-5 border-b border-brand-border flex items-center justify-between bg-brand-surface">
-      <h3 class="text-[16px] font-bold text-brand-navy flex items-center gap-2">
-        <i class="ri-checkbox-circle-line text-[18px] text-brand-success"></i>
-        Registrar Pago
-      </h3>
-      <button type="button" id="btn-cerrar-modal-pago" class="text-brand-muted hover:text-brand-danger transition-colors">
-        <i class="ri-close-line text-[20px]"></i>
-      </button>
-    </div>
-    <div class="p-6 flex flex-col gap-4">
-      <div class="p-4 rounded-xl bg-brand-surface border border-brand-border">
-        <p class="text-[12px] text-brand-muted font-semibold uppercase tracking-wide">Cuota N&deg; <span id="modal-pago-num" class="text-brand-blue"></span></p>
-        <p class="text-[22px] font-extrabold text-brand-navy mt-1">S/<span id="modal-pago-monto"></span></p>
-        <p class="text-[12px] text-brand-muted mt-1">Este monto se marcar&aacute; como pagado en el sistema.</p>
-      </div>
-      <div class="flex flex-col gap-1.5">
-        <label class="text-[12px] font-semibold text-brand-muted uppercase tracking-wide">Observaci&oacute;n (opcional)</label>
-        <textarea id="modal-pago-obs" rows="2" placeholder="Ej: Pago en efectivo, transferencia #123..."
-          class="w-full px-3 py-2.5 border-[1.5px] border-brand-border rounded-xl text-[13px] bg-brand-surface2 outline-none resize-none transition-all duration-200 text-brand-text focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]"></textarea>
-      </div>
-    </div>
-    <div class="px-6 py-5 border-t border-brand-border bg-brand-surface flex gap-3">
-      <button type="button" id="btn-cancelar-pago" class="flex-1 px-4 py-2.5 rounded-xl text-[13px] font-bold text-brand-muted bg-white border border-brand-border hover:bg-brand-surface transition-all">
+                      <!-- Input Monto -->
+                      <div>
+                        <label class="block text-[12px] font-bold uppercase tracking-wider text-brand-navy mb-1.5">
+                          Monto a Amortizar
+                        </label>
+                        <div class="relative">
+                          <span
+                            class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-[15px] text-brand-muted">
+                            <%= mon %>
+                          </span>
+                          <input type="number" id="amort-monto" placeholder="0.00" min="1"
+                            max="<%= saldoActualCapital %>" step="10"
+                            class="w-full bg-brand-surface2 border border-brand-border rounded-[10px] py-2.5 pr-3.5 pl-8 text-[15px] font-bold text-brand-navy outline-none transition-all hover:border-brand-blue-light focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+                        </div>
+                        <!-- Atajos porcentajes -->
+                        <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+                          <button type="button"
+                            class="btn-pct text-[11px] font-bold px-2.5 py-1 rounded-md bg-brand-surface border border-brand-border text-brand-navy hover:bg-brand-navy hover:text-white transition-all cursor-pointer"
+                            data-pct="0.10">10%</button>
+                          <button type="button"
+                            class="btn-pct text-[11px] font-bold px-2.5 py-1 rounded-md bg-brand-surface border border-brand-border text-brand-navy hover:bg-brand-navy hover:text-white transition-all cursor-pointer"
+                            data-pct="0.25">25%</button>
+                          <button type="button"
+                            class="btn-pct text-[11px] font-bold px-2.5 py-1 rounded-md bg-brand-surface border border-brand-border text-brand-navy hover:bg-brand-navy hover:text-white transition-all cursor-pointer"
+                            data-pct="0.50">50%</button>
+                          <button type="button"
+                            class="btn-pct text-[11px] font-bold px-2.5 py-1 rounded-md bg-brand-gold-light border border-brand-gold text-brand-gold-hover hover:bg-brand-gold hover:text-brand-navy transition-all ml-auto cursor-pointer"
+                            data-pct="1.00">Liquidación Total</button>
+                        </div>
+                      </div>
+
+                      <!-- Selector Tipo de Reducción -->
+                      <div>
+                        <label class="block text-[12px] font-bold uppercase tracking-wider text-brand-navy mb-1.5">
+                          ¿Cómo desea aplicar el prorrateo?
+                        </label>
+                        <div class="grid grid-cols-2 gap-2.5" id="amort-tipo-group">
+                          <!-- Opción 1: Reducir Cuota -->
+                          <label class="amort-tipo-option cursor-pointer block">
+                            <input type="radio" name="amort_tipo_reduccion" value="cuota" class="sr-only" checked>
+                            <div
+                              class="amort-tipo-card selected p-3 border-2 border-brand-blue bg-blue-50/60 rounded-xl transition-all duration-200">
+                              <div class="flex items-center gap-1.5 text-brand-blue font-bold text-[12px] mb-1">
+                                <i class="ri-money-dollar-circle-line text-[16px]"></i>
+                                Reducir Cuota
+                              </div>
+                              <p class="text-[11px] text-brand-muted">Mantiene el plazo de <%= cuotasRestantesCount %>
+                                  meses y reduce el valor de cada cuota mensual.</p>
+                            </div>
+                          </label>
+                          <!-- Opción 2: Reducir Plazo -->
+                          <label class="amort-tipo-option cursor-pointer block">
+                            <input type="radio" name="amort_tipo_reduccion" value="plazo" class="sr-only">
+                            <div
+                              class="amort-tipo-card p-3 border-2 border-brand-border bg-brand-surface rounded-xl transition-all duration-200 hover:border-brand-gold">
+                              <div class="flex items-center gap-1.5 text-brand-navy font-bold text-[12px] mb-1">
+                                <i class="ri-calendar-line text-[16px]"></i>
+                                Reducir Plazo
+                              </div>
+                              <p class="text-[11px] text-brand-muted">Mantiene el monto de la cuota mensual y reduce el
+                                número de meses para terminar antes.</p>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+
+                      <!-- Live Preview Box -->
+                      <div id="amort-preview-box"
+                        class="p-4 rounded-xl bg-gradient-to-br from-brand-navy to-[#122046] text-white border border-brand-navy shadow-inner">
+                        <p
+                          class="text-[11px] font-bold uppercase tracking-wider text-brand-gold mb-2.5 flex items-center gap-1.5">
+                          <i class="ri-sparkling-fill text-[13px]"></i>
+                          Proyección del Impacto
+                        </p>
+                        <div class="grid grid-cols-2 gap-3 text-[12px]">
+                          <div>
+                            <p class="text-white/60">Nuevo Saldo Capital:</p>
+                            <p id="prev-nuevo-saldo" class="text-[16px] font-extrabold text-white mt-0.5">
+                              <%= mon %>&nbsp;<%= fmt(saldoActualCapital) %>
+                            </p>
+                          </div>
+                          <div>
+                            <p id="prev-metric-label" class="text-white/60">Nueva Cuota Proyectada:</p>
+                            <p id="prev-metric-val" class="text-[16px] font-extrabold text-brand-gold mt-0.5">
+                              <%= mon %>&nbsp;<%= fmt(cuotaActualMonto) %>
+                            </p>
+                          </div>
+                        </div>
+                        <div id="prev-beneficio"
+                          class="mt-2.5 pt-2 border-t border-white/10 text-[11px] text-brand-gold-light flex items-center gap-1">
+                          <i class="ri-arrow-right-circle-line"></i>
+                          <span>Ingresa un monto para simular la reducción.</span>
+                        </div>
+                      </div>
+
+                      <!-- Fecha Amortización -->
+                      <div>
+                        <label class="block text-[12px] font-bold uppercase tracking-wider text-brand-navy mb-1.5">
+                          Fecha de Amortización
+                        </label>
+                        <div class="relative">
+                          <i
+                            class="ri-calendar-line absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted text-[15px] pointer-events-none"></i>
+                          <input type="date" id="amort-fecha"
+                            class="w-full bg-brand-surface2 border border-brand-border rounded-[10px] py-2.5 pr-3.5 pl-9 text-[13px] font-medium text-brand-text outline-none transition-all hover:border-brand-blue-light focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]">
+                        </div>
+                      </div>
+
+                      <!-- Observación -->
+                      <div>
+                        <label class="block text-[12px] font-bold uppercase tracking-wider text-brand-navy mb-1.5">
+                          Observación / Referencia (Opcional)
+                        </label>
+                        <textarea id="amort-obs" rows="2"
+                          placeholder="Ej: Depósito BCP #938472, abono pactado por cliente..."
+                          class="w-full px-3 py-2 border border-brand-border rounded-xl text-[12px] bg-brand-surface2 outline-none resize-none transition-all text-brand-text focus:border-brand-blue focus:bg-white focus:shadow-[0_0_0_3px_rgba(27,79,216,0.1)]"></textarea>
+                      </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div
+                      class="px-6 py-4 border-t border-brand-border bg-brand-surface flex flex-col sm:flex-row gap-2.5">
+                      <!--   <button type="button" id="btn-cancelar-amort" class="px-4 py-2.5 rounded-xl text-[13px] font-bold text-brand-muted bg-white border border-brand-border hover:bg-brand-surface transition-all cursor-pointer order-3 sm:order-1">
         Cancelar
-      </button>
-      <button type="button" id="btn-confirmar-pago" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-bold text-white bg-brand-success hover:opacity-90 shadow-md transition-all">
-        <i class="ri-check-double-line text-[16px]"></i>
-        Confirmar Pago
-      </button>
-    </div>
-  </div>
-</div>
+      </button> -->
+                      <button type="button" id="btn-simular-pdf-amort"
+                        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-bold text-brand-navy bg-white border border-brand-border hover:border-brand-gold hover:bg-brand-gold-light hover:text-brand-gold-hover shadow-xs transition-all cursor-pointer order-2">
+                        <i class="ri-file-pdf-2-line text-red-500 text-[16px]"></i>
+                        <span>Descargar Simulación PDF</span>
+                      </button>
+                      <button type="button" id="btn-confirmar-amortizacion"
+                        class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-bold text-brand-navy bg-gradient-to-r from-brand-gold to-brand-gold-hover hover:from-brand-gold-hover hover:to-brand-gold shadow-md transition-all cursor-pointer order-1 sm:order-3">
+                        <i class="ri-check-double-line text-[16px]"></i>
+                        <span>Aplicar Amortización</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
-<script>
+                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+                <script>
 
-  setTimeout(() => {
-    const s = document.getElementById('flash-success');
-    if (s) { s.style.opacity = '0'; setTimeout(() => s.remove(), 300); }
-    const e = document.getElementById('flash-error');
-    if (e) { e.style.opacity = '0'; setTimeout(() => e.remove(), 300); }
-  }, 3500);
+                  setTimeout(() => {
+                    const s = document.getElementById('flash-success');
+                    if (s) { s.style.opacity = '0'; setTimeout(() => s.remove(), 300); }
+                    const e = document.getElementById('flash-error');
+                    if (e) { e.style.opacity = '0'; setTimeout(() => e.remove(), 300); }
+                  }, 3500);
 
-  const modalPago = document.getElementById('modal-pago');
-  const modalPagoContent = modalPago.querySelector('div.bg-white');
-  let currentCuotaId = null;
-  let currentPrestamoId = null;
+                  // ── Modal Pago Normal ──────────────────────────────────────────
+                  const modalPago = document.getElementById('modal-pago');
+                  const modalPagoContent = modalPago.querySelector('div.bg-white');
+                  let currentCuotaId = null;
+                  let currentPrestamoId = null;
 
-  function openModalPago(cuotaId, prestamoId, num, monto) {
-    currentCuotaId = cuotaId;
-    currentPrestamoId = prestamoId;
-    document.getElementById('modal-pago-num').textContent = num;
-    document.getElementById('modal-pago-monto').textContent = monto;
-    document.getElementById('modal-pago-obs').value = '';
-    modalPago.classList.remove('hidden');
-    void modalPago.offsetWidth;
-    modalPago.classList.remove('opacity-0');
-    modalPagoContent.classList.remove('scale-95');
-  }
+                  function openModalPago(cuotaId, prestamoId, num, monto) {
+                    currentCuotaId = cuotaId;
+                    currentPrestamoId = prestamoId;
+                    document.getElementById('modal-pago-num').textContent = num;
+                    document.getElementById('modal-pago-monto').textContent = monto;
+                    document.getElementById('modal-pago-obs').value = '';
+                    modalPago.classList.remove('hidden');
+                    void modalPago.offsetWidth;
+                    modalPago.classList.remove('opacity-0');
+                    modalPagoContent.classList.remove('scale-95');
+                  }
 
-  function closeModalPago() {
-    modalPago.classList.add('opacity-0');
-    modalPagoContent.classList.add('scale-95');
-    setTimeout(() => modalPago.classList.add('hidden'), 300);
-  }
+                  function closeModalPago() {
+                    modalPago.classList.add('opacity-0');
+                    modalPagoContent.classList.add('scale-95');
+                    setTimeout(() => modalPago.classList.add('hidden'), 300);
+                  }
 
-  document.getElementById('btn-cerrar-modal-pago').addEventListener('click', closeModalPago);
-  document.getElementById('btn-cancelar-pago').addEventListener('click', closeModalPago);
-  modalPago.addEventListener('click', (e) => { if (e.target === modalPago) closeModalPago(); });
+                  document.getElementById('btn-cerrar-modal-pago').addEventListener('click', closeModalPago);
+                  document.getElementById('btn-cancelar-pago').addEventListener('click', closeModalPago);
+                  modalPago.addEventListener('click', (e) => { if (e.target === modalPago) closeModalPago(); });
 
-  document.querySelectorAll('.btn-registrar-pago').forEach(btn => {
-    btn.addEventListener('click', function() {
-      openModalPago(
-        this.getAttribute('data-cuota-id'),
-        this.getAttribute('data-prestamo-id'),
-        this.getAttribute('data-num'),
-        this.getAttribute('data-monto')
-      );
-    });
-  });
+                  document.querySelectorAll('.btn-registrar-pago').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                      openModalPago(
+                        this.getAttribute('data-cuota-id'),
+                        this.getAttribute('data-prestamo-id'),
+                        this.getAttribute('data-num'),
+                        this.getAttribute('data-monto')
+                      );
+                    });
+                  });
 
-  // ── Cambiar Fecha de Inicio ─────────────────────────────────────
-  const btnCambiarFecha = document.getElementById('btn-cambiar-fecha');
-  const inpFechaInicio  = document.getElementById('inp-fecha-inicio');
+                  document.getElementById('btn-confirmar-pago').addEventListener('click', async function () {
+                    if (!currentCuotaId || !currentPrestamoId) return;
+                    const obs = document.getElementById('modal-pago-obs').value.trim();
+                    const originalHtml = this.innerHTML;
+                    try {
+                      this.innerHTML = '<svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Registrando...';
+                      this.disabled = true;
+                      const response = await fetch(`/dashboard/prestamos/${currentPrestamoId}/cuotas/${currentCuotaId}/pagar`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ observacion: obs })
+                      });
+                      const data = await response.json();
+                      if (data.success) {
+                        closeModalPago();
+                        window.location.href = `/dashboard/prestamos/${currentPrestamoId}/cronograma?success=${encodeURIComponent(data.message)}`;
+                      } else {
+                        alert('Error: ' + data.message);
+                        this.innerHTML = originalHtml;
+                        this.disabled = false;
+                      }
+                    } catch (err) {
+                      console.error(err);
+                      alert('Error de conexión al servidor.');
+                      this.innerHTML = originalHtml;
+                      this.disabled = false;
+                    }
+                  });
 
-  // Habilitar botón solo cuando el input tenga una fecha seleccionada
-  if (inpFechaInicio && btnCambiarFecha) {
-    inpFechaInicio.addEventListener('change', function() {
-      const tieneValor = this.value.trim() !== '';
-      btnCambiarFecha.disabled           = !tieneValor;
-      btnCambiarFecha.style.pointerEvents = tieneValor ? '' : 'none';
-      btnCambiarFecha.style.opacity       = tieneValor ? '1' : '';
-      btnCambiarFecha.className = [
-        'inline-flex items-center gap-2 px-4 py-2.5 rounded-[10px] text-[13px] font-bold text-white shadow-md transition-all flex-shrink-0',
-        tieneValor
-          ? 'bg-brand-navy hover:bg-brand-navy/90 cursor-pointer'
-          : 'bg-brand-navy/40 cursor-not-allowed opacity-50'
-      ].join(' ');
-    });
-  }
+                  // ── Cambiar Fecha de Inicio ─────────────────────────────────────
+                  const btnCambiarFecha = document.getElementById('btn-cambiar-fecha');
+                  const inpFechaInicio = document.getElementById('inp-fecha-inicio');
 
-  if (btnCambiarFecha) {
-    btnCambiarFecha.addEventListener('click', async function() {
-      const fechaInput = inpFechaInicio ? inpFechaInicio.value : '';
-      if (!fechaInput) return;
+                  if (inpFechaInicio && btnCambiarFecha) {
+                    inpFechaInicio.addEventListener('change', function () {
+                      const tieneValor = this.value.trim() !== '';
+                      btnCambiarFecha.disabled = !tieneValor;
+                      btnCambiarFecha.style.pointerEvents = tieneValor ? '' : 'none';
+                      btnCambiarFecha.style.opacity = tieneValor ? '1' : '';
+                      btnCambiarFecha.className = [
+                        'w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-[10px] text-[13px] font-bold text-white shadow-md transition-all flex-shrink-0',
+                        tieneValor
+                          ? 'bg-brand-navy hover:bg-brand-navy/90 cursor-pointer'
+                          : 'bg-brand-navy/40 cursor-not-allowed opacity-50'
+                      ].join(' ');
+                    });
+                  }
 
-      // Confirmación SweetAlert2
-      const fechaLegible = new Date(fechaInput + 'T12:00:00').toLocaleDateString('es-MX', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
-      const confirm = await Swal.fire({
-        title: '¿Cambiar fecha de inicio?',
-        html:
-          '<p style="color:#64748B;font-size:14px;margin:0">Se recalcularán <strong>todas las fechas de vencimiento</strong> del cronograma a partir de:</p>' +
-          '<p style="color:#0B162C;font-size:16px;font-weight:700;margin:12px 0 0">' + fechaLegible + '</p>' +
-          '<p style="color:#DC2626;font-size:12px;margin:8px 0 0">⚠ Esta acción no se puede deshacer fácilmente.</p>',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: '<i class="ri-refresh-line"></i> Sí, actualizar fechas',
-        cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#0B162C',
-        cancelButtonColor: '#94A3B8',
-        reverseButtons: true,
-        customClass: {
-          popup:         'swal-cronograma-popup',
-          confirmButton: 'swal-cronograma-confirm',
-          cancelButton:  'swal-cronograma-cancel'
-        }
-      });
+                  if (btnCambiarFecha) {
+                    btnCambiarFecha.addEventListener('click', async function () {
+                      const fechaInput = inpFechaInicio ? inpFechaInicio.value : '';
+                      if (!fechaInput) return;
 
-      if (!confirm.isConfirmed) return;
+                      const fechaLegible = new Date(fechaInput + 'T12:00:00').toLocaleDateString('es-MX', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+                      const confirm = await Swal.fire({
+                        title: '¿Cambiar fecha de inicio?',
+                        html:
+                          '<p style="color:#64748B;font-size:14px;margin:0">Se recalcularán <strong>todas las fechas de vencimiento</strong> del cronograma a partir de:</p>' +
+                          '<p style="color:#0B162C;font-size:16px;font-weight:700;margin:12px 0 0">' + fechaLegible + '</p>' +
+                          '<p style="color:#DC2626;font-size:12px;margin:8px 0 0">⚠ Esta acción no se puede deshacer fácilmente.</p>',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="ri-refresh-line"></i> Sí, actualizar fechas',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonColor: '#0B162C',
+                        cancelButtonColor: '#94A3B8',
+                        reverseButtons: true
+                      });
 
-      const resultDiv  = document.getElementById('fecha-result');
-      const originalHtml = this.innerHTML;
-      try {
-        this.innerHTML = '<i class="ri-loader-4-line animate-spin text-[15px]"></i> Actualizando...';
-        this.disabled  = true;
-        this.style.pointerEvents = 'none';
-        const prestamoId = '<%= prestamo.id %>';
-        const response = await fetch(`/dashboard/prestamos/${prestamoId}/fecha-inicio`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fecha_inicio: fechaInput })
-        });
-        const data = await response.json();
-        resultDiv.classList.remove('hidden', 'bg-brand-success-light', 'text-brand-success', 'bg-brand-danger-light', 'text-brand-danger');
-        if (data.success) {
-          resultDiv.classList.add('bg-brand-success-light', 'text-brand-success');
-          resultDiv.innerHTML = '<i class="ri-checkbox-circle-line mr-1"></i>' + data.message;
-          await Swal.fire({
-            title: '¡Fechas actualizadas!',
-            text: data.message,
-            icon: 'success',
-            confirmButtonText: 'Entendido',
-            confirmButtonColor: '#0B162C',
-            timer: 2500,
-            timerProgressBar: true
-          });
-          window.location.reload();
-        } else {
-          resultDiv.classList.add('bg-brand-danger-light', 'text-brand-danger');
-          resultDiv.innerHTML = '<i class="ri-error-warning-line mr-1"></i>' + data.message;
-          Swal.fire({ title: 'Error', text: data.message, icon: 'error', confirmButtonColor: '#0B162C' });
-        }
-      } catch (err) {
-        console.error(err);
-        Swal.fire({ title: 'Error de conexión', text: 'No se pudo comunicar con el servidor.', icon: 'error', confirmButtonColor: '#0B162C' });
-      } finally {
-        this.innerHTML = originalHtml;
-        this.disabled  = false;
-        this.style.pointerEvents = '';
-      }
-    });
-  }
+                      if (!confirm.isConfirmed) return;
 
-document.getElementById('btn-confirmar-pago').addEventListener('click', async function() {
-    if (!currentCuotaId || !currentPrestamoId) return;
-    const obs = document.getElementById('modal-pago-obs').value.trim();
-    const originalHtml = this.innerHTML;
-    try {
-      this.innerHTML = '<svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Registrando...';
-      this.disabled = true;
-      const response = await fetch(`/dashboard/prestamos/${currentPrestamoId}/cuotas/${currentCuotaId}/pagar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ observacion: obs })
-      });
-      const data = await response.json();
-      if (data.success) {
-        closeModalPago();
-        window.location.href = `/dashboard/prestamos/${currentPrestamoId}/cronograma?success=${encodeURIComponent(data.message)}`;
-      } else {
-        alert('Error: ' + data.message);
-        this.innerHTML = originalHtml;
-        this.disabled = false;
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Error de conexi\u00f3n al servidor.');
-      this.innerHTML = originalHtml;
-      this.disabled = false;
-    }
-  });
-</script>
+                      const resultDiv = document.getElementById('fecha-result');
+                      const originalHtml = this.innerHTML;
+                      try {
+                        this.innerHTML = '<i class="ri-loader-4-line animate-spin text-[15px]"></i> Actualizando...';
+                        this.disabled = true;
+                        this.style.pointerEvents = 'none';
+                        const prestamoId = '<%= prestamo.id %>';
+                        const response = await fetch(`/dashboard/prestamos/${prestamoId}/fecha-inicio`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ fecha_inicio: fechaInput })
+                        });
+                        const data = await response.json();
+                        resultDiv.classList.remove('hidden', 'bg-brand-success-light', 'text-brand-success', 'bg-brand-danger-light', 'text-brand-danger');
+                        if (data.success) {
+                          resultDiv.classList.add('bg-brand-success-light', 'text-brand-success');
+                          resultDiv.innerHTML = '<i class="ri-checkbox-circle-line mr-1"></i>' + data.message;
+                          await Swal.fire({
+                            title: '¡Fechas actualizadas!',
+                            text: data.message,
+                            icon: 'success',
+                            confirmButtonText: 'Entendido',
+                            confirmButtonColor: '#0B162C',
+                            timer: 2500,
+                            timerProgressBar: true
+                          });
+                          window.location.reload();
+                        } else {
+                          resultDiv.classList.add('bg-brand-danger-light', 'text-brand-danger');
+                          resultDiv.innerHTML = '<i class="ri-error-warning-line mr-1"></i>' + data.message;
+                          Swal.fire({ title: 'Error', text: data.message, icon: 'error', confirmButtonColor: '#0B162C' });
+                        }
+                      } catch (err) {
+                        console.error(err);
+                        Swal.fire({ title: 'Error de conexión', text: 'No se pudo comunicar con el servidor.', icon: 'error', confirmButtonColor: '#0B162C' });
+                      } finally {
+                        this.innerHTML = originalHtml;
+                        this.disabled = false;
+                        this.style.pointerEvents = '';
+                      }
+                    });
+                  }
 
+                  // ── Amortización y Prorrateo ───────────────────────────────────
+                  const modalAmort = document.getElementById('modal-amortizacion');
+                  const modalAmortContent = modalAmort ? modalAmort.querySelector('div.bg-white') : null;
+                  const btnAbrirAmort = document.getElementById('btn-abrir-amortizacion');
+                  const btnCerrarAmort = document.getElementById('btn-cerrar-modal-amort');
+                  const btnCancelarAmort = document.getElementById('btn-cancelar-amort');
+                  const btnConfirmarAmort = document.getElementById('btn-confirmar-amortizacion');
+                  const amortMontoInput = document.getElementById('amort-monto');
 
+                  const prestamoConsts = {
+                    id: '<%= prestamo.id %>',
+                    saldoCapital: <%= saldoActualCapital %>,
+                    cuotaActual: <%= cuotaActualMonto %>,
+                      cuotasRestantes: <%= cuotasRestantesCount %>,
+                        tasaInteres: <%= prestamo.interes %>,
+                          tipoPago: '<%= prestamo.tipo_pago || "mensual" %>',
+                            modalidad: '<%= prestamo.modalidad || "frances" %>',
+                              moneda: '<%= mon %>'
+  };
 
+                  function fmtAmort(n) {
+                    return prestamoConsts.moneda + '\u00A0' + Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                  }
+
+                  function openModalAmort() {
+                    if (!modalAmort) return;
+                    amortMontoInput.value = '';
+                    const fechaInput = document.getElementById('amort-fecha');
+                    if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
+                    document.getElementById('amort-obs').value = '';
+
+                    // Reset selección tipo a cuota
+                    document.querySelectorAll('.amort-tipo-card').forEach(c => {
+                      c.classList.remove('selected', 'border-brand-blue', 'bg-blue-50/60');
+                      c.classList.add('border-brand-border', 'bg-brand-surface');
+                    });
+                    const firstRadio = document.querySelector('input[name="amort_tipo_reduccion"][value="cuota"]');
+                    if (firstRadio) {
+                      firstRadio.checked = true;
+                      firstRadio.closest('label').querySelector('.amort-tipo-card').classList.add('selected', 'border-brand-blue', 'bg-blue-50/60');
+                      firstRadio.closest('label').querySelector('.amort-tipo-card').classList.remove('border-brand-border', 'bg-brand-surface');
+                    }
+
+                    calcularPreviewAmort();
+
+                    modalAmort.classList.remove('hidden');
+                    void modalAmort.offsetWidth;
+                    modalAmort.classList.remove('opacity-0');
+                    modalAmortContent.classList.remove('scale-95');
+                    setTimeout(() => amortMontoInput.focus(), 150);
+                  }
+
+                  function closeModalAmort() {
+                    if (!modalAmort) return;
+                    modalAmort.classList.add('opacity-0');
+                    modalAmortContent.classList.add('scale-95');
+                    setTimeout(() => modalAmort.classList.add('hidden'), 300);
+                  }
+
+                  if (btnAbrirAmort) btnAbrirAmort.addEventListener('click', openModalAmort);
+                  if (btnCerrarAmort) btnCerrarAmort.addEventListener('click', closeModalAmort);
+                  if (btnCancelarAmort) btnCancelarAmort.addEventListener('click', closeModalAmort);
+                  if (modalAmort) modalAmort.addEventListener('click', (e) => { if (e.target === modalAmort) closeModalAmort(); });
+
+                  // Tipo reduccion toggle
+                  document.querySelectorAll('.amort-tipo-option').forEach(label => {
+                    label.addEventListener('click', () => {
+                      document.querySelectorAll('.amort-tipo-card').forEach(card => {
+                        card.classList.remove('selected', 'border-brand-blue', 'bg-blue-50/60');
+                        card.classList.add('border-brand-border', 'bg-brand-surface');
+                      });
+                      const card = label.querySelector('.amort-tipo-card');
+                      card.classList.add('selected', 'border-brand-blue', 'bg-blue-50/60');
+                      card.classList.remove('border-brand-border', 'bg-brand-surface');
+                      calcularPreviewAmort();
+                    });
+                  });
+
+                  // Atajos de porcentaje
+                  document.querySelectorAll('.btn-pct').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                      const pct = parseFloat(this.getAttribute('data-pct'));
+                      const val = (prestamoConsts.saldoCapital * pct).toFixed(2);
+                      amortMontoInput.value = val;
+                      calcularPreviewAmort();
+                    });
+                  });
+
+                  if (amortMontoInput) {
+                    amortMontoInput.addEventListener('input', calcularPreviewAmort);
+                  }
+
+                  function calcularPreviewAmort() {
+                    const abono = parseFloat(amortMontoInput.value) || 0;
+                    const tipoReduccion = document.querySelector('input[name="amort_tipo_reduccion"]:checked')?.value || 'cuota';
+                    let periodosPorAnio = 12;
+                    if (prestamoConsts.tipoPago === 'diario') periodosPorAnio = 360;
+                    else if (prestamoConsts.tipoPago === 'semanal') periodosPorAnio = 48;
+                    else if (prestamoConsts.tipoPago === 'quincenal') periodosPorAnio = 24;
+                    const r = (prestamoConsts.tasaInteres / 100) / periodosPorAnio;
+                    const S_actual = prestamoConsts.saldoCapital;
+                    const N_restante = prestamoConsts.cuotasRestantes;
+                    const C_actual = prestamoConsts.cuotaActual;
+
+                    const elNuevoSaldo = document.getElementById('prev-nuevo-saldo');
+                    const elMetricLabel = document.getElementById('prev-metric-label');
+                    const elMetricVal = document.getElementById('prev-metric-val');
+                    const elBeneficio = document.getElementById('prev-beneficio');
+
+                    if (abono <= 0) {
+                      elNuevoSaldo.textContent = fmtAmort(S_actual);
+                      if (tipoReduccion === 'cuota') {
+                        elMetricLabel.textContent = 'Cuota Mensual Actual:';
+                        elMetricVal.textContent = fmtAmort(C_actual);
+                        elBeneficio.innerHTML = '<i class="ri-information-line"></i> <span>Ingresa un monto para simular la reducción de tu cuota.</span>';
+                      } else {
+                        elMetricLabel.textContent = 'Cuotas Pendientes:';
+                        elMetricVal.textContent = N_restante + ' cuotas';
+                        elBeneficio.innerHTML = '<i class="ri-information-line"></i> <span>Ingresa un monto para simular la reducción del plazo.</span>';
+                      }
+                      return;
+                    }
+
+                    // Liquidación total
+                    if (abono >= S_actual - 0.05) {
+                      elNuevoSaldo.textContent = fmtAmort(0);
+                      elMetricLabel.textContent = 'Estado Resultante:';
+                      elMetricVal.textContent = 'Liquidación Total';
+                      elBeneficio.innerHTML = '<span class="text-green-300 font-bold flex items-center gap-1.5"><i class="ri-checkbox-circle-fill text-[14px]"></i> ¡Préstamo cancelado en su totalidad! Se liquidan todas las cuotas futuras.</span>';
+                      return;
+                    }
+
+                    const S_nuevo = Math.max(0, S_actual - abono);
+                    elNuevoSaldo.textContent = fmtAmort(S_nuevo);
+
+                    if (tipoReduccion === 'cuota') {
+                      let cuotaNueva = 0;
+                      if (prestamoConsts.modalidad === 'interes_capital') {
+                        cuotaNueva = S_nuevo * r;
+                      } else if (prestamoConsts.modalidad === 'aleman') {
+                        const capFijo = S_nuevo / N_restante;
+                        cuotaNueva = capFijo + (S_nuevo * r);
+                      } else {
+                        // frances
+                        if (r === 0) cuotaNueva = S_nuevo / N_restante;
+                        else cuotaNueva = S_nuevo * (r * Math.pow(1 + r, N_restante)) / (Math.pow(1 + r, N_restante) - 1);
+                      }
+
+                      const ahorroMensual = Math.max(0, C_actual - cuotaNueva);
+                      elMetricLabel.textContent = 'Nueva Cuota Mensual:';
+                      elMetricVal.textContent = fmtAmort(cuotaNueva);
+                      elBeneficio.innerHTML = `<span class="text-green-300 flex items-center gap-1"><i class="ri-arrow-down-circle-line text-[14px]"></i> Tu cuota baja en <strong>${fmtAmort(ahorroMensual)}</strong> al mes, manteniendo las ${N_restante} cuotas restantes.</span>`;
+
+                    } else {
+                      // Reducir Plazo
+                      let nuevasCuotas = 0;
+                      if (prestamoConsts.modalidad === 'interes_capital') {
+                        const factor = abono / S_actual;
+                        const mesesMenos = Math.max(1, Math.round(N_restante * factor));
+                        nuevasCuotas = Math.max(1, N_restante - mesesMenos);
+                      } else if (prestamoConsts.modalidad === 'aleman') {
+                        const capFijo = S_actual / N_restante;
+                        nuevasCuotas = Math.max(1, Math.ceil(S_nuevo / capFijo));
+                      } else {
+                        // frances
+                        let bal = S_nuevo;
+                        while (bal > 0.01 && nuevasCuotas < 360) {
+                          nuevasCuotas++;
+                          let int = bal * r;
+                          let cap = Math.min(bal, C_actual - int);
+                          if (cap <= 0) cap = bal;
+                          bal -= cap;
+                        }
+                      }
+
+                      const cuotasAhorradas = Math.max(0, N_restante - nuevasCuotas);
+                      elMetricLabel.textContent = 'Nuevas Cuotas Restantes:';
+                      elMetricVal.textContent = nuevasCuotas + ' cuotas';
+                      elBeneficio.innerHTML = `<span class="text-amber-300 flex items-center gap-1"><i class="ri-time-line text-[14px]"></i> Terminas de pagar <strong>${cuotasAhorradas} cuotas antes</strong>, manteniendo tu cuota mensual de ${fmtAmort(C_actual)}.</span>`;
+                    }
+                  }
+
+                  // Confirmar y Enviar Amortización
+                  if (btnConfirmarAmort) {
+                    btnConfirmarAmort.addEventListener('click', async function () {
+                      const abono = parseFloat(amortMontoInput.value);
+                      if (!abono || abono <= 0) {
+                        Swal.fire({ title: 'Monto inválido', text: 'Por favor ingresa un monto válido mayor a 0.', icon: 'warning', confirmButtonColor: '#0B162C' });
+                        amortMontoInput.focus();
+                        return;
+                      }
+
+                      if (abono > prestamoConsts.saldoCapital + 0.05) {
+                        Swal.fire({ title: 'Monto excede saldo', text: `El monto no puede superar el saldo capital pendiente (${fmtAmort(prestamoConsts.saldoCapital)}).`, icon: 'warning', confirmButtonColor: '#0B162C' });
+                        return;
+                      }
+
+                      const tipoReduccion = document.querySelector('input[name="amort_tipo_reduccion"]:checked')?.value || 'cuota';
+                      const fecha = document.getElementById('amort-fecha').value || new Date().toISOString().split('T')[0];
+                      const observacion = document.getElementById('amort-obs').value.trim();
+
+                      const confirm = await Swal.fire({
+                        title: '¿Confirmar Amortización a Capital?',
+                        html: `
+          <div style="text-align:left;font-size:13px;color:#334155;">
+            <p style="margin:0 0 8px;">Se aplicará un abono extraordinario directo a capital por:</p>
+            <p style="font-size:20px;font-weight:800;color:#0B162C;margin:0 0 12px;">${fmtAmort(abono)}</p>
+            <p style="margin:0;"><strong>Modalidad:</strong> ${tipoReduccion === 'cuota' ? 'Reducir valor de cuota (mantener plazo)' : 'Reducir plazo (mantener cuota)'}</p>
+            <p style="margin:4px 0 0;"><strong>Fecha:</strong> ${fecha}</p>
+          </div>
+        `,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="ri-check-line"></i> Sí, aplicar amortización',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonColor: '#D4A843',
+                        cancelButtonColor: '#94A3B8',
+                        reverseButtons: true
+                      });
+
+                      if (!confirm.isConfirmed) return;
+
+                      const originalHtml = this.innerHTML;
+                      try {
+                        this.innerHTML = '<i class="ri-loader-4-line animate-spin text-[16px]"></i> Procesando...';
+                        this.disabled = true;
+
+                        const response = await fetch(`/dashboard/prestamos/${prestamoConsts.id}/amortizar`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            monto: abono,
+                            tipo_reduccion: tipoReduccion,
+                            fecha: fecha,
+                            observacion: observacion
+                          })
+                        });
+
+                        const data = await response.json();
+                        if (data.success) {
+                          closeModalAmort();
+                          await Swal.fire({
+                            title: '¡Amortización Aplicada!',
+                            text: data.message,
+                            icon: 'success',
+                            confirmButtonText: 'Ver Cronograma Actualizado',
+                            confirmButtonColor: '#0B162C'
+                          });
+                          window.location.reload();
+                        } else {
+                          Swal.fire({ title: 'Error', text: data.message, icon: 'error', confirmButtonColor: '#0B162C' });
+                          this.innerHTML = originalHtml;
+                          this.disabled = false;
+                        }
+                      } catch (err) {
+                        console.error(err);
+                        Swal.fire({ title: 'Error de conexión', text: 'No se pudo comunicar con el servidor.', icon: 'error', confirmButtonColor: '#0B162C' });
+                        this.innerHTML = originalHtml;
+                        this.disabled = false;
+                      }
+                    });
+                  }
+
+                  // Descargar Simulación en PDF desde el modal
+                  const btnSimularPdfAmort = document.getElementById('btn-simular-pdf-amort');
+                  if (btnSimularPdfAmort) {
+                    btnSimularPdfAmort.addEventListener('click', async function () {
+                      const abono = parseFloat(amortMontoInput.value);
+                      if (!abono || abono <= 0) {
+                        Swal.fire({
+                          title: 'Monto requerido',
+                          text: 'Por favor ingresa un monto a amortizar para generar la simulación en PDF.',
+                          icon: 'warning',
+                          confirmButtonColor: '#0B162C'
+                        });
+                        amortMontoInput.focus();
+                        return;
+                      }
+
+                      if (abono > prestamoConsts.saldoCapital + 0.05) {
+                        Swal.fire({
+                          title: 'Monto excede saldo',
+                          text: `El monto no puede superar el saldo capital pendiente (${fmtAmort(prestamoConsts.saldoCapital)}).`,
+                          icon: 'warning',
+                          confirmButtonColor: '#0B162C'
+                        });
+                        return;
+                      }
+
+                      const tipoReduccion = document.querySelector('input[name="amort_tipo_reduccion"]:checked')?.value || 'cuota';
+                      const fecha = document.getElementById('amort-fecha').value || new Date().toISOString().split('T')[0];
+                      const observacion = document.getElementById('amort-obs').value.trim();
+
+                      const originalHtml = this.innerHTML;
+                      try {
+                        this.innerHTML = '<i class="ri-loader-4-line animate-spin text-[16px]"></i> Generando PDF...';
+                        this.disabled = true;
+
+                        const res = await fetch(`/dashboard/prestamos/${prestamoConsts.id}/amortizacion/simulacion-pdf`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            monto: abono,
+                            tipo_reduccion: tipoReduccion,
+                            fecha: fecha,
+                            observacion: observacion
+                          })
+                        });
+
+                        if (!res.ok) {
+                          const errData = await res.json().catch(() => ({ message: 'Error generando PDF' }));
+                          throw new Error(errData.message || 'Error en el servidor al generar PDF');
+                        }
+
+                        const blob = await res.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `simulacion_amortizacion_prestamo_${prestamoConsts.id}.pdf`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+
+                      } catch (err) {
+                        console.error(err);
+                        Swal.fire({ title: 'Error al generar PDF', text: err.message || 'No se pudo descargar la simulación.', icon: 'error', confirmButtonColor: '#0B162C' });
+                      } finally {
+                        this.innerHTML = originalHtml;
+                        this.disabled = false;
+                      }
+                    });
+                  }
+
+                </script>

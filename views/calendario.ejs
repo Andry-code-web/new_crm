@@ -1,0 +1,1081 @@
+<% if (user.role === 'admin') { %>
+  <%- include('partials/sidebar_admin') %>
+<% } else if (user.role === 'asesor') { %>
+  <%- include('partials/sidebar_asesor') %>
+<% } else { %>
+  <%- include('partials/sidebar_cliente') %>
+<% } %>
+
+<!-- Scoped Fallback & Precision Styles for Calendar -->
+<style>
+  /* 2-column main layout container */
+  .cal-layout-container {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+    align-items: start !important;
+  }
+  @media (min-width: 1200px) {
+    .cal-layout-container {
+      grid-template-columns: minmax(0, 1.95fr) minmax(350px, 1.05fr) !important;
+    }
+  }
+
+  /* 7-column calendar grid */
+  .cal-grid-7 {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  }
+
+  /* Calendar day cell */
+  .cal-day-cell {
+    min-height: 105px !important;
+    padding: 0.5rem !important;
+    border-right: 1px solid #E4E9F2 !important;
+    border-bottom: 1px solid #E4E9F2 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    background-color: #FFFFFF !important;
+    transition: background-color 0.15s ease !important;
+  }
+  .cal-day-cell:hover {
+    background-color: #F8FAFC !important;
+  }
+  .cal-day-cell.other-month {
+    background-color: #F9FAFB !important;
+    opacity: 0.55 !important;
+  }
+
+  /* Status Mini Cards on Calendar */
+  .card-status-proximo {
+    background-color: #EFF6FF !important;
+    border: 1px solid #BFDBFE !important;
+    color: #1E3A8A !important;
+  }
+  .card-status-proximo:hover {
+    background-color: #DBEAFE !important;
+  }
+
+  .card-status-pagado {
+    background-color: #ECFDF5 !important;
+    border: 1px solid #A7F3D0 !important;
+    color: #064E3B !important;
+  }
+  .card-status-pagado:hover {
+    background-color: #D1FAE5 !important;
+  }
+
+  .card-status-vencido {
+    background-color: #FEF2F2 !important;
+    border: 1px solid #FECACA !important;
+    color: #881337 !important;
+  }
+  .card-status-vencido:hover {
+    background-color: #FEE2E2 !important;
+  }
+
+  /* Status Badges */
+  .badge-pill-proximo {
+    background-color: #EFF6FF !important;
+    border: 1px solid #BFDBFE !important;
+    color: #1D4ED8 !important;
+    border-radius: 9999px !important;
+    padding: 2px 10px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    display: inline-block !important;
+    white-space: nowrap !important;
+  }
+  .badge-pill-pagado {
+    background-color: #ECFDF5 !important;
+    border: 1px solid #A7F3D0 !important;
+    color: #047857 !important;
+    border-radius: 9999px !important;
+    padding: 2px 10px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    display: inline-block !important;
+    white-space: nowrap !important;
+  }
+  .badge-pill-vencido {
+    background-color: #FEF2F2 !important;
+    border: 1px solid #FECACA !important;
+    color: #BE123C !important;
+    border-radius: 9999px !important;
+    padding: 2px 10px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    display: inline-block !important;
+    white-space: nowrap !important;
+  }
+
+  .filter-btn-active {
+    background-color: #1B4FD8 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 1px 3px rgba(27,79,216,0.2) !important;
+  }
+</style>
+
+<main class="flex-1 h-screen overflow-y-auto bg-brand-bg relative flex flex-col min-w-0 font-sans">
+
+  <!-- Top Navigation Bar -->
+  <header class="flex items-center justify-between px-8 py-3.5 bg-white/95 backdrop-blur-md border-b border-brand-border sticky top-0 z-40 gap-4">
+    <!-- Search Bar -->
+    <div class="relative flex-1 max-w-md">
+      <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-brand-muted">
+        <i class="ri-search-line text-[16px]"></i>
+      </span>
+      <input type="text" id="global-search-input"
+        placeholder="Buscar cliente, inversor, préstamo o número de cuota..."
+        class="w-full pl-10 pr-4 py-2 bg-brand-surface2 border border-brand-border rounded-xl text-[13px] text-brand-text placeholder-brand-muted/70 focus:bg-white focus:border-brand-blue focus:outline-none focus:ring-2 focus:ring-brand-blue/10 transition-all">
+      <button id="clear-search-btn" class="absolute inset-y-0 right-0 items-center pr-3 text-brand-muted hover:text-brand-text hidden cursor-pointer">
+        <i class="ri-close-circle-fill text-[16px]"></i>
+      </button>
+    </div>
+
+    <!-- Actions & User profile -->
+    <div class="flex items-center gap-4">
+      <!-- Notification Icon -->
+      <div class="relative cursor-pointer p-2 rounded-xl text-brand-muted hover:text-brand-navy hover:bg-brand-surface2 transition-colors">
+        <i class="ri-notification-3-line text-[19px]"></i>
+        <span class="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">3</span>
+      </div>
+
+      <div class="h-6 w-px bg-brand-border"></div>
+
+      <!-- User Info -->
+      <div class="flex items-center gap-3">
+        <img src="<%= user.avatar %>" alt="Avatar" class="w-9 h-9 rounded-full border-2 border-brand-gold object-cover shadow-sm">
+        <div class="hidden sm:block text-left">
+          <p class="text-[13px] font-bold text-brand-navy leading-tight capitalize"><%= user.name %></p>
+          <span class="inline-block text-[11px] font-semibold text-brand-blue uppercase tracking-wider"><%= user.role === 'admin' ? 'Administrador' : user.role %></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content Container -->
+  <div class="p-6 lg:p-8 max-w-[1700px] w-full mx-auto flex-1 flex flex-col gap-6">
+
+    <!-- Page Title Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-start gap-3.5">
+        <div class="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200/60 text-brand-blue flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+          <i class="ri-calendar-check-fill text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="text-[24px] font-extrabold tracking-tight text-brand-navy flex items-center gap-2">
+            Calendario de Pagos de Préstamos
+          </h1>
+          <p class="text-[13px] text-brand-muted mt-0.5">
+            Visualiza todas las fechas de pago de los préstamos, incluyendo el nombre del cliente y el número de cuota.
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 self-start sm:self-auto">
+        <a href="/dashboard/prestamos" class="inline-flex items-center gap-2 px-3.5 py-2 text-[12px] font-semibold rounded-xl text-brand-navy bg-white border border-brand-border hover:bg-brand-surface2 transition-all shadow-sm">
+          <i class="ri-file-list-3-line text-[15px]"></i>
+          Ver Préstamos
+        </a>
+        <a href="/dashboard/simulacion" class="inline-flex items-center gap-2 px-3.5 py-2 text-[12px] font-semibold rounded-xl text-white bg-gradient-to-r from-brand-blue to-brand-blue-hover hover:opacity-95 transition-all shadow-sm">
+          <i class="ri-add-line text-[15px]"></i>
+          Nueva Simulación
+        </a>
+      </div>
+    </div>
+
+    <!-- Main Layout Grid: Left Calendar, Right Upcoming Payments -->
+    <div class="cal-layout-container">
+
+      <!-- ========================================== -->
+      <!-- LEFT SECTION: CALENDAR                     -->
+      <!-- ========================================== -->
+      <div class="flex flex-col gap-4">
+        <div class="bg-white rounded-2xl border border-brand-border shadow-[0_2px_12px_rgba(10,22,40,0.04)] p-5 sm:p-6 transition-all">
+          
+          <!-- Calendar Controls Bar -->
+          <div class="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-brand-border">
+            
+            <!-- Month Navigator -->
+            <div class="flex items-center gap-1.5">
+              <button id="btn-prev-month" title="Mes Anterior"
+                class="w-9 h-9 rounded-xl border border-brand-border flex items-center justify-center text-brand-navy hover:bg-brand-surface2 hover:border-brand-border2 transition-all cursor-pointer">
+                <i class="ri-arrow-left-s-line text-lg"></i>
+              </button>
+
+              <div class="relative">
+                <button id="btn-month-label"
+                  class="flex items-center gap-2 px-4 py-2 rounded-xl border border-brand-border hover:border-brand-border2 hover:bg-brand-surface2 text-brand-navy font-bold text-[14px] transition-all cursor-pointer">
+                  <i class="ri-calendar-2-line text-brand-blue text-[16px]"></i>
+                  <span id="current-month-display">Octubre 2026</span>
+                  <i class="ri-arrow-down-s-line text-brand-muted text-[15px]"></i>
+                </button>
+
+                <!-- Month / Year Dropdown Selector -->
+                <div id="month-picker-dropdown" class="hidden absolute top-full left-0 mt-2 z-30 w-64 bg-white rounded-2xl shadow-xl border border-brand-border p-4">
+                  <div class="flex items-center justify-between mb-3 pb-2 border-b border-brand-border">
+                    <span class="text-xs font-bold text-brand-muted uppercase">Seleccionar Año</span>
+                    <div class="flex items-center gap-1">
+                      <button id="picker-prev-year" class="p-1 hover:bg-brand-surface2 rounded text-brand-navy cursor-pointer"><i class="ri-arrow-left-s-line"></i></button>
+                      <span id="picker-year-display" class="font-extrabold text-[14px] text-brand-navy">2026</span>
+                      <button id="picker-next-year" class="p-1 hover:bg-brand-surface2 rounded text-brand-navy cursor-pointer"><i class="ri-arrow-right-s-line"></i></button>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-3 gap-1.5" id="month-buttons-container">
+                    <!-- Javascript populates months -->
+                  </div>
+                </div>
+              </div>
+
+              <button id="btn-next-month" title="Mes Siguiente"
+                class="w-9 h-9 rounded-xl border border-brand-border flex items-center justify-center text-brand-navy hover:bg-brand-surface2 hover:border-brand-border2 transition-all cursor-pointer">
+                <i class="ri-arrow-right-s-line text-lg"></i>
+              </button>
+
+              <button id="btn-today"
+                class="ml-2 px-3 py-1.5 rounded-xl border border-brand-border hover:bg-brand-surface2 text-[12px] font-semibold text-brand-muted hover:text-brand-navy transition-all cursor-pointer">
+                Hoy
+              </button>
+            </div>
+
+            <!-- Status Filters (Pills) -->
+            <div class="flex items-center gap-1.5 p-1 bg-brand-surface2 rounded-xl border border-brand-border/60">
+              <button class="filter-btn filter-btn-active px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all cursor-pointer" data-filter="todos">
+                Todos
+              </button>
+              <button class="filter-btn px-3.5 py-1.5 rounded-lg text-[12px] font-semibold text-brand-muted hover:text-brand-navy hover:bg-white/60 transition-all cursor-pointer" data-filter="proximo">
+                Próximos
+              </button>
+              <button class="filter-btn px-3.5 py-1.5 rounded-lg text-[12px] font-semibold text-brand-muted hover:text-brand-navy hover:bg-white/60 transition-all cursor-pointer" data-filter="pagado">
+                Pagados
+              </button>
+              <button class="filter-btn px-3.5 py-1.5 rounded-lg text-[12px] font-semibold text-brand-muted hover:text-brand-navy hover:bg-white/60 transition-all cursor-pointer" data-filter="vencido">
+                Vencidos
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Calendar Grid Header (Days of week) -->
+          <div class="cal-grid-7 border-b border-brand-border mt-3 text-center">
+            <div class="py-2.5 text-[12px] font-bold text-brand-navy">Lun</div>
+            <div class="py-2.5 text-[12px] font-bold text-brand-navy">Mar</div>
+            <div class="py-2.5 text-[12px] font-bold text-brand-navy">Mié</div>
+            <div class="py-2.5 text-[12px] font-bold text-brand-navy">Jue</div>
+            <div class="py-2.5 text-[12px] font-bold text-brand-navy">Vie</div>
+            <div class="py-2.5 text-[12px] font-bold text-brand-navy">Sáb</div>
+            <div class="py-2.5 text-[12px] font-bold text-brand-navy">Dom</div>
+          </div>
+
+          <!-- Calendar Days Grid -->
+          <div id="calendar-days-grid" class="cal-grid-7 border-l border-t border-brand-border bg-white">
+            <!-- Dynamically populated by JS -->
+          </div>
+
+          <!-- Bottom Calendar Info Banner -->
+          <div class="mt-4 p-3.5 bg-blue-50/70 border border-blue-200/60 rounded-xl flex items-center gap-3 text-brand-blue">
+            <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center shrink-0 text-brand-blue">
+              <i class="ri-information-fill text-[15px]"></i>
+            </div>
+            <p class="text-[12px] text-blue-950 font-medium">
+              El calendario muestra todas las fechas de pago de tus préstamos. Puedes filtrar por estado y ver el detalle de cada cuota.
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- RIGHT SECTION: PRÓXIMOS PAGOS              -->
+      <!-- ========================================== -->
+      <div class="flex flex-col gap-4">
+        <div class="bg-white rounded-2xl border border-brand-border shadow-[0_2px_12px_rgba(10,22,40,0.04)] p-5 sm:p-6 flex flex-col justify-between min-h-[600px]">
+          
+          <div>
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-brand-border">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-brand-surface2 border border-brand-border flex items-center justify-center text-brand-navy">
+                  <i class="ri-calendar-check-line text-[17px]"></i>
+                </div>
+                <h2 class="text-[17px] font-extrabold text-brand-navy tracking-tight">Próximos Pagos</h2>
+              </div>
+              <button id="btn-toggle-ver-todos" class="text-[12px] font-bold text-brand-blue hover:text-brand-blue-hover hover:underline transition-colors flex items-center gap-1 cursor-pointer">
+                <span id="ver-todos-text">Ver todos</span>
+                <i class="ri-arrow-right-line text-[13px]"></i>
+              </button>
+            </div>
+
+            <!-- List of upcoming payments -->
+            <div id="upcoming-payments-list" class="flex flex-col divide-y divide-brand-border/60 overflow-y-auto max-h-[640px] pr-1 mt-2">
+              <!-- Dynamically populated by JS -->
+            </div>
+          </div>
+
+          <!-- Bottom Legend -->
+          <div class="pt-5 border-t border-brand-border mt-4">
+            <div class="flex items-center justify-center gap-6 text-[12px] font-medium text-brand-muted">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm"></span>
+                <span>Próximo</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm"></span>
+                <span>Pagado</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm"></span>
+                <span>Vencido</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</main>
+
+<!-- ========================================== -->
+<!-- MODAL: DETALLE DE CUOTA                    -->
+<!-- ========================================== -->
+<div id="modal-detalle-cuota" class="fixed inset-0 z-50 hidden bg-brand-navy/60 backdrop-blur-sm flex items-center justify-center opacity-0 transition-opacity duration-200 p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-200 relative flex flex-col max-h-[92vh]">
+    
+    <!-- Modal Header -->
+    <div class="px-6 py-4 border-b border-brand-border flex items-center justify-between bg-gradient-to-r from-brand-surface2 to-white">
+      <div class="flex items-center gap-3">
+        <div id="modal-badge-icon" class="w-10 h-10 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center text-xl shrink-0">
+          <i class="ri-bill-line"></i>
+        </div>
+        <div>
+          <h3 id="modal-cuota-title" class="text-[17px] font-extrabold text-brand-navy">Detalle de Cuota</h3>
+          <p id="modal-cuota-subtitle" class="text-[12px] text-brand-muted">Información completa del pago programado</p>
+        </div>
+      </div>
+      <button type="button" id="btn-cerrar-modal" class="w-8 h-8 rounded-lg text-brand-muted hover:text-brand-danger hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer">
+        <i class="ri-close-line text-[20px]"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6 overflow-y-auto flex flex-col gap-5 text-[13px]">
+      
+      <!-- Status & Amount Banner -->
+      <div class="p-4 rounded-xl bg-brand-surface2 border border-brand-border flex items-center justify-between">
+        <div>
+          <span class="text-[11px] font-bold text-brand-muted uppercase tracking-wider">Monto de la Cuota</span>
+          <p id="modal-monto-cuota" class="text-[26px] font-black text-brand-navy tracking-tight mt-0.5">S/ 0.00</p>
+        </div>
+        <div class="text-right">
+          <span class="text-[11px] font-bold text-brand-muted uppercase tracking-wider">Estado</span>
+          <div id="modal-estado-badge" class="mt-1">
+            <!-- Badge inserted by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Information Sections -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        
+        <!-- Cliente Card -->
+        <div class="p-4 rounded-xl border border-brand-border bg-white">
+          <div class="flex items-center gap-2 mb-2 text-brand-muted text-[11px] font-bold uppercase tracking-wider">
+            <i class="ri-user-3-line text-brand-blue text-[14px]"></i>
+            Cliente
+          </div>
+          <p id="modal-cliente-nombre" class="font-bold text-brand-navy text-[14px] leading-tight">Nombre del Cliente</p>
+          <div class="mt-2 space-y-1 text-[12px] text-brand-muted">
+            <p>DNI: <span id="modal-cliente-dni" class="font-medium text-brand-text">-</span></p>
+            <p class="flex items-center gap-1.5">
+              Teléfono: <span id="modal-cliente-tel" class="font-medium text-brand-text">-</span>
+              <a id="modal-cliente-wsp" href="#" target="_blank" class="text-emerald-600 hover:text-emerald-700 hidden" title="Contactar por WhatsApp">
+                <i class="ri-whatsapp-line text-[15px]"></i>
+              </a>
+            </p>
+          </div>
+        </div>
+
+        <!-- Inversor Card -->
+        <div class="p-4 rounded-xl border border-brand-border bg-white">
+          <div class="flex items-center gap-2 mb-2 text-brand-muted text-[11px] font-bold uppercase tracking-wider">
+            <i class="ri-briefcase-4-line text-brand-gold text-[14px]"></i>
+            Inversor Asignado
+          </div>
+          <p id="modal-inversor-nombre" class="font-bold text-brand-navy text-[14px] leading-tight">Nombre del Inversor</p>
+          <div class="mt-2 text-[12px] text-brand-muted">
+            <p>Tipo de fondo: <span class="font-medium text-brand-text">Préstamo con Garantía</span></p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Cuota Details Breakdown -->
+      <div class="rounded-xl border border-brand-border overflow-hidden">
+        <div class="bg-brand-surface2 px-4 py-2.5 border-b border-brand-border flex items-center justify-between text-[11px] font-bold text-brand-muted uppercase tracking-wider">
+          <span>Desglose Financiero</span>
+          <span id="modal-cuota-num" class="text-brand-blue font-extrabold">Cuota 1/12</span>
+        </div>
+        <div class="p-4 grid grid-cols-3 gap-3 text-center bg-white">
+          <div>
+            <p class="text-[11px] text-brand-muted font-medium">Capital</p>
+            <p id="modal-capital" class="text-[14px] font-bold text-brand-navy mt-0.5">S/ 0.00</p>
+          </div>
+          <div>
+            <p class="text-[11px] text-brand-muted font-medium">Interés</p>
+            <p id="modal-interes" class="text-[14px] font-bold text-brand-blue mt-0.5">S/ 0.00</p>
+          </div>
+          <div>
+            <p class="text-[11px] text-brand-muted font-medium">Saldo Restante</p>
+            <p id="modal-saldo" class="text-[14px] font-bold text-brand-navy mt-0.5">S/ 0.00</p>
+          </div>
+        </div>
+        <div class="px-4 py-3 bg-brand-surface2/60 border-t border-brand-border/60 text-[12px] flex items-center justify-between text-brand-muted">
+          <span>Fecha de Vencimiento: <strong id="modal-fecha-venc" class="text-brand-text">00/00/0000</strong></span>
+          <span id="modal-fecha-pago-container" class="hidden">Pagado el: <strong id="modal-fecha-pago" class="text-emerald-700">00/00/0000</strong></span>
+        </div>
+      </div>
+
+      <!-- Quick Payment Section (if cuota is not paid) -->
+      <div id="modal-pago-section" class="p-4 rounded-xl border border-dashed border-emerald-300 bg-emerald-50/50 flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-emerald-800 font-bold text-[13px]">
+            <i class="ri-checkbox-circle-line text-lg"></i>
+            Registrar Pago de esta Cuota
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <input type="text" id="modal-pago-obs" placeholder="Observación (ej: Transferencia BCP, Efectivo...)"
+            class="flex-1 px-3 py-2 bg-white border border-emerald-200 rounded-lg text-[12px] focus:outline-none focus:border-emerald-500">
+          <button type="button" id="btn-registrar-pago-modal"
+            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[12px] rounded-lg transition-all shadow-sm cursor-pointer whitespace-nowrap">
+            Confirmar Pago
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="px-6 py-4 border-t border-brand-border bg-brand-surface2 flex items-center justify-between gap-3">
+      <a id="modal-link-cronograma" href="#"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-semibold text-brand-navy bg-white border border-brand-border hover:bg-brand-surface hover:border-brand-border2 transition-all cursor-pointer">
+        <i class="ri-calendar-line text-[15px] text-brand-blue"></i>
+        Ver Cronograma Completo
+      </a>
+      <button type="button" id="btn-cerrar-modal-footer"
+        class="px-4 py-2 rounded-xl text-[13px] font-semibold text-brand-muted hover:text-brand-navy hover:bg-white transition-all cursor-pointer">
+        Cerrar
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Raw Data passed from backend -->
+<script>
+  const ALL_CUOTAS = <%- cuotasJson || '[]' %>;
+</script>
+
+<script>
+(function() {
+  // ========================================================
+  // STATE MANAGEMENT
+  // ========================================================
+  const monthNames = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ];
+  const dayNamesShort = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+  const today = new Date();
+  let currentYear = today.getFullYear();
+  let currentMonth = today.getMonth();
+
+  // If cuotas exist, default to month that has cuotas (like October 2026)
+  if (ALL_CUOTAS.length > 0) {
+    const hasCurrent = ALL_CUOTAS.some(c => {
+      const parts = c.fecha_vencimiento.split('-');
+      return parseInt(parts[0]) === currentYear && (parseInt(parts[1]) - 1) === currentMonth;
+    });
+    if (!hasCurrent) {
+      const oct2026Has = ALL_CUOTAS.some(c => c.fecha_vencimiento.startsWith('2026-10'));
+      if (oct2026Has) {
+        currentYear = 2026;
+        currentMonth = 9; // Octubre (0-indexed 9)
+      } else {
+        const parts = ALL_CUOTAS[0].fecha_vencimiento.split('-');
+        currentYear = parseInt(parts[0]);
+        currentMonth = parseInt(parts[1]) - 1;
+      }
+    }
+  }
+
+  let pickerYear = currentYear;
+  let activeFilter = 'todos';
+  let searchQuery = '';
+  let showAllUpcoming = false;
+
+  // DOM Elements
+  const monthDisplayEl = document.getElementById('current-month-display');
+  const daysGridEl = document.getElementById('calendar-days-grid');
+  const upcomingListEl = document.getElementById('upcoming-payments-list');
+  const searchInputEl = document.getElementById('global-search-input');
+  const clearSearchBtn = document.getElementById('clear-search-btn');
+  const monthPickerDropdown = document.getElementById('month-picker-dropdown');
+  const pickerYearDisplay = document.getElementById('picker-year-display');
+  const monthButtonsContainer = document.getElementById('month-buttons-container');
+  const toggleVerTodosBtn = document.getElementById('btn-toggle-ver-todos');
+  const verTodosText = document.getElementById('ver-todos-text');
+
+  // Modal Elements
+  const modal = document.getElementById('modal-detalle-cuota');
+  const btnCerrarModal = document.getElementById('btn-cerrar-modal');
+  const btnCerrarModalFooter = document.getElementById('btn-cerrar-modal-footer');
+  let selectedCuota = null;
+
+  // ========================================================
+  // FORMATTING HELPERS
+  // ========================================================
+  function formatMoney(n) {
+    return Number(n || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function parseDateYMD(ymdStr) {
+    if (!ymdStr) return new Date();
+    const [y, m, d] = ymdStr.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  // ========================================================
+  // FILTERING LOGIC
+  // ========================================================
+  function matchesFilterAndSearch(c) {
+    if (activeFilter !== 'todos' && c.estado !== activeFilter) {
+      return false;
+    }
+
+    if (searchQuery.trim() !== '') {
+      const q = searchQuery.toLowerCase().trim();
+      const matchClient = (c.cliente_nombre || '').toLowerCase().includes(q);
+      const matchInversor = (c.inversor_nombre || '').toLowerCase().includes(q);
+      const matchPrestamo = String(c.prestamo_id || '').includes(q);
+      const matchCuota = `cuota ${c.numero_cuota}`.includes(q) || String(c.numero_cuota) === q;
+      const matchDni = (c.cliente_dni || '').includes(q);
+      if (!matchClient && !matchInversor && !matchPrestamo && !matchCuota && !matchDni) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  // ========================================================
+  // RENDER CALENDAR
+  // ========================================================
+  function renderCalendar() {
+    monthDisplayEl.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    const totalDays = lastDay.getDate();
+
+    let startDayOfWeek = firstDay.getDay() - 1;
+    if (startDayOfWeek === -1) startDayOfWeek = 6;
+
+    const prevMonthLastDay = new Date(currentYear, currentMonth, 0).getDate();
+    const curMonthPrefix = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+    
+    const cuotasByDate = {};
+    ALL_CUOTAS.forEach(c => {
+      if (!matchesFilterAndSearch(c)) return;
+      if (!cuotasByDate[c.fecha_vencimiento]) {
+        cuotasByDate[c.fecha_vencimiento] = [];
+      }
+      cuotasByDate[c.fecha_vencimiento].push(c);
+    });
+
+    daysGridEl.innerHTML = '';
+    const todayYMD = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    // 1. Prev month overflow days
+    for (let i = startDayOfWeek - 1; i >= 0; i--) {
+      const dayNum = prevMonthLastDay - i;
+      const prevM = currentMonth === 0 ? 11 : currentMonth - 1;
+      const prevY = currentMonth === 0 ? currentYear - 1 : currentYear;
+      const dateStr = `${prevY}-${String(prevM + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+      const dayCuotas = cuotasByDate[dateStr] || [];
+
+      const cell = createDayCell(dayNum, true, false, dateStr, dayCuotas);
+      daysGridEl.appendChild(cell);
+    }
+
+    // 2. Current month days
+    for (let day = 1; day <= totalDays; day++) {
+      const dateStr = `${curMonthPrefix}-${String(day).padStart(2, '0')}`;
+      const isToday = dateStr === todayYMD;
+      const dayCuotas = cuotasByDate[dateStr] || [];
+
+      const cell = createDayCell(day, false, isToday, dateStr, dayCuotas);
+      daysGridEl.appendChild(cell);
+    }
+
+    // 3. Next month overflow days
+    const currentCellsCount = startDayOfWeek + totalDays;
+    const totalGridCells = currentCellsCount <= 35 ? 35 : 42;
+    const nextDaysNeeded = totalGridCells - currentCellsCount;
+
+    for (let day = 1; day <= nextDaysNeeded; day++) {
+      const nextM = currentMonth === 11 ? 0 : currentMonth + 1;
+      const nextY = currentMonth === 11 ? currentYear + 1 : currentYear;
+      const dateStr = `${nextY}-${String(nextM + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const dayCuotas = cuotasByDate[dateStr] || [];
+
+      const cell = createDayCell(day, true, false, dateStr, dayCuotas);
+      daysGridEl.appendChild(cell);
+    }
+
+    renderUpcomingList();
+  }
+
+  function createDayCell(dayNum, isOtherMonth, isToday, dateStr, cuotas) {
+    const cell = document.createElement('div');
+    cell.className = `cal-day-cell ${isOtherMonth ? 'other-month' : ''}`;
+
+    const topRow = document.createElement('div');
+    topRow.className = 'flex items-center justify-between mb-1';
+
+    const numSpan = document.createElement('span');
+    numSpan.className = `text-[13px] font-bold ${
+      isOtherMonth ? 'text-brand-muted/40' : (isToday ? 'w-6 h-6 rounded-full bg-brand-blue text-white flex items-center justify-center text-xs' : 'text-brand-navy')
+    }`;
+    numSpan.textContent = dayNum;
+    topRow.appendChild(numSpan);
+
+    if (cuotas.length > 0) {
+      const countBadge = document.createElement('span');
+      countBadge.className = 'text-[10px] font-bold text-brand-muted px-1.5 py-0.2 bg-brand-surface2 rounded';
+      countBadge.textContent = `${cuotas.length}`;
+      topRow.appendChild(countBadge);
+    }
+
+    cell.appendChild(topRow);
+
+    const cuotasContainer = document.createElement('div');
+    cuotasContainer.className = 'flex flex-col gap-1.5 flex-1 overflow-hidden';
+
+    const maxVisible = 2;
+    cuotas.slice(0, maxVisible).forEach(c => {
+      const card = createCuotaMiniCard(c);
+      cuotasContainer.appendChild(card);
+    });
+
+    if (cuotas.length > maxVisible) {
+      const extraCount = cuotas.length - maxVisible;
+      const moreBtn = document.createElement('button');
+      moreBtn.type = 'button';
+      moreBtn.className = 'text-[10px] font-bold text-brand-blue hover:text-brand-blue-hover text-left py-0.5 px-1 rounded hover:bg-blue-50 transition-colors cursor-pointer';
+      moreBtn.textContent = `+${extraCount} más...`;
+      moreBtn.onclick = (e) => {
+        e.stopPropagation();
+        openCuotaModal(cuotas[0]);
+      };
+      cuotasContainer.appendChild(moreBtn);
+    }
+
+    cell.appendChild(cuotasContainer);
+    return cell;
+  }
+
+  function createCuotaMiniCard(c) {
+    const card = document.createElement('div');
+    
+    let statusClass = 'card-status-proximo';
+    let dotColor = '#3B82F6';
+
+    if (c.estado === 'pagado') {
+      statusClass = 'card-status-pagado';
+      dotColor = '#10B981';
+    } else if (c.estado === 'vencido') {
+      statusClass = 'card-status-vencido';
+      dotColor = '#EF4444';
+    }
+
+    card.className = `p-1.5 rounded-lg border text-[11px] leading-tight cursor-pointer transition-all shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-sm hover:-translate-y-0.5 ${statusClass}`;
+    card.title = `Cliente: ${c.cliente_nombre}\nInversor: ${c.inversor_nombre}\nCuota ${c.numero_cuota}/${c.total_cuotas} - S/ ${formatMoney(c.monto_cuota)}`;
+
+    card.innerHTML = `
+      <div class="flex items-center gap-1.5 font-bold truncate">
+        <span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${dotColor}"></span>
+        <span class="truncate">${c.cliente_nombre}</span>
+      </div>
+      <div class="text-[10px] opacity-75 mt-0.5 pl-3">
+        Cuota ${c.numero_cuota}/${c.total_cuotas}
+      </div>
+      <div class="text-[11px] font-extrabold pl-3 mt-0.5">
+        S/ ${formatMoney(c.monto_cuota)}
+      </div>
+    `;
+
+    card.onclick = () => openCuotaModal(c);
+    return card;
+  }
+
+  // ========================================================
+  // RENDER UPCOMING PAYMENTS (RIGHT LIST)
+  // ========================================================
+  function renderUpcomingList() {
+    upcomingListEl.innerHTML = '';
+
+    let listCuotas = ALL_CUOTAS.filter(c => matchesFilterAndSearch(c));
+
+    if (!showAllUpcoming) {
+      const curMonthPrefix = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+      const thisMonthCuotas = listCuotas.filter(c => c.fecha_vencimiento.startsWith(curMonthPrefix));
+      
+      if (thisMonthCuotas.length > 0) {
+        listCuotas = thisMonthCuotas;
+      } else {
+        listCuotas = listCuotas.slice(0, 10);
+      }
+    }
+
+    if (listCuotas.length === 0) {
+      upcomingListEl.innerHTML = `
+        <div class="py-12 text-center text-brand-muted">
+          <i class="ri-calendar-line text-3xl opacity-40 mb-2 block"></i>
+          <p class="text-[13px] font-semibold">No se encontraron pagos</p>
+          <p class="text-[11px] text-brand-muted/70 mt-1">Prueba cambiando el mes o los filtros.</p>
+        </div>
+      `;
+      return;
+    }
+
+    listCuotas.forEach(c => {
+      const row = document.createElement('div');
+      row.className = 'py-3.5 flex items-center justify-between gap-3 hover:bg-brand-surface2/60 px-2 rounded-xl transition-all cursor-pointer group';
+      
+      const dateObj = parseDateYMD(c.fecha_vencimiento);
+      const dayName = dayNamesShort[dateObj.getDay()];
+      const dayNumStr = String(dateObj.getDate()).padStart(2, '0');
+      const monthAbbr = monthNames[dateObj.getMonth()].slice(0, 3);
+
+      let badgeHtml = '';
+      if (c.estado === 'pagado') {
+        badgeHtml = `<span class="badge-pill-pagado">Pagado</span>`;
+      } else if (c.estado === 'vencido') {
+        badgeHtml = `<span class="badge-pill-vencido">Vencido</span>`;
+      } else {
+        badgeHtml = `<span class="badge-pill-proximo">Por pagar</span>`;
+      }
+
+      row.innerHTML = `
+        <!-- Date Block -->
+        <div class="flex items-center gap-3 shrink-0">
+          <div class="w-12 text-center">
+            <p class="text-[11px] font-semibold text-brand-muted uppercase leading-none">${dayName}</p>
+            <p class="text-[20px] font-extrabold text-brand-navy leading-tight tracking-tight my-0.5">${dayNumStr}</p>
+            <p class="text-[11px] font-semibold text-brand-muted capitalize leading-none">${monthAbbr}</p>
+          </div>
+          <div class="w-px h-10 bg-brand-border"></div>
+        </div>
+
+        <!-- Middle Info: Client, INVERSOR, Loan & Cuota -->
+        <div class="flex-1 min-w-0 pr-2">
+          <p class="font-extrabold text-[13.5px] text-brand-navy truncate group-hover:text-brand-blue transition-colors">
+            ${c.cliente_nombre}
+          </p>
+          
+          <!-- Inversor Name (explicitly requested) -->
+          <div class="text-[11.5px] text-brand-muted flex items-center gap-1.5 mt-0.5 truncate">
+            <i class="ri-briefcase-4-line text-brand-gold text-[12px] shrink-0"></i>
+            <span class="text-brand-muted">Inversor:</span>
+            <strong class="text-brand-text font-semibold truncate">${c.inversor_nombre}</strong>
+          </div>
+
+          <div class="text-[11px] text-brand-muted/80 mt-0.5">
+            Préstamo #${String(c.prestamo_id).padStart(4, '0')} · Cuota ${c.numero_cuota}/${c.total_cuotas}
+          </div>
+        </div>
+
+        <!-- Right Side: Status Badge & Amount -->
+        <div class="text-right shrink-0">
+          <div>${badgeHtml}</div>
+          <p class="text-[14px] font-extrabold text-brand-navy mt-1 tracking-tight">
+            S/ ${formatMoney(c.monto_cuota)}
+          </p>
+        </div>
+      `;
+
+      row.onclick = () => openCuotaModal(c);
+      upcomingListEl.appendChild(row);
+    });
+  }
+
+  // ========================================================
+  // DETAIL MODAL LOGIC
+  // ========================================================
+  function openCuotaModal(c) {
+    selectedCuota = c;
+
+    document.getElementById('modal-cuota-title').textContent = `Detalle de Cuota #${c.numero_cuota}`;
+    document.getElementById('modal-cuota-subtitle').textContent = `Préstamo #${String(c.prestamo_id).padStart(4, '0')} · ${c.tipo_pago ? c.tipo_pago.toUpperCase() : 'MENSUAL'}`;
+    document.getElementById('modal-monto-cuota').textContent = `S/ ${formatMoney(c.monto_cuota)}`;
+    document.getElementById('modal-cuota-num').textContent = `Cuota ${c.numero_cuota} de ${c.total_cuotas}`;
+
+    const badgeEl = document.getElementById('modal-estado-badge');
+    if (c.estado === 'pagado') {
+      badgeEl.innerHTML = `<span class="badge-pill-pagado"><i class="ri-checkbox-circle-fill"></i> Pagada</span>`;
+    } else if (c.estado === 'vencido') {
+      badgeEl.innerHTML = `<span class="badge-pill-vencido"><i class="ri-error-warning-fill"></i> Vencida</span>`;
+    } else {
+      badgeEl.innerHTML = `<span class="badge-pill-proximo"><i class="ri-time-fill"></i> Por Pagar</span>`;
+    }
+
+    document.getElementById('modal-cliente-nombre').textContent = c.cliente_nombre;
+    document.getElementById('modal-cliente-dni').textContent = c.cliente_dni || 'No registrado';
+    document.getElementById('modal-cliente-tel').textContent = c.cliente_telefono || 'No registrado';
+
+    const wspLink = document.getElementById('modal-cliente-wsp');
+    if (c.cliente_telefono && c.cliente_telefono.trim().length >= 8) {
+      const cleanPhone = c.cliente_telefono.replace(/\D/g, '');
+      wspLink.href = `https://wa.me/51${cleanPhone}?text=${encodeURIComponent(`Hola ${c.cliente_nombre}, le saludamos de Financiera Guzmán respecto a la cuota #${c.numero_cuota} de su préstamo.`)}`;
+      wspLink.classList.remove('hidden');
+    } else {
+      wspLink.classList.add('hidden');
+    }
+
+    document.getElementById('modal-inversor-nombre').textContent = c.inversor_nombre;
+
+    document.getElementById('modal-capital').textContent = `S/ ${formatMoney(c.capital)}`;
+    document.getElementById('modal-interes').textContent = `S/ ${formatMoney(c.interes)}`;
+    document.getElementById('modal-saldo').textContent = `S/ ${formatMoney(c.saldo)}`;
+
+    const dateObj = parseDateYMD(c.fecha_vencimiento);
+    document.getElementById('modal-fecha-venc').textContent = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
+
+    const fechaPagoContainer = document.getElementById('modal-fecha-pago-container');
+    if (c.fecha_pago) {
+      const pDateObj = parseDateYMD(c.fecha_pago);
+      document.getElementById('modal-fecha-pago').textContent = `${String(pDateObj.getDate()).padStart(2, '0')}/${String(pDateObj.getMonth() + 1).padStart(2, '0')}/${pDateObj.getFullYear()}`;
+      fechaPagoContainer.classList.remove('hidden');
+    } else {
+      fechaPagoContainer.classList.add('hidden');
+    }
+
+    const pagoSection = document.getElementById('modal-pago-section');
+    if (c.estado === 'pagado') {
+      pagoSection.classList.add('hidden');
+    } else {
+      pagoSection.classList.remove('hidden');
+      document.getElementById('modal-pago-obs').value = '';
+    }
+
+    document.getElementById('modal-link-cronograma').href = `/dashboard/prestamos/${c.prestamo_id}/cronograma`;
+
+    modal.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      modal.classList.remove('opacity-0');
+      modal.firstElementChild.classList.remove('scale-95');
+    });
+  }
+
+  function closeModal() {
+    modal.classList.add('opacity-0');
+    modal.firstElementChild.classList.add('scale-95');
+    setTimeout(() => {
+      modal.classList.add('hidden');
+      selectedCuota = null;
+    }, 200);
+  }
+
+  // ========================================================
+  // RECORD PAYMENT DIRECTLY FROM CALENDAR
+  // ========================================================
+  const btnRegistrarPago = document.getElementById('btn-registrar-pago-modal');
+  btnRegistrarPago.onclick = async () => {
+    if (!selectedCuota) return;
+
+    const obs = document.getElementById('modal-pago-obs').value.trim();
+    btnRegistrarPago.disabled = true;
+    btnRegistrarPago.innerHTML = `<i class="ri-loader-4-line animate-spin text-[14px]"></i> Procesando...`;
+
+    try {
+      const res = await fetch(`/dashboard/prestamos/${selectedCuota.prestamo_id}/cuotas/${selectedCuota.id}/pagar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ observacion: obs || 'Pago registrado desde calendario' })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        selectedCuota.estado = 'pagado';
+        selectedCuota.fecha_pago = new Date().toISOString().split('T')[0];
+        
+        const item = ALL_CUOTAS.find(x => x.id === selectedCuota.id);
+        if (item) {
+          item.estado = 'pagado';
+          item.fecha_pago = selectedCuota.fecha_pago;
+        }
+
+        closeModal();
+        renderCalendar();
+      } else {
+        alert(data.message || 'Error al registrar el pago');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error de conexión al procesar el pago.');
+    } finally {
+      btnRegistrarPago.disabled = false;
+      btnRegistrarPago.innerHTML = `Confirmar Pago`;
+    }
+  };
+
+  // ========================================================
+  // MONTH PICKER DROPDOWN LOGIC
+  // ========================================================
+  function populateMonthPicker() {
+    pickerYearDisplay.textContent = pickerYear;
+    monthButtonsContainer.innerHTML = '';
+
+    monthNames.forEach((m, idx) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      const isSelected = (idx === currentMonth && pickerYear === currentYear);
+      btn.className = `py-1.5 px-2 rounded-xl text-[12px] font-semibold transition-all cursor-pointer ${
+        isSelected ? 'bg-brand-blue text-white' : 'hover:bg-brand-surface2 text-brand-navy'
+      }`;
+      btn.textContent = m.slice(0, 3);
+      btn.onclick = () => {
+        currentMonth = idx;
+        currentYear = pickerYear;
+        monthPickerDropdown.classList.add('hidden');
+        renderCalendar();
+      };
+      monthButtonsContainer.appendChild(btn);
+    });
+  }
+
+  // ========================================================
+  // EVENT LISTENERS
+  // ========================================================
+  document.getElementById('btn-prev-month').onclick = () => {
+    if (currentMonth === 0) {
+      currentMonth = 11;
+      currentYear--;
+    } else {
+      currentMonth--;
+    }
+    pickerYear = currentYear;
+    renderCalendar();
+  };
+
+  document.getElementById('btn-next-month').onclick = () => {
+    if (currentMonth === 11) {
+      currentMonth = 0;
+      currentYear++;
+    } else {
+      currentMonth++;
+    }
+    pickerYear = currentYear;
+    renderCalendar();
+  };
+
+  document.getElementById('btn-today').onclick = () => {
+    currentYear = today.getFullYear();
+    currentMonth = today.getMonth();
+    pickerYear = currentYear;
+    renderCalendar();
+  };
+
+  const btnMonthLabel = document.getElementById('btn-month-label');
+  btnMonthLabel.onclick = (e) => {
+    e.stopPropagation();
+    pickerYear = currentYear;
+    populateMonthPicker();
+    monthPickerDropdown.classList.toggle('hidden');
+  };
+
+  document.getElementById('picker-prev-year').onclick = (e) => {
+    e.stopPropagation();
+    pickerYear--;
+    populateMonthPicker();
+  };
+
+  document.getElementById('picker-next-year').onclick = (e) => {
+    e.stopPropagation();
+    pickerYear++;
+    populateMonthPicker();
+  };
+
+  document.addEventListener('click', (e) => {
+    if (!monthPickerDropdown.contains(e.target) && e.target !== btnMonthLabel) {
+      monthPickerDropdown.classList.add('hidden');
+    }
+  });
+
+  // Filter Buttons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.remove('filter-btn-active');
+        b.classList.add('text-brand-muted');
+      });
+      btn.classList.add('filter-btn-active');
+      btn.classList.remove('text-brand-muted');
+      
+      activeFilter = btn.dataset.filter;
+      renderCalendar();
+    };
+  });
+
+  // Search Input
+  searchInputEl.oninput = (e) => {
+    searchQuery = e.target.value;
+    if (searchQuery.trim().length > 0) {
+      clearSearchBtn.classList.remove('hidden');
+      clearSearchBtn.classList.add('flex');
+    } else {
+      clearSearchBtn.classList.add('hidden');
+      clearSearchBtn.classList.remove('flex');
+    }
+    renderCalendar();
+  };
+
+  clearSearchBtn.onclick = () => {
+    searchInputEl.value = '';
+    searchQuery = '';
+    clearSearchBtn.classList.add('hidden');
+    clearSearchBtn.classList.remove('flex');
+    renderCalendar();
+  };
+
+  // Toggle Ver Todos in Sidebar
+  toggleVerTodosBtn.onclick = () => {
+    showAllUpcoming = !showAllUpcoming;
+    verTodosText.textContent = showAllUpcoming ? 'Ver menos' : 'Ver todos';
+    renderUpcomingList();
+  };
+
+  // Modal Close Handlers
+  btnCerrarModal.onclick = closeModal;
+  btnCerrarModalFooter.onclick = closeModal;
+  modal.onclick = (e) => {
+    if (e.target === modal) closeModal();
+  };
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // INITIAL RENDER
+  renderCalendar();
+
+})();
+</script>
