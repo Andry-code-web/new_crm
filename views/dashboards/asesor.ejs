@@ -1,4 +1,4 @@
-﻿<%- include('../partials/sidebar_asesor') %>
+<%- include('../partials/sidebar_asesor') %>
 
   <main class="flex-1 h-screen overflow-y-auto bg-brand-bg relative flex flex-col min-w-0">
 
@@ -341,7 +341,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
     <script>
       (function () {
-        const data = <% - chartData %>;
+        const data = <%- chartData %>;
         if (!data || !data.length) return;
         const ctx = document.getElementById('chartAsesor');
         if (!ctx) return;

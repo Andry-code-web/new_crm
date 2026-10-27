@@ -157,14 +157,14 @@ exports.renderAsesorDashboard = async (req, res) => {
       `, [asesorId]);
 
       kpi = {
-        total:       stats.total       || 0,
-        activos:     stats.activos     || 0,
-        pendientes:  stats.pendientes  || 0,
-        vencidos:    stats.vencidos    || 0,
-        pagados:     stats.pagados     || 0,
-        montoTotal:  fmt(stats.montoTotal),
+        total: stats.total || 0,
+        activos: stats.activos || 0,
+        pendientes: stats.pendientes || 0,
+        vencidos: stats.vencidos || 0,
+        pagados: stats.pagados || 0,
+        montoTotal: fmt(stats.montoTotal),
         interesTotal: fmt(stats.interesTotal),
-        clientes:    stats.clientes    || 0,
+        clientes: stats.clientes || 0,
         cuotasPorVencer: cpv.length
       };
       recentPrestamos = recent;
@@ -581,7 +581,7 @@ exports.activarPrestamo = async (req, res) => {
 exports.registrarCronograma = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Verificar si ya existe el cronograma
     const [existing] = await pool.execute('SELECT COUNT(*) as count FROM cuotas WHERE prestamo_id = ?', [id]);
     if (existing[0].count > 0) {
@@ -626,7 +626,7 @@ exports.registrarCronograma = async (req, res) => {
     const capFijoAleman = monto / totalPeriodos;
 
     let saldo = monto;
-    
+
     // Calcular fechas a partir de fecha_registro
     let baseDate = new Date(p.fecha_registro);
     if (isNaN(baseDate.getTime())) {
@@ -681,13 +681,13 @@ exports.registrarCronograma = async (req, res) => {
       }
 
       cuotasParaInsertar.push([
-        id, 
-        i, 
-        fechaVencimiento, 
-        cuotaCalc.toFixed(2), 
-        capMes.toFixed(2), 
-        intMes.toFixed(2), 
-        Math.max(0, saldoFin).toFixed(2), 
+        id,
+        i,
+        fechaVencimiento,
+        cuotaCalc.toFixed(2),
+        capMes.toFixed(2),
+        intMes.toFixed(2),
+        Math.max(0, saldoFin).toFixed(2),
         'pendiente'
       ]);
 
@@ -714,7 +714,7 @@ exports.renderCronograma = async (req, res) => {
     // Datos del préstamo + cliente
     const [prestamoRows] = await pool.execute(`
       SELECT p.*, c.nombre AS cliente_nombre, c.telefono AS cliente_telefono,
-             i.nombre AS inversor_nombre
+             i.nombre AS inversor_nombre, i.telefono AS inversor_telefono, i.dni AS inversor_dni
       FROM prestamos p
       LEFT JOIN clientes c ON p.cliente_id = c.id
       LEFT JOIN inversionistas i ON p.inversor_id = i.id
@@ -969,8 +969,8 @@ exports.registrarAmortizacion = async (req, res) => {
       // Eliminar cuotas pendientes adicionales
       if (cuotasPendientes.length > 1) {
         await pool.execute(
-          'DELETE FROM cuotas WHERE prestamo_id = ? AND id != ? AND estado != "pagada"',
-          [id, primeraPend.id]
+          'DELETE FROM cuotas WHERE prestamo_id = ? AND id != ? AND estado != ?',
+          [id, primeraPend.id, 'pagada']
         );
       }
 
@@ -1246,6 +1246,8 @@ exports.renderCalendario = async (req, res) => {
         c.dni AS cliente_dni,
         i.id AS inversor_id,
         COALESCE(i.nombre, 'Sin inversor asignado') AS inversor_nombre,
+        i.telefono AS inversor_telefono,
+        i.dni AS inversor_dni,
         p.monto AS prestamo_monto,
         p.interes AS prestamo_interes,
         p.tipo_pago,
@@ -1294,6 +1296,8 @@ exports.renderCalendario = async (req, res) => {
         cliente_dni: c.cliente_dni,
         inversor_id: c.inversor_id,
         inversor_nombre: c.inversor_nombre,
+        inversor_telefono: c.inversor_telefono,
+        inversor_dni: c.inversor_dni,
         prestamo_monto: Number(c.prestamo_monto || 0),
         tipo_pago: c.tipo_pago,
         plazo_meses: c.plazo_meses
@@ -1333,7 +1337,7 @@ exports.generarAmortizacionSimulacionPdf = async (req, res) => {
     const [prestRows] = await pool.query(`
       SELECT p.*,
              c.nombre AS cliente_nombre, c.dni AS cliente_dni, c.telefono AS cliente_telefono,
-             i.nombre AS inversor_nombre
+             i.nombre AS inversor_nombre, i.telefono AS inversor_telefono, i.dni AS inversor_dni
       FROM prestamos p
       LEFT JOIN clientes c ON p.cliente_id = c.id
       LEFT JOIN inversionistas i ON p.inversor_id = i.id
@@ -1660,8 +1664,8 @@ exports.generarAmortizacionSimulacionPdf = async (req, res) => {
       .text('CRONOGRAMA DE PAGOS PROYECTADO', { underline: false });
     doc.moveDown(0.6);
 
-    const colX =      [50, 75, 140, 208, 273, 333, 400, 472];
-    const colWidths = [25, 65,  68,  65,  60,  67,  72,  73];
+    const colX = [50, 75, 140, 208, 273, 333, 400, 472];
+    const colWidths = [25, 65, 68, 65, 60, 67, 72, 73];
 
     const drawTableHeader = () => {
       let headerY = doc.y;
@@ -1750,7 +1754,7 @@ exports.generarAmortizacionComprobantePdf = async (req, res) => {
     const [prestRows] = await pool.query(`
       SELECT p.*,
              c.nombre AS cliente_nombre, c.dni AS cliente_dni, c.telefono AS cliente_telefono,
-             i.nombre AS inversor_nombre
+             i.nombre AS inversor_nombre, i.telefono AS inversor_telefono, i.dni AS inversor_dni
       FROM prestamos p
       LEFT JOIN clientes c ON p.cliente_id = c.id
       LEFT JOIN inversionistas i ON p.inversor_id = i.id
@@ -1894,8 +1898,8 @@ exports.generarAmortizacionComprobantePdf = async (req, res) => {
       .text('CRONOGRAMA DE PAGOS RESULTANTE', { underline: false });
     doc.moveDown(0.6);
 
-    const colX =      [50, 75, 140, 208, 273, 333, 400, 472];
-    const colWidths = [25, 65,  68,  65,  60,  67,  72,  73];
+    const colX = [50, 75, 140, 208, 273, 333, 400, 472];
+    const colWidths = [25, 65, 68, 65, 60, 67, 72, 73];
 
     const drawTableHeader = () => {
       let headerY = doc.y;
