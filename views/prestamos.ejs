@@ -196,10 +196,19 @@
               </td>
               <td class="py-3.5 px-5 text-brand-muted"><%= fecha %></td>
               <td class="py-3.5 px-5 text-center">
-                <button type="button" class="btn-ver-detalles inline-flex items-center justify-center w-8 h-8 rounded-full bg-brand-surface hover:bg-brand-blue-light hover:text-brand-blue transition-colors text-brand-muted" 
-                  data-prestamo='<%= JSON.stringify({ id: p.id, cliente: p.cliente_nombre || "—", inversor: p.inversor_nombre || "—", asesor: (user && user.nombre) || "Asesor", estado: p.estado, tiene_cronograma: p.tiene_cronograma || 0, cliente_telefono: p.cliente_telefono || "" }) %>'>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                </button>
+                <div class="inline-flex items-center justify-center gap-1.5">
+                  <button type="button" class="btn-ver-detalles inline-flex items-center justify-center w-8 h-8 rounded-full bg-brand-surface hover:bg-brand-blue-light hover:text-brand-blue transition-colors text-brand-muted" 
+                    data-prestamo='<%= JSON.stringify({ id: p.id, cliente: p.cliente_nombre || "—", inversor: p.inversor_nombre || "—", asesor: (user && user.nombre) || "Asesor", estado: p.estado, tiene_cronograma: p.tiene_cronograma || 0, cliente_telefono: p.cliente_telefono || "" }) %>'
+                    title="Ver detalles">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                  <button type="button" class="btn-eliminar-prestamo inline-flex items-center justify-center w-8 h-8 rounded-full bg-brand-surface hover:bg-red-50 hover:text-brand-danger transition-colors text-brand-muted"
+                    data-id="<%= p.id %>"
+                    data-info="Préstamo #<%= p.id %> (<%= p.cliente_nombre || 'Cliente' %>)"
+                    title="Eliminar préstamo">
+                    <i class="ri-delete-bin-line text-[16px]"></i>
+                  </button>
+                </div>
               </td>
             </tr>
             <% }) %>
@@ -263,6 +272,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 <script>
   const searchInput = document.getElementById('search-input');
   if (searchInput) {
@@ -448,5 +458,90 @@
       this.disabled = false;
       closeModal();
     }
+  });
+
+  // Lógica para eliminar préstamo
+  document.querySelectorAll('.btn-eliminar-prestamo').forEach(btn => {
+    btn.addEventListener('click', async function(e) {
+      e.stopPropagation();
+      const id = this.getAttribute('data-id');
+      const info = this.getAttribute('data-info') || `Préstamo #${id}`;
+
+      const confirmResult = await Swal.fire({
+        title: '¿Eliminar préstamo?',
+        html: `¿Estás seguro de que deseas eliminar permanentemente el <b>${info}</b>?<br><br><span class="text-[13px] text-gray-500">Se eliminará el préstamo junto con sus cuotas del cronograma y amortizaciones asociadas. Esta acción no se puede revertir.</span>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#EF4444',
+        cancelButtonColor: '#0B162C',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+        customClass: {
+          popup: 'rounded-[20px] shadow-2xl',
+          confirmButton: 'rounded-xl px-5 py-2.5 font-semibold text-[13px]',
+          cancelButton: 'rounded-xl px-5 py-2.5 font-semibold text-[13px]'
+        }
+      });
+
+      if (!confirmResult.isConfirmed) return;
+
+      Swal.fire({
+        title: 'Eliminando...',
+        text: 'Por favor espera un momento.',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      try {
+        const response = await fetch(`/dashboard/prestamos/${id}/eliminar`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+        const data = await response.json();
+
+        if (data.success) {
+          await Swal.fire({
+            title: '¡Eliminado!',
+            text: data.message || 'El préstamo ha sido eliminado correctamente.',
+            icon: 'success',
+            confirmButtonColor: '#0B162C',
+            customClass: {
+              popup: 'rounded-[20px] shadow-2xl',
+              confirmButton: 'rounded-xl px-5 py-2.5 font-semibold text-[13px]'
+            }
+          });
+          window.location.reload();
+        } else {
+          Swal.fire({
+            title: 'Error',
+            text: data.message || 'No se pudo eliminar el préstamo.',
+            icon: 'error',
+            confirmButtonColor: '#0B162C',
+            customClass: {
+              popup: 'rounded-[20px] shadow-2xl',
+              confirmButton: 'rounded-xl px-5 py-2.5 font-semibold text-[13px]'
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error al eliminar préstamo:', error);
+        Swal.fire({
+          title: 'Error de conexión',
+          text: 'No se pudo comunicar con el servidor.',
+          icon: 'error',
+          confirmButtonColor: '#0B162C',
+          customClass: {
+            popup: 'rounded-[20px] shadow-2xl',
+            confirmButton: 'rounded-xl px-5 py-2.5 font-semibold text-[13px]'
+          }
+        });
+      }
+    });
   });
 </script>

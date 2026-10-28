@@ -578,6 +578,56 @@ exports.activarPrestamo = async (req, res) => {
   }
 };
 
+exports.eliminarPrestamo = async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    const { id } = req.params;
+
+    // Verificar si el préstamo existe
+    const [prestamos] = await connection.query('SELECT * FROM prestamos WHERE id = ?', [id]);
+    if (prestamos.length === 0) {
+      return res.status(404).json({ success: false, message: 'El préstamo no existe o ya fue eliminado.' });
+    }
+
+    const p = prestamos[0];
+
+    // Si es asesor, verificar que el préstamo le pertenezca
+    if (req.session.role === 'asesor') {
+      const [asesorRows] = await connection.query('SELECT id FROM asesores WHERE user_id = ?', [req.session.userId]);
+      if (asesorRows.length === 0 || p.asesor_id !== asesorRows[0].id) {
+        return res.status(403).json({ success: false, message: 'No tienes permiso para eliminar este préstamo.' });
+      }
+    }
+
+    await connection.beginTransaction();
+
+    // Eliminar amortizaciones asociadas
+    await connection.query('DELETE FROM amortizaciones WHERE prestamo_id = ?', [id]);
+
+    // Eliminar cuotas asociadas (cascade safety)
+    await connection.query('DELETE FROM cuotas WHERE prestamo_id = ?', [id]);
+
+    // Eliminar el préstamo
+    await connection.query('DELETE FROM prestamos WHERE id = ?', [id]);
+
+    await connection.commit();
+
+    if (req.xhr || req.headers.accept?.includes('json') || req.is('json')) {
+      return res.json({ success: true, message: 'Préstamo eliminado correctamente.' });
+    }
+    return res.redirect('/dashboard/prestamos?success=' + encodeURIComponent('Préstamo eliminado correctamente.'));
+  } catch (error) {
+    await connection.rollback();
+    console.error('Error al eliminar préstamo:', error);
+    if (req.xhr || req.headers.accept?.includes('json') || req.is('json')) {
+      return res.status(500).json({ success: false, message: 'Error al eliminar el préstamo: ' + error.message });
+    }
+    return res.redirect('/dashboard/prestamos?error=' + encodeURIComponent('Error al eliminar el préstamo.'));
+  } finally {
+    connection.release();
+  }
+};
+
 exports.registrarCronograma = async (req, res) => {
   try {
     const { id } = req.params;

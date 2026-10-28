@@ -22,6 +22,7 @@ router.get('/calendario', ensureRole(['admin', 'asesor']), dashboardController.r
 router.get('/prestamos',          ensureRole(['admin', 'asesor']), dashboardController.renderPrestamos);
 router.post('/prestamos/registrar', ensureRole(['admin', 'asesor']), dashboardController.registrarPrestamo);
 router.post('/prestamos/:id/activar', ensureRole(['admin']), dashboardController.activarPrestamo);
+router.post('/prestamos/:id/eliminar', ensureRole(['admin', 'asesor']), dashboardController.eliminarPrestamo);
 router.post('/prestamos/:id/cronograma', ensureRole(['admin', 'asesor']), dashboardController.registrarCronograma);
 router.get('/prestamos/:id/cronograma', ensureRole(['admin', 'asesor']), dashboardController.renderCronograma);
 router.post('/prestamos/:id/cuotas/:cuotaId/pagar', ensureRole(['admin', 'asesor']), dashboardController.registrarPago);
